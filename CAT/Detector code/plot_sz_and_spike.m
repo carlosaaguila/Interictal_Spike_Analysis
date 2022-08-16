@@ -13,6 +13,7 @@ addpath(genpath('/Users/carlosaguila/Desktop/SSH MODEL/Projects/FC_toolbox/toolb
 load('gdf_array_cats.mat')
 load('Exp1Unfilt.mat') %change for cat
 load('sequences.mat')
+load('catspikes.mat')
 
 cat1 = allEventData'; %change for cat
 
