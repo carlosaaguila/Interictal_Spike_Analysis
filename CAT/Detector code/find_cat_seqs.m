@@ -1,4 +1,5 @@
-
+addpath('/Users/carlosaguila/Desktop/SSH MODEL/Projects/FC_toolbox/toolbox/spike_sequence_stuff/')
+load('gdf_array_cats.mat')
 gdf_c1 = gdf_array_cats{1};
 gdf_c2 = gdf_array_cats{2};
 gdf_c3 = gdf_array_cats{3};
@@ -22,6 +23,14 @@ gdf_c2 = sortrows(gdf_c2,2);
 gdf_c3 = sortrows(gdf_c3,2);
 gdf_c4 = sortrows(gdf_c4,2);
 gdf_c5 = sortrows(gdf_c5,2);
+
+fs = 2000;
+nchns = {};
+nchns{1}=48;
+nchns{2}=48;
+nchns{3}=64;
+nchns{4}=64;
+nchns{5}=64;
 
 [~,~,~,~,~,seqs_c1] = build_sequences(gdf_c1,nchns{1},fs);
 [~,~,~,~,~,seqs_c2] = build_sequences(gdf_c2,nchns{2},fs);
