@@ -45,8 +45,9 @@ to_plot = zeros(48,1);
 to_plot(1:32,:) = 1; % grid only eeg
 
 %% plot
-show_eeg_and_spikes_select(cat1,gdf_c1,2000,to_plot,true)
-xlim([2679297 2705257])
+fs=2000;
+xlimval = [2669000/fs 2705257/fs];
+show_eeg_and_spikes_OG(cat1,gdf_c1,2000,xlimval)
 
 %go to sequences (seqs_c1) --> plot in those xlims to figure out where it
 %is that you need to look at for seizures....
