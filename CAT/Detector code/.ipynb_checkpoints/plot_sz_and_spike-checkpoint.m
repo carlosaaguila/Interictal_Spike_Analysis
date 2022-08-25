@@ -11,11 +11,11 @@ addpath(genpath('/Users/carlosaguila/Desktop/SSH MODEL/Projects/FC_toolbox/toolb
 
 
 load('gdf_array_cats.mat')
-load('Exp5Unfilt.mat') %change for cat
+load('Exp3Unfilt.mat') %change for cat
 load('sequences.mat')
 load('catspikes.mat')
 
-cat5 = allEventData'; %change for cat
+cat3 = allEventData'; %change for cat
 
 gdf_c1 = gdf_array_cats{1};
 gdf_c2 = gdf_array_cats{2};
@@ -41,16 +41,14 @@ gdf_c3 = sortrows(gdf_c3,2);
 gdf_c4 = sortrows(gdf_c4,2);
 gdf_c5 = sortrows(gdf_c5,2);
 
-
-
 %% adjust for the cat could have extra electrodes
 to_plot = zeros(64,1);
 to_plot(1:32,:) = 1; % grid only eeg
 
 %% plot
 fs=2000;
-xlimval = [2500 2700];
-show_eeg_and_spikes_OG(cat5,gdf_c5,fs,xlimval)
+xlimval = [2850 3150];
+show_eeg_and_spikes_OG(cat3,gdf_c3,fs,xlimval)
 
 %go to sequences (seqs_c1) --> plot in those xlims to figure out where it
 %is that you need to look at for seizures....
