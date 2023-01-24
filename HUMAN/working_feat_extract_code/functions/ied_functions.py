@@ -337,3 +337,20 @@ def average_waveform_hifreq(spike_select, spike_values):
         axs[i].set_title("Average Waveform for Channel {}, Freq = {}/1000".format(int(high_chs[i]), len(waveforms[i])))
 
     return fig, avg_waveforms
+
+def load_rid(ptname, data_directory):
+    ptids = pd.read_csv(data_directory + '/pt_data/all_ptids.csv')
+    rid = ptids['r_id'].loc[ptids['hup_id'] == ptname].astype('string')
+    rid = np.array(rid)
+    dkt_directory = data_directory + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-research3T_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.csv'.format(rid[0],rid[0])
+    brain_df = pd.read_csv(dkt_directory)
+    return rid[0], brain_df
+
+def load_ptall(ptname, data_directory):
+    """ load_ptall combines all the functions together, loading both the RID and the IEEG data just using the Patient NAME
+        Will create a dataframe, and a spike object containing: values, fs, chlabels, 
+    """
+    spike = load_pt(ptname,data_directory)
+    rid, brain_df = load_rid(ptname, data_directory)
+
+    return spike, brain_df, [ptname,rid]
