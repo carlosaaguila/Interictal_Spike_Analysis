@@ -344,6 +344,7 @@ def load_rid(ptname, data_directory):
     rid = np.array(rid)
     dkt_directory = data_directory + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-research3T_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.csv'.format(rid[0],rid[0])
     brain_df = pd.read_csv(dkt_directory)
+    brain_df['name'] = brain_df['name'].astype(str) + '-CAR'
     return rid[0], brain_df
 
 def load_ptall(ptname, data_directory):
@@ -354,3 +355,37 @@ def load_ptall(ptname, data_directory):
     rid, brain_df = load_rid(ptname, data_directory)
 
     return spike, brain_df, [ptname,rid]
+
+def value_basis(spike, brain_df, roi):
+    """
+    Function that takes in all values, the DKT atlas dataframe, and a region of interest (ROI)
+    returns a tailored, truncated list of the all the values given a specific ROI
+    """
+    roi_ch = brain_df.loc[brain_df['label']== roi] #creates truncated dataframe of ROI labels
+    roi_chlist = np.array(roi_ch['name']) #converts DF to array
+
+    #finds the index of where to find the channel
+    idx_roich = []
+    for ch in roi_chlist:
+        x = np.where(spike.chlabels[0][0] == ch)[0]
+        idx_roich.append(x)
+
+    idx_roich = [x[0] for x in idx_roich]
+    idx_roich = [x+1 for x in idx_roich]
+    
+    counts,chs = hifreq_ch_spike(spike.select)
+
+    select_oi = []
+    for chroi in idx_roich:
+        idx = np.where(chs == chroi)[0]
+        select_oi.append(idx)
+
+    select_oi = np.concatenate(select_oi)
+    select_oi = [int(x) for x in select_oi]
+    values_oi = []
+    for soi in select_oi:
+        values_oi.append(spike.values[soi])
+
+    based_values = values_oi
+    
+    return based_values
