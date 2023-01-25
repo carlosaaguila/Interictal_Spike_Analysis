@@ -361,7 +361,12 @@ def value_basis(spike, brain_df, roi):
     Function that takes in all values, the DKT atlas dataframe, and a region of interest (ROI)
     returns a tailored, truncated list of the all the values given a specific ROI
     """
-    roi_ch = brain_df.loc[brain_df['label']== roi] #creates truncated dataframe of ROI labels
+    roi_ch = pd.DataFrame()
+    for x in roi:
+        roi_ch = roi_ch.append(brain_df[(brain_df['label'] == x)])
+        #roi_ch = roi_ch.concat([roi_ch, brain_df[(brain_df['label'] == x )]])
+
+    #roi_ch = brain_df.loc[brain_df['label']== roi] #creates truncated dataframe of ROI labels
     roi_chlist = np.array(roi_ch['name']) #converts DF to array
 
     #finds the index of where to find the channel
