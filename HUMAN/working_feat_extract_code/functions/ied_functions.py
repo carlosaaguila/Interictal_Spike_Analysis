@@ -360,6 +360,8 @@ def value_basis(spike, brain_df, roi):
     """
     Function that takes in all values, the DKT atlas dataframe, and a region of interest (ROI)
     returns a tailored, truncated list of the all the values given a specific ROI
+    input: spike object, brain dataframe, roi list
+    output: correlated values, channel number (matlab), indices of channels
     """
     roi_ch = pd.DataFrame()
     for x in roi:
@@ -376,8 +378,8 @@ def value_basis(spike, brain_df, roi):
         idx_roich.append(x)
 
     idx_roich = [x[0] for x in idx_roich]
-    idx_roich = [x+1 for x in idx_roich]
-    
+    chnum = [x+1 for x in idx_roich]
+
     counts,chs = hifreq_ch_spike(spike.select)
 
     select_oi = []
@@ -392,5 +394,6 @@ def value_basis(spike, brain_df, roi):
         values_oi.append(spike.values[soi])
 
     based_values = values_oi
-    
-    return based_values
+
+    return based_values, chnum, idx_roich
+
