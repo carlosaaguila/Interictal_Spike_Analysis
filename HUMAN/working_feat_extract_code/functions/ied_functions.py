@@ -396,4 +396,3 @@ def value_basis(spike, brain_df, roi):
     based_values = values_oi
 
     return based_values, chnum, idx_roich
-
