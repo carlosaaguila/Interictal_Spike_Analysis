@@ -51,5 +51,8 @@ def label_fix(pt, data_directory, threshold = 0.25):
     
     brain_df['name'] = brain_df['name'].str.replace('-CAR','')
     relabeled_df = brain_df.merge(changed[['labels_sorted1', 'percent_assigned1']], left_on=brain_df['name'], right_on=changed['name'], how = 'left', indicator=True)
+    relabeled_df['final_label'] = relabeled_df['labels_sorted1'].fillna(relabeled_df['label'])
+    #relabeled_df['name'] = relabeled_df['name'].astype(str) + '-CAR' #added for this version for our analysis
+
 
     return relabeled_df

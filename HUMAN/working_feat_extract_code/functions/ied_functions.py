@@ -6,6 +6,7 @@ import pandas as pd
 from scipy import signal as sig
 import mat73
 from scipy.io import loadmat
+from os import path
 
 import random
 
@@ -343,7 +344,12 @@ def load_rid(ptname, data_directory):
     ptids = pd.read_csv(data_directory + '/pt_data/all_ptids.csv')
     rid = ptids['r_id'].loc[ptids['hup_id'] == ptname].astype('string')
     rid = np.array(rid)
-    dkt_directory = data_directory + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-research3T_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.csv'.format(rid[0],rid[0])
+
+    if path.exists(data_directory + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-research3T_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.csv'.format(rid[0],rid[0])) == True:
+        dkt_directory = data_directory + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-research3T_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.csv'.format(rid[0],rid[0])
+    if path.exists(data_directory + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-implant01_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.csv'.format(rid[0],rid[0])) == True:
+        dkt_directory = data_directory + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-implant01_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.csv'.format(rid[0],rid[0])
+
     brain_df = pd.read_csv(dkt_directory)
     brain_df['name'] = brain_df['name'].astype(str) + '-CAR'
     return rid[0], brain_df
@@ -368,7 +374,12 @@ def load_rid_forjson(ptname, data_directory):
     ptids = pd.read_csv(data_directory + '/pt_data/all_ptids.csv')
     rid = ptids['r_id'].loc[ptids['hup_id'] == ptname].astype('string')
     rid = np.array(rid)
-    dkt_directory = data_directory + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-research3T_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.csv'.format(rid[0],rid[0])
+
+    if path.exists(data_directory + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-research3T_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.csv'.format(rid[0],rid[0])) == True:
+        dkt_directory = data_directory + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-research3T_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.csv'.format(rid[0],rid[0])
+    if path.exists(data_directory + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-implant01_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.csv'.format(rid[0],rid[0])) == True:
+        dkt_directory = data_directory + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-implant01_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.csv'.format(rid[0],rid[0])
+
     brain_df = pd.read_csv(dkt_directory)
     brain_df['name'] = brain_df['name'].astype(str) + '-CAR'
     return rid[0], brain_df
@@ -383,7 +394,12 @@ def label_fix(pt, data_directory, threshold = 0.25):
     '''
 
     rid, brain_df = load_rid_forjson(pt, data_directory)
-    json_labels = data_directory + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-research3T_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.json'.format(rid,rid)
+    
+    if path.exists(data_directory + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-research3T_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.json'.format(rid,rid)) == True:
+        json_labels = data_directory + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-research3T_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.json'.format(rid,rid)
+    if path.exists(data_directory + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-implant01_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.json'.format(rid,rid)) == True:
+        json_labels = data_directory + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-implant01_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.json'.format(rid,rid)
+
     workinglabels = pd.read_json(json_labels, lines=True)
     empty = (workinglabels[workinglabels['label'] == 'EmptyLabel'])
     empty = unnesting(empty, ['labels_sorted', 'percent_assigned'], axis=0)
@@ -429,8 +445,8 @@ def value_basis(spike, brain_df, roi):
         x = np.where(spike.chlabels[0][0] == ch)[0]
         idx_roich.append(x)
 
-    idx_roich = [x[0] for x in idx_roich]
-    chnum = [x+1 for x in idx_roich]
+    idx_roich = [x[0] for x in idx_roich if np.size(x)!=0]
+    chnum = [x+1 for x in idx_roich if np.size(x)!=0]
 
     counts,chs = hifreq_ch_spike(spike.select)
 
@@ -439,12 +455,17 @@ def value_basis(spike, brain_df, roi):
         idx = np.where(chs == chroi)[0]
         select_oi.append(idx)
 
-    select_oi = np.concatenate(select_oi)
-    select_oi = [int(x) for x in select_oi]
-    values_oi = []
-    for soi in select_oi:
-        values_oi.append(spike.values[soi])
+    if np.size(select_oi) != 0:
+        select_oi = np.concatenate(select_oi)
+        select_oi = [int(x) for x in select_oi]
+        values_oi = []
+        for soi in select_oi:
+            values_oi.append(spike.values[soi])
 
-    based_values = values_oi
+        based_values = values_oi
+    else:
+        select_oi
+        based_values = 0
+        print('NO MATCHES')
 
     return based_values, chnum, idx_roich
