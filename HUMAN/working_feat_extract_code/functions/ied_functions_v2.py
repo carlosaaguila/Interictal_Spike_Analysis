@@ -36,16 +36,16 @@ def load_pt(ptname, data_directory):
     values: spike.values, chlabels: spike.chlabels, fs: spike.fs, soz channels: spike.soz
     """        
 
-    val = mat73.loadmat(data_directory + '/values/values_{}.mat'.format(ptname))
+    val = mat73.loadmat(data_directory[0] + '/values/values_{}.mat'.format(ptname))
     val2 = val['values_all']
-    select_spikes = loadmat(data_directory + '/randi/randi_{}.mat'.format(ptname))
+    select_spikes = loadmat(data_directory[0] + '/randi_lists/randi_{}.mat'.format(ptname))
     select_spikes = select_spikes['select_spikes']
-    ch_labels = loadmat(data_directory + '/chlabels/chlabels_{}.mat'.format(ptname))
+    ch_labels = loadmat(data_directory[0] + '/chlabels/chlabels_{}.mat'.format(ptname))
     ch_labels = ch_labels['ch_labels_all']
-    fs_all = loadmat(data_directory + '/fs/fs_{}.mat'.format(ptname))
+    fs_all = loadmat(data_directory[0] + '/fs/fs_{}.mat'.format(ptname))
     fs_all = fs_all['fs_all']
-    SOZ_chlabels = pd.read_csv(data_directory + '/pt_data/SOZ_channels.csv')
-    pt_all = pd.read_csv(data_directory + '/pt_data/ptname_all.csv') #'/Users/carlosaguila/PycharmProjects/CNT_Interictal_Spikes/Patient/pt_database/pt_data/ptname_all.csv')
+    SOZ_chlabels = pd.read_csv(data_directory[0] + '/pt_data/SOZ_channels.csv')
+    pt_all = pd.read_csv(data_directory[0] + '/pt_data/ptname_all.csv') #'/Users/carlosaguila/PycharmProjects/CNT_Interictal_Spikes/Patient/pt_database/pt_data/ptname_all.csv')
     pt_name = ("'{}'".format(ptname))
     whichpt = pt_all.index[pt_all['ptname'] == pt_name].tolist()
     clean_SOZ_chlabels = prep_clean_soz(SOZ_chlabels)
@@ -340,10 +340,10 @@ def average_waveform_hifreq(spike_select, spike_values):
     return fig, avg_waveforms
 
 def load_rid(ptname, data_directory):
-    ptids = pd.read_csv(data_directory + '/pt_data/all_ptids.csv')
+    ptids = pd.read_csv(data_directory[0] + '/pt_data/all_ptids.csv')
     rid = ptids['r_id'].loc[ptids['hup_id'] == ptname].astype('string')
     rid = np.array(rid)
-    dkt_directory = data_directory + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-research3T_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.csv'.format(rid[0],rid[0])
+    dkt_directory = data_directory[1] + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-research3T_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.csv'.format(rid[0],rid[0])
     brain_df = pd.read_csv(dkt_directory)
     brain_df['name'] = brain_df['name'].astype(str) + '-CAR'
     return rid[0], brain_df
@@ -365,10 +365,10 @@ def unnesting(df, explode, axis):
         return df1.join(df.drop(explode, 1), how='right')
 
 def load_rid_forjson(ptname, data_directory):
-    ptids = pd.read_csv(data_directory + '/pt_data/all_ptids.csv')
+    ptids = pd.read_csv(data_directory[0] + '/pt_data/all_ptids.csv')
     rid = ptids['r_id'].loc[ptids['hup_id'] == ptname].astype('string')
     rid = np.array(rid)
-    dkt_directory = data_directory + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-research3T_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.csv'.format(rid[0],rid[0])
+    dkt_directory = data_directory[1] + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-research3T_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.csv'.format(rid[0],rid[0])
     brain_df = pd.read_csv(dkt_directory)
     brain_df['name'] = brain_df['name'].astype(str) + '-CAR'
     return rid[0], brain_df
@@ -383,7 +383,7 @@ def label_fix(pt, data_directory, threshold = 0.25):
     '''
 
     rid, brain_df = load_rid_forjson(pt, data_directory)
-    json_labels = data_directory + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-research3T_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.json'.format(rid,rid)
+    json_labels = data_directory[1] + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-research3T_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.json'.format(rid,rid)
     workinglabels = pd.read_json(json_labels, lines=True)
     empty = (workinglabels[workinglabels['label'] == 'EmptyLabel'])
     empty = unnesting(empty, ['labels_sorted', 'percent_assigned'], axis=0)
