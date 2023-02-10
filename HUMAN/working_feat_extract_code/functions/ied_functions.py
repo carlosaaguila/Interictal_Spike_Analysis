@@ -30,6 +30,14 @@ def prep_clean_soz(SOZ_ch_labels):
 
     return clean_soz_labels
 
+class Spike():
+    def __init__(self, values,select,chlabels,fs,soz):
+        self.values = values
+        self.select = select
+        self.chlabels = chlabels
+        self.fs = fs
+        self.soz = soz
+
 def load_pt(ptname, data_directory):
     """
     input: ptname, a string containing the name of the patient you want to load. example: 'HUP100'
@@ -46,17 +54,19 @@ def load_pt(ptname, data_directory):
     fs_all = loadmat(data_directory + '/fs/fs_{}.mat'.format(ptname))
     fs_all = fs_all['fs_all']
     SOZ_chlabels = pd.read_csv(data_directory + '/pt_data/SOZ_channels.csv')
-    pt_all = pd.read_csv(data_directory + '/pt_data/ptname_all.csv') #'/Users/carlosaguila/PycharmProjects/CNT_Interictal_Spikes/Patient/pt_database/pt_data/ptname_all.csv')
+    pt_all = pd.read_csv(data_directory + '/pt_data/ptname_all.csv') 
     pt_name = ("'{}'".format(ptname))
     whichpt = pt_all.index[pt_all['ptname'] == pt_name].tolist()
     clean_SOZ_chlabels = prep_clean_soz(SOZ_chlabels)
     
-    class spike:
-        values = val2
-        select=select_spikes
-        chlabels = ch_labels
-        fs = fs_all
-        soz = clean_SOZ_chlabels[whichpt[0]]
+    #class Spike:
+    #    values = val2
+    #    select=select_spikes
+    #    chlabels = ch_labels
+    #    fs = fs_all
+    #    soz = clean_SOZ_chlabels[whichpt[0]]
+
+    spike = Spike(val2,select_spikes,ch_labels,fs_all,clean_SOZ_chlabels[whichpt[0]])
 
     return spike
 
