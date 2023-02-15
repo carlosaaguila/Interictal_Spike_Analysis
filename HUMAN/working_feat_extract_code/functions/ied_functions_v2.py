@@ -10,7 +10,7 @@ from scipy.io import loadmat
 import random
 
 def prep_clean_soz(SOZ_ch_labels):
-    """ 
+    """
     function will clean the SOZ labels for each patient.
     input: SOZ_ch_labels from load pt data function. 
     output: list of cleaned names for each patient --> essentially adds '-CAR' to the end of each label.
@@ -58,6 +58,7 @@ def load_pt(ptname, data_directory):
         soz = clean_SOZ_chlabels[whichpt[0]]
 
     return spike
+
 
 #function that takes random value matrix and plots
 def plot_rand_spikes(values):
@@ -448,3 +449,4 @@ def value_basis(spike, brain_df, roi):
     based_values = values_oi
 
     return based_values, chnum, idx_roich
+
