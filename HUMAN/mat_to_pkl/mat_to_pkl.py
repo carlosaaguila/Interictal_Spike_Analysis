@@ -11,8 +11,8 @@ from ied_functions import *
 data_directory = '/Users/carlosaguila/PycharmProjects/CNT_Interictal_Spikes/Patient/pt_database'
 
 #load pts we are doing
-pts = pd.read_csv('/Users/carlosaguila/PycharmProjects/CNT_Interictal_Spikes/Patient/pt_database/pt_data/mat_to_pkl_list.csv')
-pts_list = pts['pt'].to_list()
+pts = pd.read_csv('/Users/carlosaguila/PycharmProjects/CNT_Interictal_Spikes/Patient/pt_database/pt_data/mat_to_pkl_list3.csv')
+pts_list = pts['pts'].to_list()
 ptnames = pts_list
 
 #loop to create spikes object and pickle save
