@@ -20,7 +20,6 @@ pt = pd.read_csv('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/ma
 pt = pt['pt'].to_list()
 blacklist = ['HUP101' ,'HUP112','HUP115','HUP124','HUP144','HUP147','HUP149','HUP155','HUP176','HUP193','HUP194','HUP195','HUP198','HUP208','HUP212','HUP216','HUP217','HUP064','HUP071','HUP072','HUP073','HUP085','HUP094']
 ptnames = [i for i in pt if i not in blacklist] #use only the best EEG signals (>75% visually validated)
-ptnames = ['HUP105','HUP107','HUP111']
 
 #Left Mesial Temporal
 roiL_mesial = [' left entorhinal ', ' left parahippocampal ' , ' left hippocampus ', ' left amygdala ', ' left perirhinal ']

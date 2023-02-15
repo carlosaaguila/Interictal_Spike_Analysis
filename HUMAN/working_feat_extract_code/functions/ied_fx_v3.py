@@ -344,7 +344,7 @@ def value_basis(spike, brain_df, roi):
     #finds the index of where to find the channel
     idx_roich = []
     for ch in roi_chlist:
-        x = np.where(spike.chlabels[0][0] == ch)[0]
+        x = np.where(spike.chlabels[0][-1] == ch)[0]
         idx_roich.append(x)
 
     idx_roich = [x[0] for x in idx_roich if np.size(x)!=0]
@@ -468,8 +468,8 @@ def plot_avgROIwave_multipt(ptnames, data_directory, roi, title):
         abs_avgwaves.append(abs_avg_waveform)
 
     all_chs = [x[0] for x in roiLmesi_vals]
-    total_avg = np.nanmean(all_chs, axis=0)
-    abs_total_avg = np.nanmean(np.abs(all_chs), axis=0)
+    total_avg = np.mean(all_chs, axis=0)
+    abs_total_avg = np.mean(np.abs(all_chs), axis=0)
 
     samps = len(ptnames) - count
     if samps == 0:
