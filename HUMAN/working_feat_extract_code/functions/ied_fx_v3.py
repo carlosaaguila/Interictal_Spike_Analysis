@@ -404,10 +404,18 @@ def downsample_to_2001(vals):
     """
     Use only on the per sample level (samples x channels), in our stuff it works on values[0]
     """
-    downsamp_vals = vals[::2]
-    biglen = len(downsamp_vals)
-    diff = int((biglen - 2001)/2)
-    new_sample = downsamp_vals[diff:-diff]
+    if len(vals) > 4000:
+        downsamp_vals = vals[::2]
+        biglen = len(downsamp_vals)
+        diff = int((biglen - 2001)/2)
+        new_sample = downsamp_vals[diff:-diff]
+    elif (len(vals) > 2001) & (len(vals) < 3000):
+        biglen = len(vals)
+        diff = int((biglen-2001)/2)
+        new_sample = vals[diff:-diff]
+    else:
+        print('fs<500. Recalculate')
+        new_sample = "ERROR"
 
     return new_sample
 
@@ -454,12 +462,11 @@ def plot_avgROIwave_multipt(ptnames, data_directory, roi, title):
         print(pt)
         spike, brain_df, ids = load_ptall(pt, data_directory)
         if isinstance(brain_df, pd.DataFrame) == False: #checks if RID exists
-            print(pt + " no image")
             count += 1
             continue
+
         vals, chnum, idxch = value_basis(spike, brain_df, roi)    
         if vals == 0: #checks if there is no overlap
-            print(pt + " no overlap")
             count += 1
             continue
         avg_waveform,abs_avg_waveform,indiv_vals = totalavg_roiwave(idxch, vals)
@@ -468,8 +475,8 @@ def plot_avgROIwave_multipt(ptnames, data_directory, roi, title):
         abs_avgwaves.append(abs_avg_waveform)
 
     all_chs = [x[0] for x in roiLmesi_vals]
-    total_avg = np.mean(all_chs, axis=0)
-    abs_total_avg = np.mean(np.abs(all_chs), axis=0)
+    total_avg = np.nanmean(all_chs, axis=0)
+    abs_total_avg = np.nanmean(np.abs(all_chs), axis=0)
 
     samps = len(ptnames) - count
     if samps == 0:
