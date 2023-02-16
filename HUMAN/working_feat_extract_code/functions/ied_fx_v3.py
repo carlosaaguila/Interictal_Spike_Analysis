@@ -7,6 +7,7 @@ from scipy import signal as sig
 import mat73
 from scipy.io import loadmat
 import pickle as pkl
+import matplotlib.patches as mpatches
 from os import path
 
 import random
@@ -357,18 +358,19 @@ def value_basis(spike, brain_df, roi):
         idx = np.where(chs == chroi)[0]
         select_oi.append(idx)
 
-    if np.size(select_oi) != 0:
-        select_oi = np.concatenate(select_oi)
-        select_oi = [int(x) for x in select_oi]
-        values_oi = []
-        for soi in select_oi:
-            values_oi.append(spike.values[soi])
-
-        based_values = values_oi
+    values_oi = []
+    if np.size(select_oi) == 0:
+        values_oi = 0
+        print("NO MATCHES")
     else:
-        select_oi
-        based_values = 0
-        print('NO MATCHES')
+        for soi in select_oi:
+            holder = []
+            for x in soi:
+                x  = int(x)
+                holder.append(spike.values[x])
+            values_oi.append(holder)
+
+    based_values = values_oi
 
     return based_values, chnum, idx_roich
 
@@ -419,27 +421,41 @@ def downsample_to_2001(vals):
 
     return new_sample
 
-def totalavg_roiwave(idx_roich, based_vals):
+def totalavg_roiwave(idxch, vals):
     #total per ROI
-    avg_waveform = []
-
-    waveform = []
     all_waveforms = []
-    for i in range(len(idx_roich)):
-        for spikes2 in based_vals:
+    for i in range(len(idxch)):
+        waveform = []
+        for spikes2 in vals[i]:
             if len(spikes2) > 2001:
                 spike_down = downsample_to_2001(spikes2)
             else:
                 spike_down = spikes2
             spike_t = np.transpose(spike_down)
-            waveform.append((spike_t[idx_roich[i]]))
-        all_waveforms.append((waveform))
+            waveform.append(spike_t[idxch[i]])
+        all_waveforms.append(waveform)
+        
+    stacked = [x for x in all_waveforms if np.size(x) != 0]
+    all_chs_stacked = np.concatenate(stacked)
+    abs_avg_waveform = np.nanmean(np.abs(all_chs_stacked), axis=0)
+    avg_waveform =  np.nanmean(all_chs_stacked,axis=0)
 
-    concat = [x[0] for x in all_waveforms]
-    avg_waveform = np.nanmean(concat,axis=0)
-    abs_avg_waveform = np.nanmean(np.abs(concat), axis=0)
+    flip_wave = []
+    for ch in all_chs_stacked:
+        if (ch[1000] < 0):
+            flip_wave.append(np.multiply(ch, -1))
+        else: 
+            flip_wave.append(ch)
 
-    return avg_waveform, abs_avg_waveform, concat
+    flip_avgwaveform = np.nanmean(all_chs_stacked, axis=0)
+
+    avg_per_ch = []
+    abs_avg_per_ch = []
+    for waves in all_waveforms:
+        avg_per_ch.append(np.nanmean(waves, axis=0))
+        abs_avg_per_ch.append(np.nanmean(np.abs(waves), axis=0))
+
+    return avg_waveform, abs_avg_waveform, flip_avgwaveform, all_chs_stacked, flip_wave, avg_per_ch, abs_avg_per_ch
 
 def plot_avgroiwave(avg_waveform, title_label):
     time = np.linspace(0,4,2001)
@@ -454,9 +470,11 @@ def plot_avgroiwave(avg_waveform, title_label):
 
 
 def plot_avgROIwave_multipt(ptnames, data_directory, roi, title):
-    roiLmesi_vals = []
+    all_indiv_vals = []
+    all_flip_vals = []
     avgwaves = []
     abs_avgwaves = []
+    flip_avgwaves =[]
     count = 0
     for pt in ptnames:
         print(pt)
@@ -464,43 +482,62 @@ def plot_avgROIwave_multipt(ptnames, data_directory, roi, title):
         if isinstance(brain_df, pd.DataFrame) == False: #checks if RID exists
             count += 1
             continue
-
+        if spike.fs[0][-1] < 500:
+            print("low fs - skip")
+            continue
         vals, chnum, idxch = value_basis(spike, brain_df, roi)    
         if vals == 0: #checks if there is no overlap
             count += 1
             continue
-        avg_waveform,abs_avg_waveform,indiv_vals = totalavg_roiwave(idxch, vals)
+        avg_waveform, abs_avg_waveform, flip_avgwaveform, indiv_vals, flipwave, _, _ = totalavg_roiwave(idxch, vals)
         avgwaves.append(avg_waveform)
-        roiLmesi_vals.append(indiv_vals)
+        all_indiv_vals.append(indiv_vals)
+        all_flip_vals.append(flipwave) 
         abs_avgwaves.append(abs_avg_waveform)
+        flip_avgwaves.append(flip_avgwaveform)
 
-    all_chs = [x[0] for x in roiLmesi_vals]
+    all_chs = np.concatenate(all_indiv_vals)
+    flip_allchs = np.concatenate(all_flip_vals)
     total_avg = np.nanmean(all_chs, axis=0)
     abs_total_avg = np.nanmean(np.abs(all_chs), axis=0)
+    flip_total_avg = np.nanmean(flip_allchs, axis =0)
 
+    single = mpatches.Patch(color='grey', label='Patient Average') #imported matplotlib.patches -> manually creates legend since auto-detection of the legend via plt.legend() didn't work
+    cohort = mpatches.Patch(color='r', label='Cohort Average')
     samps = len(ptnames) - count
     if samps == 0:
         print('no matches!')
     time = np.linspace(0,4,len(total_avg))
-    #abs = False
     fig = plt.figure(figsize=(10,10))
     for vals in avgwaves:
-        plt.plot(time, vals, color='grey', label='patient average')
-    plt.plot(time, total_avg,'r',label ='cohort average')
+        plt.plot(time, vals, color='grey')
+    plt.plot(time, total_avg,'r')
     plt.title('{} Average Spike in {} Patients'.format(title, samps))
     plt.xlabel('time (s)')
     plt.ylabel('Voltage (mV)')
-    plt.legend()
+    plt.legend(handles=[single,cohort])   
     plt.show()
     
     #abs = True
     fig2 = plt.figure(figsize=(10,10))
     for vals in abs_avgwaves:
-        plt.plot(time, vals, color='grey', label='patient average')
-    plt.plot(time, abs_total_avg,'r',label ='cohort average')
+        plt.plot(time, vals, color='grey')
+    plt.plot(time, abs_total_avg,'r')
     plt.title('[ABS] {} Average Spike in {} Patients'.format(title, samps))
     plt.xlabel('time (s)')
     plt.ylabel('Voltage (mV)')
-    plt.legend()
+    plt.legend(handles=[single,cohort]) 
     plt.show()
-    return fig, fig2, total_avg, abs_total_avg, all_chs
+
+    #FLIP (multiply by -1)
+    fig3 = plt.figure(figsize=(10,10))
+    for vals in flip_avgwaves:
+        plt.plot(time, vals, color='grey')
+    plt.plot(time, flip_total_avg,'r')
+    plt.title('[FLIP] {} Average Spike in {} Patients'.format(title, samps))
+    plt.xlabel('time (s)')
+    plt.ylabel('Voltage (mV)')
+    plt.legend(handles=[single,cohort]) 
+    plt.show()
+
+    return fig, fig2, fig3, total_avg, abs_total_avg, flip_total_avg, all_chs, flip_allchs
