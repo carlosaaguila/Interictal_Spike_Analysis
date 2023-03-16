@@ -327,6 +327,16 @@ def load_ptall(ptname, data_directory):
 
     return spike, relabeled_df, [ptname,rid]
 
+def load_cleaned_braindf(ptname, data_directory):
+    rid, brain_df = load_rid(ptname, data_directory)
+    if isinstance(brain_df, pd.DataFrame) == False:
+        relabeled_df = 0
+        ptname = 0
+        rid = 0
+    else:
+        relabeled_df = label_fix(ptname, data_directory, threshold = 0.25)
+    return [ptname, rid], relabeled_df
+
 def value_basis(spike, brain_df, roi):
     """
     Function that takes in all values, the DKT atlas dataframe, and a region of interest (ROI)
@@ -373,6 +383,61 @@ def value_basis(spike, brain_df, roi):
     based_values = values_oi
 
     return based_values, chnum, idx_roich
+
+def value_basis_multiroi(spike, brain_df, region_of_interests):
+    """
+    Function that takes in all values, the DKT atlas dataframe, and a region of interest (ROI)
+    returns a tailored, truncated list of the all the values given a specific ROI
+    input: spike object, brain dataframe, roi list
+    output: correlated values, channel number (matlab), indices of channels
+    """
+    all_vals = []
+    all_chnum = []
+    all_idx_roich = []
+    for roi in region_of_interests:
+        roi_ch = pd.DataFrame()
+        for x in roi:
+            roi_ch = roi_ch.append(brain_df[(brain_df['final_label'] == x)])
+            #roi_ch = roi_ch.concat([roi_ch, brain_df[(brain_df['label'] == x )]])
+
+        #roi_ch = brain_df.loc[brain_df['label']== roi] #creates truncated dataframe of ROI labels
+        roi_chlist = np.array(roi_ch['name']) #converts DF to array
+
+        #finds the index of where to find the channel
+        idx_roich = []
+        for ch in roi_chlist:
+            x = np.where(spike.chlabels[0][-1] == ch)[0]
+            idx_roich.append(x)
+
+        idx_roich = [x[0] for x in idx_roich if np.size(x)!=0]
+        chnum = [x+1 for x in idx_roich if np.size(x)!=0]
+
+        counts,chs = hifreq_ch_spike(spike.select)
+
+        select_oi = []
+        for chroi in idx_roich:
+            idx = np.where(chs == chroi)[0]
+            select_oi.append(idx)
+
+        values_oi = []
+        if np.size(select_oi) == 0:
+            values_oi = 0
+            print("NO MATCHES")
+        else:
+            for soi in select_oi:
+                holder = []
+                for x in soi:
+                    x  = int(x)
+                    holder.append(spike.values[x])
+                values_oi.append(holder)
+
+        based_values = values_oi
+        
+        all_vals.append(based_values)
+        all_chnum.append(chnum)
+        all_idx_roich.append(idx_roich)
+
+    return all_vals, all_chnum, all_idx_roich
 
 def avgroi_wave(idx_roich, based_vals):
     #per channel
