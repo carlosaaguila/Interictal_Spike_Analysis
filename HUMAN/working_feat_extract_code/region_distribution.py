@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 from scipy import signal as sig
 from scipy.io import loadmat, savemat
 import warnings
+
+#from Interictal_Spike_Analysis.HUMAN.working_feat_extract_code.functions.ied_fx_v3 import value_basis_multiroi
 warnings.filterwarnings('ignore')
 import seaborn as sns
 #get all functions 
@@ -103,28 +105,34 @@ def biglist_roi(ptnames, roi):
             continue
     return roiLlat_values, roiLlat_idxch
 
-def spike_count_perregion(values):
+def spike_count_perregion(all_values, roilist):
     spike_count = []
     count = []
+    roi_count = []
     for val in values:
-        count = []
-        if val == 0:
-            count = [0]
-            spike_count.append(count)
-            continue
-        for x in val:
-            count.append(len(x))
-        spike_count.append(count) #returns a list of the counts of each pt, per channel in ROI
+        spike_count = []
+        for roi in val:
+            count = []
+            if roi == 0:
+                count = [0]
+                spike_count.append(count)
+                continue
+            for x in roi:
+                count.append(len(x))
+            spike_count.append(count) #returns a list of the counts of each pt, per channel in ROI
+        roi_count.append(spike_count)
 
     count_perpt = [np.sum(x) for x in spike_count]
     fullcounts = np.sum(np.sum(count_perpt))
-    return spike_count, count_perpt, fullcounts
+    return roi_count, spike_count, count_perpt, fullcounts
 
 #%% multiroi approach:
-roi = [roiL_mesial, roiL_lateral, roiR_mesial, roiR_lateral, L_OC, R_OC]
+values, idxch = biglist_roi(ptnames, roilist)
 
 #%% individual pull (using the old version of the code) This is just based_values substituted.
 #left mesial
+"""
+NEW FUNCTION TAKES CARE OF THIS (BIGLIST_ROI + multipt based values)
 roiLmesi_values, roiLmesi_idxch = biglist_roi(ptnames, roiL_mesial)
 counts_Lmesi, count_Lmesi_perpt, fullcount_Lmesi = spike_count_perregion(roiLmesi_values) #returns a list of the counts of each pt, per channel in ROI
 
@@ -140,20 +148,17 @@ counts_Rmesi, count_Rmesi_perpt, fullcount_Rmesi = spike_count_perregion(roiRmes
 roiRlat_values, roiRlat_idxch = biglist_roi(ptnames, roiR_lateral)
 counts_Rlat, count_Rlat_perpt, fullcount_Rlat = spike_count_perregion(roiRlat_values) #returns a list of the counts of each pt, per channel in ROI
 
-# %%
-
-# GO BACK AND PLOT WITH THIS
-
 #L OC
 roiLOC_values, roiLOC_idxch = biglist_roi(ptnames, L_OC)
 counts_LOC, count_LOC_perpt, fullcount_LOC = spike_count_perregion(roiLOC_values)
+
 #R OC
 roiROC_values, roiROC_idxch = biglist_roi(ptnames, R_OC)
 counts_ROC, count_ROC_perpt, fullcount_ROC = spike_count_perregion(roiROC_values)
 #emptylabel
 #roiNAN_values, roiNAN_idxch = biglist_roi(ptnames, emptylabel)
 #counts_NAN, count_NAN_perpt, fullcount_NAN = spike_count_perregion(roiNAN_values)
-
+"""
 # %% Plot a bar plot showing the counts
 totalcounts= np.sum([fullcount_Rlat,fullcount_Rmesi,fullcount_Llat,fullcount_Lmesi])#,fullcount_ROC, fullcount_LOC)
 listofcounts = [fullcount_Rlat,fullcount_Rmesi,fullcount_Llat,fullcount_Lmesi]#,fullcount_ROC, fullcount_LOC]
@@ -167,5 +172,9 @@ plt.xlabel('region')
 fig.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/distribution/spike_counts1") #save as jpg
 
 
+#%% New plots with all the counts.
+
+
 
 #%% Create average feature value (normalized) per spike region vs localization (or lateralization)
+
