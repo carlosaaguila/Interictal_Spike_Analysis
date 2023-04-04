@@ -82,10 +82,16 @@ There was 3 brain stem???
 """
 
 # %% Create Heat Map that shows % of spikes in a region vs the SOZ localization. (we can start with lateralization first then exact)
+def find_soz_region(SOZ, brain_df):
+    """ returns a list with all the regions of the seizure onset zone """
+    brain_df['SOZ'] = brain_df['name'].apply(lambda x: 1 if x in SOZ else 0)
+    region = brain_df['final_label'][brain_df['SOZ'] == 1].to_list()
+    return region
 
 def biglist_roi(ptnames, roi):
     roiLlat_values = []
     roiLlat_idxch = []
+    spike_soz = []
     count = 0
     for pt in ptnames:
         print(pt)
@@ -100,34 +106,45 @@ def biglist_roi(ptnames, roi):
         vals, chnum, idxch = value_basis_multiroi(spike, brain_df, roi)
         roiLlat_values.append(vals)
         roiLlat_idxch.append(idxch)    
+        region = find_soz_region(spike.soz, brain_df)
+        spike_soz.append([spike.soz, region]) #should get skipped if there isn't any 
         if vals == 0: #checks if there is no overlap
             count += 1
             continue
-    return roiLlat_values, roiLlat_idxch
+    return roiLlat_values, roiLlat_idxch, spike_soz
 
+#update code to get count for each.
 def spike_count_perregion(all_values, roilist):
-    spike_count = []
+    spike_count_perpt = []
     count = []
-    roi_count = []
-    for val in values:
-        spike_count = []
-        for roi in val:
+    roi_count_perpt = []
+    totalcount_perpt = []
+    for pt in values:
+        roi_count_perpt = []
+        for roi in pt:
             count = []
-            if roi == 0:
-                count = [0]
-                spike_count.append(count)
-                continue
             for x in roi:
-                count.append(len(x))
-            spike_count.append(count) #returns a list of the counts of each pt, per channel in ROI
-        roi_count.append(spike_count)
+                if np.shape(roi) == (1,1):
+                    idv_count = 0
+                    count.append(idv_count)
+                    continue
+                else:
+                    count.append(len(x))
+            roi_count_perpt.append(count) #returns a list of the counts of each pt, per channel in ROI
+        spike_count_perpt.append(roi_count_perpt)
 
-    count_perpt = [np.sum(x) for x in spike_count]
-    fullcounts = np.sum(np.sum(count_perpt))
-    return roi_count, spike_count, count_perpt, fullcounts
+    totalcount_perpt = []
+    for pt in spike_count_perpt:
+        sum_perroi = []
+        for roi in pt:
+            sum_perroi.append(np.sum(roi))
+        totalcount_perpt.append(sum_perroi)
+
+    fullcount_perroi = np.sum(totalcount_perpt, axis=0)
+    return spike_count_perpt, totalcount_perpt, fullcount_perroi
 
 #%% multiroi approach:
-values, idxch = biglist_roi(ptnames, roilist)
+values, idxch, spike_soz = biglist_roi(ptnames, roilist)
 
 #%% individual pull (using the old version of the code) This is just based_values substituted.
 #left mesial

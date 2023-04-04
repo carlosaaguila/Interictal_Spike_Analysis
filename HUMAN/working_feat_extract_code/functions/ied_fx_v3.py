@@ -421,7 +421,7 @@ def value_basis_multiroi(spike, brain_df, region_of_interests):
 
         values_oi = []
         if np.size(select_oi) == 0:
-            values_oi = 0
+            values_oi.append([0]) #changed this from values_oi = 0 to append [0]
             print("NO MATCHES")
         else:
             for soi in select_oi:
