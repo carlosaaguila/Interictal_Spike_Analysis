@@ -450,7 +450,7 @@ def avgroi_wave(idx_roich, based_vals):
         avg_waveforms2.append(np.nanmean(ch, axis=0))
     return avg_waveforms2
 
-def plot_avgroiwave(avg_waveform, roi,chnum):
+def plot_avgroiwave(avg_waveform, roi,chnum,brain_df):
     roi_ch = pd.DataFrame()
     for x in roi:
         roi_ch = roi_ch.append(brain_df[(brain_df['label'] == x)])
