@@ -325,7 +325,13 @@ def load_ptall(ptname, data_directory):
     else:
         relabeled_df = label_fix(ptname, data_directory, threshold = 0.25)
 
-    return spike, relabeled_df, [ptname,rid]
+    soz_region = pd.read_csv("/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/soz_locations.csv")
+    soz_region_pt = soz_region[soz_region['name'] == ptname]['region'].to_list()
+    soz_lateralization_pt = soz_region[soz_region['name'] == ptname]['lateralization'].to_list()
+    onsetzone = [soz_region_pt, soz_lateralization_pt]
+    onsetzone = [x for x in onsetzone for x in x]
+
+    return spike, relabeled_df, onsetzone, [ptname,rid]
 
 def load_cleaned_braindf(ptname, data_directory):
     rid, brain_df = load_rid(ptname, data_directory)
