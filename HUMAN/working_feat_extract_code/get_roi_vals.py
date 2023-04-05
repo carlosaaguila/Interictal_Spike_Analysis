@@ -54,10 +54,11 @@ def biglist_roi(ptnames, roi):
     roiLlat_values = []
     roiLlat_idxch = []
     infer_spike_soz = []
+    clinic_soz = []
     count = 0
     for pt in ptnames:
         print(pt)
-        spike, brain_df, clinic_soz, _  = load_ptall(pt, data_directory)
+        spike, brain_df, soz_region, _  = load_ptall(pt, data_directory)
         if isinstance(brain_df, pd.DataFrame) == False: #checks if RID exists
             count += 1
             continue
@@ -70,6 +71,7 @@ def biglist_roi(ptnames, roi):
         roiLlat_idxch.append(idxch)    
         region = find_soz_region(spike.soz, brain_df)
         infer_spike_soz.append([spike.soz, region]) #should get skipped if there isn't any 
+        clinic_soz.append(soz_region)
         if vals == 0: #checks if there is no overlap
             count += 1
             continue
@@ -146,12 +148,12 @@ from collections import Counter
 
 #function to get the K most frequent
 def top_k(numbers, k=2):
-    """
+    
     #The counter.most_common([k]) method works
     #in the following way:
     #>>> Counter('abracadabra').most_common(3)  
     #[('a', 5), ('r', 2), ('b', 2)]
-    """
+    
 
     c = Counter(numbers)
     most_common = [key for key, val in c.most_common(k)]
