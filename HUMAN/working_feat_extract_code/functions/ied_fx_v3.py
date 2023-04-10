@@ -320,7 +320,7 @@ def load_ptall(ptname, data_directory):
     if isinstance(brain_df, pd.DataFrame) == False:
         spike = 0
         relabeled_df = 0
-        ptname = 0
+        ptname = ptname
         rid = 0
     else:
         relabeled_df = label_fix(ptname, data_directory, threshold = 0.25)
@@ -330,6 +330,12 @@ def load_ptall(ptname, data_directory):
     soz_lateralization_pt = soz_region[soz_region['name'] == ptname]['lateralization'].to_list()
     onsetzone = [soz_region_pt, soz_lateralization_pt]
     onsetzone = [x for x in onsetzone for x in x]
+    if (pd.isna(onsetzone[0]) == True) & (pd.isna(onsetzone[1]) == False):
+        onsetzone = ["no soz", onsetzone[1]]
+    elif (pd.isna(onsetzone[0]) == True) & (pd.isna(onsetzone[0]) == True): 
+        onsetzone = ["no soz", "no soz"]
+    else:
+        onsetsone = [onsetzone[0], "no soz"]
 
     return spike, relabeled_df, onsetzone, [ptname,rid]
 

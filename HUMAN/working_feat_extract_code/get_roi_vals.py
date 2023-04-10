@@ -119,7 +119,7 @@ SAVE = [values, idxch, infer_spike_soz, clinic_soz]
 with open('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/ROI_VALS/values.pkl', 'wb') as F:
     pkl.dump(SAVE, F)
 
-"""
+
 #calculate spike rates (total count) for patient per ROI
 spike_count_perpt, totalcount_perpt, fullcount_perroi = spike_count_perregion(values)
 
@@ -184,6 +184,13 @@ test_df_droplabels = test_df2.drop(columns=['no label'])
 test_df_percentage = test_df_droplabels.div(test_df_droplabels.sum(axis=1), axis = 0)
 test_df_percentage = test_df_droplabels.mul(100)
 
-#plot
-sns.heatmap(test_df_percentage)
-"""
+#plot feature
+test_df = pd.DataFrame(data = LLperptmean)
+test_df['soz'] = spike_soz_onlyone
+test_df = test_df.rename(columns={0:'L Mesial', 1:'L Lateral', 2:'R Mesial', 3:'R Lateral', 4:'L OC', 5:'R OC', 6:'no label'})
+test_df_droplabels = test_df[test_df['soz'] != 'no label']
+test_df2 = test_df_droplabels.groupby(by="soz").median()
+sns.heatmap(test_df2, cmap='crest')
+plt.title('Line Length across all 21 patients')
+plt.xlabel('Brain Region')
+plt.ylabel('SOZ')

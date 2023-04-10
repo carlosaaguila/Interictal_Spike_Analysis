@@ -95,11 +95,12 @@ def biglist_roi(ptnames, roi):
     """
     roiLlat_values = []
     roiLlat_idxch = []
-    spike_soz = []
+    infer_spike_soz = []
+    clinic_soz = []
     count = 0
     for pt in ptnames:
         print(pt)
-        spike, brain_df, _ = load_ptall(pt, data_directory)
+        spike, brain_df, soz_region, _  = load_ptall(pt, data_directory)
         if isinstance(brain_df, pd.DataFrame) == False: #checks if RID exists
             count += 1
             continue
@@ -111,11 +112,12 @@ def biglist_roi(ptnames, roi):
         roiLlat_values.append(vals)
         roiLlat_idxch.append(idxch)    
         region = find_soz_region(spike.soz, brain_df)
-        spike_soz.append([spike.soz, region]) #should get skipped if there isn't any 
+        infer_spike_soz.append([spike.soz, region]) #should get skipped if there isn't any 
+        clinic_soz.append(soz_region)
         if vals == 0: #checks if there is no overlap
             count += 1
             continue
-    return roiLlat_values, roiLlat_idxch, spike_soz
+    return roiLlat_values, roiLlat_idxch, infer_spike_soz, clinic_soz
 
 #update code to get count for each.
 def spike_count_perregion(values): #could be generalized to multiple features easily. 
@@ -151,16 +153,71 @@ def spike_count_perregion(values): #could be generalized to multiple features ea
     fullcount_perroi = np.sum(totalcount_perpt, axis=0)
     return spike_count_perpt, totalcount_perpt, fullcount_perroi
 
+def spike_amplitude_perregion(values, idxch): #could be generalized to multiple features easily. 
+    """
+    returns a list of the features of interest of each pt, per channel in ROI
+    """
+    perpt = []
+    perpt_mean = []
+    for i, pt in enumerate(values):
+        perroi_mean = []
+        perroi = []
+        for j, roi in enumerate(pt):
+            spikefeat = []
+            for l, xs in enumerate(roi):
+                if np.shape(roi) == (1,1):
+                    feat = np.nan
+                    spikefeat.append(feat)
+                    continue
+                else:
+                    for x in xs:
+                        val_want = np.transpose(x)
+                        val_want = val_want[idxch[i][j][l]]
+                        feat = np.max(np.absolute(val_want[750:1251]))
+                        spikefeat.append(feat)
+            perroi.append(spikefeat)
+            perroi_mean.append(np.nanmean(spikefeat))
+        perpt.append(perroi)
+        perpt_mean.append(perroi_mean)
+
+    return perpt, perpt_mean
+
+def spike_LL_perregion(values, idxch): #could be generalized to multiple features easily. 
+    """
+    returns a list of the features of interest of each pt, per channel in ROI
+    """
+    perpt = []
+    perpt_mean = []
+    for i, pt in enumerate(values):
+        perroi_mean = []
+        perroi = []
+        for j, roi in enumerate(pt):
+            spikefeat = []
+            for l, xs in enumerate(roi):
+                if np.shape(roi) == (1,1):
+                    feat = np.nan
+                    spikefeat.append(feat)
+                    continue
+                else:
+                    for x in xs:
+                        val_want = np.transpose(x)
+                        val_want = val_want[idxch[i][j][l]]
+                        feat = LL(val_want)
+                        spikefeat.append(feat)
+            perroi.append(spikefeat)
+            perroi_mean.append(np.nanmean(spikefeat))
+        perpt.append(perroi)
+        perpt_mean.append(perroi_mean)
+
+    return perpt, perpt_mean
+
+
 #%% multiroi approach:
-values, idxch, spike_soz = biglist_roi(ptnames, roilist)
+values, idxch, infer_spike_soz, clinic_soz = biglist_roi(ptnames, roilist)
 spike_count_perpt, totalcount_perpt, fullcount_perroi = spike_count_perregion(values)
+LLperpt, LLperpt_mean = spike_LL_perregion(values, idxch)
+Aperpt, Aperpt_mean = spike_amplitude_perregion(values, idxch)
 
-#%%
-#pickle save
-
-trial1 = {"values": values, "idxch": idxch, "spike_soz": spike_soz}
-with open('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/test/values.pkl', 'wb') as file:
-    pickle.dump(trial1, file)
 
 #%% individual pull (using the old version of the code) This is just based_values substituted.
 #left mesial
