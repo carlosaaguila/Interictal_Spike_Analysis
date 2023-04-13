@@ -39,7 +39,7 @@ roilist = [roiL_mesial, roiL_lateral, roiR_mesial, roiR_lateral, L_OC, R_OC, emp
 
 
 
-#functions we will use
+# functions to use:
 def find_soz_region(SOZ, brain_df):
     """ returns a list with all the regions of the seizure onset zone """
     brain_df['SOZ'] = brain_df['name'].apply(lambda x: 1 if x in SOZ else 0)
@@ -67,6 +67,7 @@ def biglist_roi(ptnames, roi):
             print("low fs - skip")
             continue
         vals, _, idxch = value_basis_multiroi(spike, brain_df, roi)
+        #here instead of storing the val, you want to grab the feature of interest. 
         roiLlat_values.append(vals)
         roiLlat_idxch.append(idxch)    
         region = find_soz_region(spike.soz, brain_df)
@@ -111,9 +112,69 @@ def spike_count_perregion(values): #could be generalized to multiple features ea
     fullcount_perroi = np.sum(totalcount_perpt, axis=0)
     return spike_count_perpt, totalcount_perpt, fullcount_perroi
 
+def spike_amplitude_perregion(values, idxch): #could be generalized to multiple features easily. 
+    """
+    returns a list of the features of interest of each pt, per channel in ROI
+    """
+    perpt = []
+    perpt_mean = []
+    for i, pt in enumerate(values):
+        perroi_mean = []
+        perroi = []
+        for j, roi in enumerate(pt):
+            spikefeat = []
+            for l, xs in enumerate(roi):
+                if np.shape(roi) == (1,1):
+                    feat = np.nan
+                    spikefeat.append(feat)
+                    continue
+                else:
+                    for x in xs:
+                        val_want = np.transpose(x)
+                        val_want = val_want[idxch[i][j][l]]
+                        feat = np.max(np.absolute(val_want[750:1251]))
+                        spikefeat.append(feat)
+            perroi.append(spikefeat)
+            perroi_mean.append(np.nanmean(spikefeat))
+        perpt.append(perroi)
+        perpt_mean.append(perroi_mean)
+
+    return perpt, perpt_mean
+
+def spike_LL_perregion(values, idxch): #could be generalized to multiple features easily. 
+    """
+    returns a list of the features of interest of each pt, per channel in ROI
+    """
+    perpt = []
+    perpt_mean = []
+    for i, pt in enumerate(values):
+        perroi_mean = []
+        perroi = []
+        for j, roi in enumerate(pt):
+            spikefeat = []
+            for l, xs in enumerate(roi):
+                if np.shape(roi) == (1,1):
+                    feat = np.nan
+                    spikefeat.append(feat)
+                    continue
+                else:
+                    for x in xs:
+                        val_want = np.transpose(x)
+                        val_want = val_want[idxch[i][j][l]]
+                        feat = LL(val_want)
+                        spikefeat.append(feat)
+            perroi.append(spikefeat)
+            perroi_mean.append(np.nanmean(spikefeat))
+        perpt.append(perroi)
+        perpt_mean.append(perroi_mean)
+
+    return perpt, perpt_mean
+
 # run biglist_roi >> gives you all the values/roi, idxch/roi, the inferred spike soz (based off electrodes), and the SOZ determined by the clinician. 
 values, idxch, infer_spike_soz, clinic_soz = biglist_roi(ptnames, roilist)
 
+
+"""
 #save the values. 
 SAVE = [values, idxch, infer_spike_soz, clinic_soz]
 with open('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/ROI_VALS/values.pkl', 'wb') as F:
@@ -194,3 +255,72 @@ sns.heatmap(test_df2, cmap='crest')
 plt.title('Line Length across all 21 patients')
 plt.xlabel('Brain Region')
 plt.ylabel('SOZ')
+"""
+
+#amplitude
+Aperpt, Aperpt_mean = spike_amplitude_perregion(values, idxch)
+
+test_df = pd.DataFrame(data = Aperpt_mean)
+soz_df  = pd.DataFrame(data = clinic_soz)
+test_df = test_df.rename(columns={0:'L_Mesial', 1:'L_Lateral', 2:'R_Mesial', 3:'R_Lateral',4:'L_OtherCortex', 5:'R_OtherCortex', 6:'Empty Label'})
+soz_df = soz_df.rename(columns = {0:'region', 1:'lateralization'})
+amp_df_combine =  pd.concat([test_df, soz_df], axis = 1)
+amp_df_drop1 = amp_df_combine[amp_df_combine['region'] != 'temporal'] #remove temporal as a region we're looking at for SOZ
+amp_df_drop1['soz'] = amp_df_drop1['lateralization'] + " - " + amp_df_drop1['region'] 
+
+amp_df = amp_df_drop1.drop(columns = ['region','lateralization'])
+amp_df = amp_df.groupby(by='soz').median()
+
+fig = plt.figure(figsize=(8,8))
+sns.heatmap(amp_df.transpose(), cmap='crest', cbar_kws = {'label':'Median Amplitude'})
+plt.xlabel('Clinically Defined SOZ')
+plt.ylabel('Spiking Brain Region')
+plt.title('Amplitude across all Patients')
+plt.yticks(rotation = 0)
+fig.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/distribution/amp_persoz")
+
+#LL
+LLperpt, LLperpt_mean = spike_LL_perregion(values, idxch)
+
+test_df = pd.DataFrame(data = LLperpt_mean)
+soz_df  = pd.DataFrame(data = clinic_soz)
+test_df = test_df.rename(columns={0:'L_Mesial', 1:'L_Lateral', 2:'R_Mesial', 3:'R_Lateral',4:'L_OtherCortex', 5:'R_OtherCortex', 6:'Empty Label'})
+soz_df = soz_df.rename(columns = {0:'region', 1:'lateralization'})
+amp_df_combine =  pd.concat([test_df, soz_df], axis = 1)
+amp_df_drop1 = amp_df_combine[amp_df_combine['region'] != 'temporal'] #remove temporal as a region we're looking at for SOZ
+amp_df_drop1['soz'] = amp_df_drop1['lateralization'] + " - " + amp_df_drop1['region'] 
+
+ll_df = amp_df_drop1.drop(columns = ['region','lateralization'])
+ll_df = ll_df.groupby(by='soz').median()
+
+fig2 = plt.figure(figsize=(8,8))
+sns.heatmap(ll_df.transpose(), cmap='crest', cbar_kws = {'label':'Median Linelength'})
+plt.xlabel('Clinically Defined SOZ')
+plt.ylabel('Spiking Brain Region')
+plt.title('Linelength across all Patients')
+plt.yticks(rotation = 0)
+fig2.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/distribution/ll_persoz")
+
+#spikecount
+spike_count_perpt, totalcount_perpt, fullcount_perroi = spike_count_perregion(values)
+
+test_df = pd.DataFrame(data = totalcount_perpt)
+soz_df  = pd.DataFrame(data = clinic_soz)
+test_df = test_df.rename(columns={0:'L_Mesial', 1:'L_Lateral', 2:'R_Mesial', 3:'R_Lateral',4:'L_OtherCortex', 5:'R_OtherCortex', 6:'Empty Label'})
+soz_df = soz_df.rename(columns = {0:'region', 1:'lateralization'})
+amp_df_combine =  pd.concat([test_df, soz_df], axis = 1)
+amp_df_drop1 = amp_df_combine[amp_df_combine['region'] != 'temporal'] #remove temporal as a region we're looking at for SOZ
+amp_df_drop1['soz'] = amp_df_drop1['lateralization'] + " - " + amp_df_drop1['region'] 
+
+count_df = amp_df_drop1.drop(columns = ['region','lateralization'])
+count_df = count_df.groupby(by='soz').sum()
+count_df = count_df.div(count_df.sum(axis=1), axis = 0)
+count_df = count_df.mul(100)
+
+fig3 = plt.figure(figsize=(8,8))
+sns.heatmap(count_df.transpose(), cmap='crest', cbar_kws = {'label':'Spike Percentage'})
+plt.xlabel('Clinically Defined SOZ')
+plt.ylabel('Spiking Brain Region')
+plt.title('Spike Count Percentage per SOZ across all Patients')
+plt.yticks(rotation = 0)
+fig3.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/distribution/countpercentage_persoz")
