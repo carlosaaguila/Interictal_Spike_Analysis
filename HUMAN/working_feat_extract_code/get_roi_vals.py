@@ -170,8 +170,41 @@ def spike_LL_perregion(values, idxch): #could be generalized to multiple feature
 
     return perpt, perpt_mean
 
+def split_list(a_list):
+    half = len(a_list)//2
+    return [a_list[:half], a_list[half:]]
+
+def feat_extract(lists_ptnames):
+    clinic_soz_all = []
+    Aperpt_mean_all = []
+    totalcount_perpt_all = []
+    LLperpt_mean_all = []
+
+    for list in lists_ptnames:
+        #values
+        values, idxch, infer_spike_soz, clinic_soz = biglist_roi(list, roilist)
+        clinic_soz_all.append(clinic_soz)
+
+        #features
+        Aperpt, Aperpt_mean = spike_amplitude_perregion(values, idxch)
+        spike_count_perpt, totalcount_perpt, fullcount_perroi = spike_count_perregion(values)
+        LLperpt, LLperpt_mean = spike_LL_perregion(values, idxch)
+
+        Aperpt_mean_all.append(Aperpt_mean)
+        totalcount_perpt_all.append(totalcount_perpt)
+        LLperpt_mean_all.append(LLperpt_mean)
+    
+
+    Aperpt_mean = [x for x in Aperpt_mean_all for x in x]
+    LLperpt_mean = [x for x in LLperpt_mean_all for x in x]
+    totalcount_perpt = [x for x in totalcount_perpt_all for x in x]
+    clinic_soz = [x for x in clinic_soz_all for x in x]
+
+    return Aperpt_mean, LLperpt_mean, totalcount_perpt, clinic_soz
+
 # run biglist_roi >> gives you all the values/roi, idxch/roi, the inferred spike soz (based off electrodes), and the SOZ determined by the clinician. 
-values, idxch, infer_spike_soz, clinic_soz = biglist_roi(ptnames, roilist)
+lists_ptnames = split_list(ptnames)
+Aperpt_mean, LLperpt_mean, totalcount_perpt, clinic_soz = feat_extract(lists_ptnames)
 
 
 """
@@ -258,8 +291,6 @@ plt.ylabel('SOZ')
 """
 
 #amplitude
-Aperpt, Aperpt_mean = spike_amplitude_perregion(values, idxch)
-
 test_df = pd.DataFrame(data = Aperpt_mean)
 soz_df  = pd.DataFrame(data = clinic_soz)
 test_df = test_df.rename(columns={0:'L_Mesial', 1:'L_Lateral', 2:'R_Mesial', 3:'R_Lateral',4:'L_OtherCortex', 5:'R_OtherCortex', 6:'Empty Label'})
@@ -280,8 +311,6 @@ plt.yticks(rotation = 0)
 fig.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/distribution/amp_persoz")
 
 #LL
-LLperpt, LLperpt_mean = spike_LL_perregion(values, idxch)
-
 test_df = pd.DataFrame(data = LLperpt_mean)
 soz_df  = pd.DataFrame(data = clinic_soz)
 test_df = test_df.rename(columns={0:'L_Mesial', 1:'L_Lateral', 2:'R_Mesial', 3:'R_Lateral',4:'L_OtherCortex', 5:'R_OtherCortex', 6:'Empty Label'})
@@ -302,8 +331,6 @@ plt.yticks(rotation = 0)
 fig2.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/distribution/ll_persoz")
 
 #spikecount
-spike_count_perpt, totalcount_perpt, fullcount_perroi = spike_count_perregion(values)
-
 test_df = pd.DataFrame(data = totalcount_perpt)
 soz_df  = pd.DataFrame(data = clinic_soz)
 test_df = test_df.rename(columns={0:'L_Mesial', 1:'L_Lateral', 2:'R_Mesial', 3:'R_Lateral',4:'L_OtherCortex', 5:'R_OtherCortex', 6:'Empty Label'})
