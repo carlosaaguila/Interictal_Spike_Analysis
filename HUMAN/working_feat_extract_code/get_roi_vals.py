@@ -38,7 +38,6 @@ R_OC = [' right inferior parietal ', ' right postcentral ', ' right superior par
 roilist = [roiL_mesial, roiL_lateral, roiR_mesial, roiR_lateral, L_OC, R_OC, emptylabel]
 
 
-
 # functions to use:
 def find_soz_region(SOZ, brain_df):
     """ returns a list with all the regions of the seizure onset zone """
@@ -161,7 +160,7 @@ def spike_LL_perregion(values, idxch): #could be generalized to multiple feature
                     for x in xs:
                         val_want = np.transpose(x)
                         val_want = val_want[idxch[i][j][l]]
-                        feat = LL(val_want)
+                        feat = LL(val_want[750:1500]) #added a constraint to hopefully capture the spike
                         spikefeat.append(feat)
             perroi.append(spikefeat)
             perroi_mean.append(np.nanmean(spikefeat))
@@ -170,9 +169,10 @@ def spike_LL_perregion(values, idxch): #could be generalized to multiple feature
 
     return perpt, perpt_mean
 
-def split_list(a_list):
-    half = len(a_list)//2
-    return [a_list[:half], a_list[half:]]
+def divide_chunks(l, n):
+    # looping till length l
+    for i in range(0, len(l), n):
+        yield l[i:i + n]
 
 def feat_extract(lists_ptnames):
     clinic_soz_all = []
@@ -181,6 +181,12 @@ def feat_extract(lists_ptnames):
     LLperpt_mean_all = []
 
     for list in lists_ptnames:
+        #clear at the start to reduce memory load
+        values = []
+        idxch = []
+        infer_spike_soz = []
+        print('cleared + new pt list')
+
         #values
         values, idxch, infer_spike_soz, clinic_soz = biglist_roi(list, roilist)
         clinic_soz_all.append(clinic_soz)
@@ -203,7 +209,9 @@ def feat_extract(lists_ptnames):
     return Aperpt_mean, LLperpt_mean, totalcount_perpt, clinic_soz
 
 # run biglist_roi >> gives you all the values/roi, idxch/roi, the inferred spike soz (based off electrodes), and the SOZ determined by the clinician. 
-lists_ptnames = split_list(ptnames)
+
+n=15
+lists_ptnames = divide_chunks(ptnames, n)
 Aperpt_mean, LLperpt_mean, totalcount_perpt, clinic_soz = feat_extract(lists_ptnames)
 
 
@@ -308,7 +316,7 @@ plt.xlabel('Clinically Defined SOZ')
 plt.ylabel('Spiking Brain Region')
 plt.title('Amplitude across all Patients')
 plt.yticks(rotation = 0)
-fig.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/distribution/amp_persoz")
+fig.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/distribution/amp_persoz", bbox_inches = 'tight')
 
 #LL
 test_df = pd.DataFrame(data = LLperpt_mean)
@@ -328,7 +336,7 @@ plt.xlabel('Clinically Defined SOZ')
 plt.ylabel('Spiking Brain Region')
 plt.title('Linelength across all Patients')
 plt.yticks(rotation = 0)
-fig2.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/distribution/ll_persoz")
+fig2.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/distribution/ll_persoz_croppedwindow", bbox_inches = 'tight')
 
 #spikecount
 test_df = pd.DataFrame(data = totalcount_perpt)
@@ -350,4 +358,4 @@ plt.xlabel('Clinically Defined SOZ')
 plt.ylabel('Spiking Brain Region')
 plt.title('Spike Count Percentage per SOZ across all Patients')
 plt.yticks(rotation = 0)
-fig3.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/distribution/countpercentage_persoz")
+fig3.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/distribution/countpercentage_persoz", bbox_inches = 'tight')
