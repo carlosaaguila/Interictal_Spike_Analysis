@@ -298,16 +298,26 @@ plt.xlabel('Brain Region')
 plt.ylabel('SOZ')
 """
 
+#CLASS LIST COMBINATION
+to_combine = ['bilateral - diffuse', 'bilateral - mesial temporal', 'bilateral - multifocal' , 'bilateral - temporal multifocal','diffuse - diffuse', 'left - diffuse' ,'left - multifocal', 'right - multifocal']
+to_remove = ['temporal', 'frontal']
+
 #amplitude
 test_df = pd.DataFrame(data = Aperpt_mean)
 soz_df  = pd.DataFrame(data = clinic_soz)
 test_df = test_df.rename(columns={0:'L_Mesial', 1:'L_Lateral', 2:'R_Mesial', 3:'R_Lateral',4:'L_OtherCortex', 5:'R_OtherCortex', 6:'Empty Label'})
+test_df = test_df.drop(columns = 'Empty Label')
 soz_df = soz_df.rename(columns = {0:'region', 1:'lateralization'})
 amp_df_combine =  pd.concat([test_df, soz_df], axis = 1)
-amp_df_drop1 = amp_df_combine[amp_df_combine['region'] != 'temporal'] #remove temporal as a region we're looking at for SOZ
-amp_df_drop1['soz'] = amp_df_drop1['lateralization'] + " - " + amp_df_drop1['region'] 
+
+for l in to_remove: #remove to_remove variables
+    amp_df_combine = amp_df_combine[amp_df_combine['region'] != l]\
+
+amp_df_drop1 = amp_df_combine
+amp_df_drop1['soz'] = amp_df_combine['lateralization'] + " - " + amp_df_combine['region'] 
 
 amp_df = amp_df_drop1.drop(columns = ['region','lateralization'])
+amp_df['soz'] = amp_df['soz'].apply(lambda x: "bilateral" if x in to_combine else x)
 amp_df = amp_df.groupby(by='soz').median()
 
 fig = plt.figure(figsize=(8,8))
@@ -316,18 +326,24 @@ plt.xlabel('Clinically Defined SOZ')
 plt.ylabel('Spiking Brain Region')
 plt.title('Amplitude across all Patients')
 plt.yticks(rotation = 0)
-fig.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/distribution/amp_persoz", bbox_inches = 'tight')
+fig.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/distribution/amp_persoz3", bbox_inches = 'tight')
 
 #LL
 test_df = pd.DataFrame(data = LLperpt_mean)
 soz_df  = pd.DataFrame(data = clinic_soz)
 test_df = test_df.rename(columns={0:'L_Mesial', 1:'L_Lateral', 2:'R_Mesial', 3:'R_Lateral',4:'L_OtherCortex', 5:'R_OtherCortex', 6:'Empty Label'})
+test_df = test_df.drop(columns = 'Empty Label')
 soz_df = soz_df.rename(columns = {0:'region', 1:'lateralization'})
 amp_df_combine =  pd.concat([test_df, soz_df], axis = 1)
-amp_df_drop1 = amp_df_combine[amp_df_combine['region'] != 'temporal'] #remove temporal as a region we're looking at for SOZ
-amp_df_drop1['soz'] = amp_df_drop1['lateralization'] + " - " + amp_df_drop1['region'] 
+
+for l in to_remove: #remove to_remove variables
+    amp_df_combine = amp_df_combine[amp_df_combine['region'] != l]
+
+amp_df_drop1 = amp_df_combine
+amp_df_drop1['soz'] = amp_df_combine['lateralization'] + " - " + amp_df_combine['region'] 
 
 ll_df = amp_df_drop1.drop(columns = ['region','lateralization'])
+ll_df['soz'] = ll_df['soz'].apply(lambda x: "bilateral" if x in to_combine else x)
 ll_df = ll_df.groupby(by='soz').median()
 
 fig2 = plt.figure(figsize=(8,8))
@@ -336,7 +352,7 @@ plt.xlabel('Clinically Defined SOZ')
 plt.ylabel('Spiking Brain Region')
 plt.title('Linelength across all Patients')
 plt.yticks(rotation = 0)
-fig2.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/distribution/ll_persoz_croppedwindow", bbox_inches = 'tight')
+fig2.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/distribution/ll_persoz_croppedwindow3", bbox_inches = 'tight')
 
 #spikecount
 test_df = pd.DataFrame(data = totalcount_perpt)
@@ -344,18 +360,58 @@ soz_df  = pd.DataFrame(data = clinic_soz)
 test_df = test_df.rename(columns={0:'L_Mesial', 1:'L_Lateral', 2:'R_Mesial', 3:'R_Lateral',4:'L_OtherCortex', 5:'R_OtherCortex', 6:'Empty Label'})
 soz_df = soz_df.rename(columns = {0:'region', 1:'lateralization'})
 amp_df_combine =  pd.concat([test_df, soz_df], axis = 1)
-amp_df_drop1 = amp_df_combine[amp_df_combine['region'] != 'temporal'] #remove temporal as a region we're looking at for SOZ
-amp_df_drop1['soz'] = amp_df_drop1['lateralization'] + " - " + amp_df_drop1['region'] 
 
+for l in to_remove: #remove to_remove variables
+    amp_df_combine = amp_df_combine[amp_df_combine['region'] != l]
+
+amp_df_drop1 = amp_df_combine
+amp_df_drop1['soz'] = amp_df_combine['lateralization'] + " - " + amp_df_combine['region'] 
+
+#WANT TO FIND THE PERCENTAGE BREAKDOWN PER PT BEFORE GROUPING. 
 count_df = amp_df_drop1.drop(columns = ['region','lateralization'])
-count_df = count_df.groupby(by='soz').sum()
-count_df = count_df.div(count_df.sum(axis=1), axis = 0)
-count_df = count_df.mul(100)
+count_df['soz'] = count_df['soz'].apply(lambda x: "bilateral" if x in to_combine else x)
+
+count_percent_perpt = count_df[['L_Mesial', 'L_Lateral', 'R_Mesial', 'R_Lateral', 'L_OtherCortex', 'R_OtherCortex', 'Empty Label']].div(count_df.sum(axis=1), axis =0).mul(100)
+count_percent_perpt['soz'] = count_df['soz']
+count_percent_perpt = count_percent_perpt.groupby(by='soz').mean()
 
 fig3 = plt.figure(figsize=(8,8))
-sns.heatmap(count_df.transpose(), cmap='crest', cbar_kws = {'label':'Spike Percentage'})
+sns.heatmap(count_percent_perpt.transpose(), cmap='crest', cbar_kws = {'label':'Spike Percentage'})
 plt.xlabel('Clinically Defined SOZ')
 plt.ylabel('Spiking Brain Region')
 plt.title('Spike Count Percentage per SOZ across all Patients')
 plt.yticks(rotation = 0)
-fig3.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/distribution/countpercentage_persoz", bbox_inches = 'tight')
+fig3.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/distribution/countpercentage_persoz2", bbox_inches = 'tight')
+
+
+#spikecount NO emptylabels
+
+test_df = pd.DataFrame(data = totalcount_perpt)
+soz_df  = pd.DataFrame(data = clinic_soz)
+test_df = test_df.rename(columns={0:'L_Mesial', 1:'L_Lateral', 2:'R_Mesial', 3:'R_Lateral',4:'L_OtherCortex', 5:'R_OtherCortex', 6:'Empty Label'})
+test_df = test_df.drop(columns = 'Empty Label')
+soz_df = soz_df.rename(columns = {0:'region', 1:'lateralization'})
+amp_df_combine =  pd.concat([test_df, soz_df], axis = 1)
+
+for l in to_remove: #remove to_remove variables
+    amp_df_combine = amp_df_combine[amp_df_combine['region'] != l]
+
+amp_df_drop1 = amp_df_combine
+amp_df_drop1['soz'] = amp_df_combine['lateralization'] + " - " + amp_df_combine['region'] 
+
+#WANT TO FIND THE PERCENTAGE BREAKDOWN PER PT BEFORE GROUPING. 
+count_df = amp_df_drop1.drop(columns = ['region','lateralization'])
+count_df['soz'] = count_df['soz'].apply(lambda x: "bilateral" if x in to_combine else x)
+
+count_percent_perpt = count_df[['L_Mesial', 'L_Lateral', 'R_Mesial', 'R_Lateral', 'L_OtherCortex', 'R_OtherCortex']].div(count_df.sum(axis=1), axis =0).mul(100)
+count_percent_perpt['soz'] = count_df['soz']
+count_percent_perpt = count_percent_perpt.groupby(by='soz').mean()
+
+fig4 = plt.figure(figsize=(8,8))
+sns.heatmap(count_percent_perpt.transpose(), cmap='crest', cbar_kws = {'label':'Spike Percentage'})
+plt.xlabel('Clinically Defined SOZ')
+plt.ylabel('Spiking Brain Region')
+plt.title('Spike Count Percentage per SOZ across all Patients')
+plt.yticks(rotation = 0)
+fig4.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/distribution/countpercentage_persoz3", bbox_inches = 'tight')
+
