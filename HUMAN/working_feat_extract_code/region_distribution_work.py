@@ -45,7 +45,7 @@ def find_soz_region(SOZ, brain_df):
     region = brain_df['final_label'][brain_df['SOZ'] == 1].to_list()
     return region
 
-def biglist_roi(ptnames, roi):
+def biglist_roi(ptnames, roi = roilist):
     """
     generates a big list of all relative values based on region of interest.
     takes in multiple regions, thanks to value_basis_multiroi > the results are indexed in order of the roi list we use as the import. *track this*
@@ -311,7 +311,7 @@ soz_df = soz_df.rename(columns = {0:'region', 1:'lateralization'})
 amp_df_combine =  pd.concat([test_df, soz_df], axis = 1)
 
 for l in to_remove: #remove to_remove variables
-    amp_df_combine = amp_df_combine[amp_df_combine['region'] != l]\
+    amp_df_combine = amp_df_combine[amp_df_combine['region'] != l]
 
 amp_df_drop1 = amp_df_combine
 amp_df_drop1['soz'] = amp_df_combine['lateralization'] + " - " + amp_df_combine['region'] 
@@ -373,7 +373,7 @@ count_df['soz'] = count_df['soz'].apply(lambda x: "bilateral" if x in to_combine
 
 count_percent_perpt = count_df[['L_Mesial', 'L_Lateral', 'R_Mesial', 'R_Lateral', 'L_OtherCortex', 'R_OtherCortex', 'Empty Label']].div(count_df.sum(axis=1), axis =0).mul(100)
 count_percent_perpt['soz'] = count_df['soz']
-count_percent_perpt = count_percent_perpt.groupby(by='soz').mean()
+count_percent_perpt = count_percent_perpt.groupby(by='soz').median()
 
 fig3 = plt.figure(figsize=(8,8))
 sns.heatmap(count_percent_perpt.transpose(), cmap='crest', cbar_kws = {'label':'Spike Percentage'})
@@ -405,7 +405,7 @@ count_df['soz'] = count_df['soz'].apply(lambda x: "bilateral" if x in to_combine
 
 count_percent_perpt = count_df[['L_Mesial', 'L_Lateral', 'R_Mesial', 'R_Lateral', 'L_OtherCortex', 'R_OtherCortex']].div(count_df.sum(axis=1), axis =0).mul(100)
 count_percent_perpt['soz'] = count_df['soz']
-count_percent_perpt = count_percent_perpt.groupby(by='soz').mean()
+count_percent_perpt = count_percent_perpt.groupby(by='soz').median()
 
 fig4 = plt.figure(figsize=(8,8))
 sns.heatmap(count_percent_perpt.transpose(), cmap='crest', cbar_kws = {'label':'Spike Percentage'})

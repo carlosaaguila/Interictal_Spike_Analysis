@@ -618,3 +618,172 @@ def plot_avgROIwave_multipt(ptnames, data_directory, roi, title):
     plt.show()
 
     return fig, fig2, fig3, total_avg, abs_total_avg, flip_total_avg, all_chs, flip_allchs
+
+def find_soz_region(SOZ, brain_df):
+    """ returns a list with all the regions of the seizure onset zone """
+    brain_df['SOZ'] = brain_df['name'].apply(lambda x: 1 if x in SOZ else 0)
+    region = brain_df['final_label'][brain_df['SOZ'] == 1].to_list()
+    return region
+
+def biglist_roi(ptnames, roilist, data_directory):
+    """
+    generates a big list of all relative values based on region of interest.
+    takes in multiple regions, thanks to value_basis_multiroi > the results are indexed in order of the roi list we use as the import. *track this*
+    """
+    roiLlat_values = []
+    roiLlat_idxch = []
+    infer_spike_soz = []
+    clinic_soz = []
+    count = 0
+    for pt in ptnames:
+        print(pt)
+        spike, brain_df, soz_region, _  = load_ptall(pt, data_directory)
+        if isinstance(brain_df, pd.DataFrame) == False: #checks if RID exists
+            count += 1
+            continue
+        if spike.fs[0][-1] < 500:
+            count += 1
+            print("low fs - skip")
+            continue
+        vals, _, idxch = value_basis_multiroi(spike, brain_df, roilist)
+        #here instead of storing the val, you want to grab the feature of interest. 
+        roiLlat_values.append(vals)
+        roiLlat_idxch.append(idxch)    
+        region = find_soz_region(spike.soz, brain_df)
+        infer_spike_soz.append([spike.soz, region]) #should get skipped if there isn't any 
+        clinic_soz.append(soz_region)
+        if vals == 0: #checks if there is no overlap
+            count += 1
+            continue
+    return roiLlat_values, roiLlat_idxch, infer_spike_soz, clinic_soz
+
+#update code to get count for each.
+def spike_count_perregion(values): #could be generalized to multiple features easily. 
+    """
+    returns a list of the counts of each pt, per channel in ROI
+    """
+    spike_count_perpt = []
+    count = []
+    roi_count_perpt = []
+    totalcount_perpt = []
+    for pt in values:
+        roi_count_perpt = []
+        for roi in pt:
+            count = []
+            for x in roi:
+                if np.shape(roi) == (1,1):
+                    idv_count = 0
+                    count.append(idv_count)
+                    continue
+                else:
+                    count.append(len(x)) #here you replace with a feature maker
+            roi_count_perpt.append(count)
+        spike_count_perpt.append(roi_count_perpt)
+
+    #clean up, and sort into pt > roi > values (counts in this case)
+    totalcount_perpt = []
+    for pt in spike_count_perpt:
+        sum_perroi = []
+        for roi in pt:
+            sum_perroi.append(np.sum(roi))
+        totalcount_perpt.append(sum_perroi)
+
+    fullcount_perroi = np.sum(totalcount_perpt, axis=0)
+    return spike_count_perpt, totalcount_perpt, fullcount_perroi
+
+def spike_amplitude_perregion(values, idxch): #could be generalized to multiple features easily. 
+    """
+    returns a list of the features of interest of each pt, per channel in ROI
+    """
+    perpt = []
+    perpt_mean = []
+    for i, pt in enumerate(values):
+        perroi_mean = []
+        perroi = []
+        for j, roi in enumerate(pt):
+            spikefeat = []
+            for l, xs in enumerate(roi):
+                if np.shape(roi) == (1,1):
+                    feat = np.nan
+                    spikefeat.append(feat)
+                    continue
+                else:
+                    for x in xs:
+                        val_want = np.transpose(x)
+                        val_want = val_want[idxch[i][j][l]]
+                        feat = np.max(np.absolute(val_want[750:1251]))
+                        spikefeat.append(feat)
+            perroi.append(spikefeat)
+            perroi_mean.append(np.nanmean(spikefeat))
+        perpt.append(perroi)
+        perpt_mean.append(perroi_mean)
+
+    return perpt, perpt_mean
+
+def spike_LL_perregion(values, idxch): #could be generalized to multiple features easily. 
+    """
+    returns a list of the features of interest of each pt, per channel in ROI
+    """
+    perpt = []
+    perpt_mean = []
+    for i, pt in enumerate(values):
+        perroi_mean = []
+        perroi = []
+        for j, roi in enumerate(pt):
+            spikefeat = []
+            for l, xs in enumerate(roi):
+                if np.shape(roi) == (1,1):
+                    feat = np.nan
+                    spikefeat.append(feat)
+                    continue
+                else:
+                    for x in xs:
+                        val_want = np.transpose(x)
+                        val_want = val_want[idxch[i][j][l]]
+                        feat = LL(val_want[750:1500]) #added a constraint to hopefully capture the spike
+                        spikefeat.append(feat)
+            perroi.append(spikefeat)
+            perroi_mean.append(np.nanmean(spikefeat))
+        perpt.append(perroi)
+        perpt_mean.append(perroi_mean)
+
+    return perpt, perpt_mean
+
+def divide_chunks(l, n):
+    # looping till length l
+    for i in range(0, len(l), n):
+        yield l[i:i + n]
+
+def feat_extract(lists_ptnames, roilist, data_directory):
+    clinic_soz_all = []
+    Aperpt_mean_all = []
+    totalcount_perpt_all = []
+    LLperpt_mean_all = []
+
+    for list in lists_ptnames:
+        #clear at the start to reduce memory load
+        values = []
+        idxch = []
+        infer_spike_soz = []
+        print('cleared + new pt list')
+
+        #values
+        values, idxch, infer_spike_soz, clinic_soz = biglist_roi(list, roilist, data_directory)
+        clinic_soz_all.append(clinic_soz)
+
+        #features
+        Aperpt, Aperpt_mean = spike_amplitude_perregion(values, idxch)
+        spike_count_perpt, totalcount_perpt, fullcount_perroi = spike_count_perregion(values)
+        LLperpt, LLperpt_mean = spike_LL_perregion(values, idxch)
+
+        Aperpt_mean_all.append(Aperpt_mean)
+        totalcount_perpt_all.append(totalcount_perpt)
+        LLperpt_mean_all.append(LLperpt_mean)
+    
+
+    Aperpt_mean = [x for x in Aperpt_mean_all for x in x]
+    LLperpt_mean = [x for x in LLperpt_mean_all for x in x]
+    totalcount_perpt = [x for x in totalcount_perpt_all for x in x]
+    clinic_soz = [x for x in clinic_soz_all for x in x]
+
+    return Aperpt_mean, LLperpt_mean, totalcount_perpt, clinic_soz
