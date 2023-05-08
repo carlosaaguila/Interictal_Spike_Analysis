@@ -555,7 +555,7 @@ def plot_avgROIwave_multipt(ptnames, data_directory, roi, title):
     count = 0
     for pt in ptnames:
         print(pt)
-        spike, brain_df, ids = load_ptall(pt, data_directory)
+        spike, brain_df, _, ids = load_ptall(pt, data_directory)
         if isinstance(brain_df, pd.DataFrame) == False: #checks if RID exists
             count += 1
             continue
