@@ -45,42 +45,63 @@ L_mesi_pts = mesialtemp['pt'][mesialtemp['lateralization'] == 'left'].to_list()
 R_mesi_pts = mesialtemp['pt'][mesialtemp['lateralization'] == 'right'].to_list()
 L_neo_pts = neocortemp['pt'][neocortemp['lateralization'] == 'left'].to_list()
 R_neo_pts = neocortemp['pt'][neocortemp['lateralization'] == 'right'].to_list()
+BI_mesi_pts = mesialtemp['pt'][mesialtemp['lateralization'] == 'bilateral'].to_list()
 
 #%% Get the average waveforms - both ipsi and contra of the SOZ
 
 # Left Mesial Temporal Patients
 # IPSI
+LEFTSIDE = roiL_mesial+roiL_lateral+L_OC
+RIGHTSIDE = roiR_mesial+roiR_lateral+R_OC
+
+#%% L_mesi_pts
 ptnames = L_mesi_pts
-fig, fig_abs, fig_flip, total_avg, abs_total_avg, flip_total_avg, all_chs, flip_allchs = plot_avgROIwave_multipt(ptnames, data_directory, roiL_mesial, title='Ipsi SOZ - Left Mesial Temporal')
-save = 'IPSI_L_mesialpt'
+fig, fig_abs, fig_flip, total_avg, abs_total_avg, flip_total_avg, all_chs, flip_allchs = plot_avgROIwave_multipt(ptnames, data_directory, LEFTSIDE, title='Ipsi SOZ - Left Mesial Temporal')
+save = 'IPSI_L_mesialpt2'
 fig.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/ipsi_contra_soz_plts/norm/{}_norm".format(save)) #save as jpg
 fig_abs.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/ipsi_contra_soz_plts/abs/{}_abs".format(save)) #save as jpg
 fig_flip.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/ipsi_contra_soz_plts/flip/{}_flip".format(save))
 # CONTRA
 ptnames = L_mesi_pts
-fig, fig_abs, fig_flip, total_avg, abs_total_avg, flip_total_avg, all_chs, flip_allchs = plot_avgROIwave_multipt(ptnames, data_directory, roiR_mesial, title='Contra SOZ - Left Mesial Temporal')
-save = 'CONTRA_L_mesialpt'
+fig, fig_abs, fig_flip, total_avg, abs_total_avg, flip_total_avg, all_chs, flip_allchs = plot_avgROIwave_multipt(ptnames, data_directory, RIGHTSIDE, title='Contra SOZ - Left Mesial Temporal')
+save = 'CONTRA_L_mesialpt2'
 fig.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/ipsi_contra_soz_plts/norm/{}_norm".format(save)) #save as jpg
 fig_abs.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/ipsi_contra_soz_plts/abs/{}_abs".format(save)) #save as jpg
 fig_flip.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/ipsi_contra_soz_plts/flip/{}_flip".format(save))
 
-# Right Mesial Temporal Patients 
+#%% Right Mesial Temporal Patients 
 # IPSI
 ptnames = R_mesi_pts
-fig, fig_abs, fig_flip, total_avg, abs_total_avg, flip_total_avg, all_chs, flip_allchs = plot_avgROIwave_multipt(ptnames, data_directory, roiR_mesial, title='Ipsi SOZ - Right Mesial Temporal')
-save = 'IPSI_R_mesialpt'
+fig, fig_abs, fig_flip, total_avg, abs_total_avg, flip_total_avg, all_chs, flip_allchs = plot_avgROIwave_multipt(ptnames, data_directory, RIGHTSIDE, title='Ipsi SOZ - Right Mesial Temporal')
+save = 'IPSI_R_mesialpt2'
 fig.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/ipsi_contra_soz_plts/norm/{}_norm".format(save)) #save as jpg
 fig_abs.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/ipsi_contra_soz_plts/abs/{}_abs".format(save)) #save as jpg
 fig_flip.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/ipsi_contra_soz_plts/flip/{}_flip".format(save))
 # CONTRA
 ptnames = R_mesi_pts
-fig, fig_abs, fig_flip, total_avg, abs_total_avg, flip_total_avg, all_chs, flip_allchs = plot_avgROIwave_multipt(ptnames, data_directory, roiL_mesial, title='Contra SOZ - Right Mesial Temporal')
-save = 'CONTRA_R_mesialpt'
+fig, fig_abs, fig_flip, total_avg, abs_total_avg, flip_total_avg, all_chs, flip_allchs = plot_avgROIwave_multipt(ptnames, data_directory, LEFTSIDE, title='Contra SOZ - Right Mesial Temporal')
+save = 'CONTRA_R_mesialpt2'
 fig.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/ipsi_contra_soz_plts/norm/{}_norm".format(save)) #save as jpg
 fig_abs.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/ipsi_contra_soz_plts/abs/{}_abs".format(save)) #save as jpg
 fig_flip.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/ipsi_contra_soz_plts/flip/{}_flip".format(save))
 
-# Left Neocortical Temporal Patients
+#%% BIlateral mesial temporal patients
+ptnames = BI_mesi_pts
+fig, fig_abs, fig_flip, total_avg, abs_total_avg, flip_total_avg, all_chs, flip_allchs = plot_avgROIwave_multipt(ptnames, data_directory, RIGHTSIDE, title='RIGHT - Bilateral Mesial Temporal')
+save = 'right_BI_mesialpt'
+fig.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/ipsi_contra_soz_plts/norm/{}_norm".format(save)) #save as jpg
+fig_abs.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/ipsi_contra_soz_plts/abs/{}_abs".format(save)) #save as jpg
+fig_flip.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/ipsi_contra_soz_plts/flip/{}_flip".format(save))
+# CONTRA
+ptnames = BI_mesi_pts
+fig, fig_abs, fig_flip, total_avg, abs_total_avg, flip_total_avg, all_chs, flip_allchs = plot_avgROIwave_multipt(ptnames, data_directory, LEFTSIDE, title='LEFT - Bilateral Mesial Temporal')
+save = 'left_BI_mesialpt'
+fig.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/ipsi_contra_soz_plts/norm/{}_norm".format(save)) #save as jpg
+fig_abs.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/ipsi_contra_soz_plts/abs/{}_abs".format(save)) #save as jpg
+fig_flip.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/ipsi_contra_soz_plts/flip/{}_flip".format(save))
+
+
+#%% Left Neocortical Temporal Patients
 # IPSI
 ptnames = L_neo_pts
 fig, fig_abs, fig_flip, total_avg, abs_total_avg, flip_total_avg, all_chs, flip_allchs = plot_avgROIwave_multipt(ptnames, data_directory, roiL_mesial, title='Ipsi SOZ - Left Neocortical Temporal')
@@ -111,4 +132,3 @@ save = 'CONTRA_R_neopt'
 fig.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/ipsi_contra_soz_plts/norm/{}_norm".format(save)) #save as jpg
 fig_abs.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/ipsi_contra_soz_plts/abs/{}_abs".format(save)) #save as jpg
 fig_flip.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/ipsi_contra_soz_plts/flip/{}_flip".format(save))
-

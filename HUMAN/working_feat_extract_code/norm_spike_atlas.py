@@ -71,4 +71,5 @@ count_percent_perpt['soz'] = count_df['soz']
 count_percent_perpt = count_percent_perpt.groupby(by='soz').median()
 
 display(count_percent_perpt)
+
 # %%

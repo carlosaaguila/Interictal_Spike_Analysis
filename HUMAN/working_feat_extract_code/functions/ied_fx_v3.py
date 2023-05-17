@@ -120,34 +120,6 @@ def hifreq_ch_spike(select_spikes):
 
     return [uniq_chs, counts], spiking_chs
 
-def hifreq_ch_spike(select_spikes):
-    """ 
-    function to find the frequency of spiking for a unique channel
-    input: 1000 random spike file (randi)
-    output: 2x1 list containing the unique channels[0] and the frequency in which they are spiking [1]
-    """
-
-    spiking_ch = [] #create list of spiking channels from spike.select (1000 random spikes)
-    for spike in select_spikes:
-        spiking_ch.append(spike[1])
-
-    uniq_chs = np.unique(spiking_ch) #generate unique channels
-
-    counts=[] #find the frequency
-    for ch in uniq_chs:
-        x = spiking_ch.count(ch)
-        counts.append(x)
-
-    total = 0 #sanity check - the frequency of ch's should add up to 1000
-    for ele in range(0, len(counts)):
-        total = total + counts[ele]
-    if total != 1000:
-        print('not working correct')
-
-    spiking_chs = [int(x) for x in spiking_ch]
-
-    return [uniq_chs, counts], spiking_chs
-
 def find_spike_ch(select_spikes,values):
     #this function will find the values for the spiking channel.
     #should return a 1000 x #ofsamples matrix
@@ -271,16 +243,16 @@ def load_rid_forjson(ptname, data_directory):
 
     if path.exists(data_directory[1] + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-research3T_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.csv'.format(rid[0],rid[0])) == True:
         dkt_directory = data_directory[1] + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-research3T_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.csv'.format(rid[0],rid[0])
-    if path.exists(data_directory[1] + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-implant01_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.csv'.format(rid[0],rid[0])) == True:
+    elif path.exists(data_directory[1] + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-implant01_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.csv'.format(rid[0],rid[0])) == True:
         dkt_directory = data_directory[1] + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-implant01_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.csv'.format(rid[0],rid[0])
-    if path.exists(data_directory[1] + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-clinical01_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.csv'.format(rid[0],rid[0])) == True:
+    elif path.exists(data_directory[1] + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-clinical01_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.csv'.format(rid[0],rid[0])) == True:
         dkt_directory = data_directory[1] + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-clinical01_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.csv'.format(rid[0],rid[0])
 
     brain_df = pd.read_csv(dkt_directory)
     brain_df['name'] = brain_df['name'].astype(str) + '-CAR'
     return rid[0], brain_df
         
-def label_fix(pt, data_directory, threshold = 0.25):
+def label_fix(pt, data_directory, threshold = 0.20):
     '''
     label_fix reassigns labels overlapping brain regions to "empty labels" in our DKTantspynet output from IEEG_recon
     input:  pt - name of patient. example: 'HUP100' 
@@ -292,9 +264,9 @@ def label_fix(pt, data_directory, threshold = 0.25):
     rid, brain_df = load_rid_forjson(pt, data_directory)
     if path.exists(data_directory[1] + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-research3T_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.json'.format(rid,rid)) == True:
         json_labels = data_directory[1] + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-research3T_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.json'.format(rid,rid)
-    if path.exists(data_directory[1] + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-implant01_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.json'.format(rid,rid)) == True:
+    elif path.exists(data_directory[1] + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-implant01_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.json'.format(rid,rid)) == True:
         json_labels = data_directory[1] + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-implant01_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.json'.format(rid,rid)
-    if path.exists(data_directory[1] + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-clinical01_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.json'.format(rid,rid)) == True:
+    elif path.exists(data_directory[1] + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-clinical01_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.json'.format(rid,rid)) == True:
         json_labels = data_directory[1] + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-clinical01_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.json'.format(rid,rid)
         
     workinglabels = pd.read_json(json_labels, lines=True)
@@ -323,7 +295,7 @@ def load_ptall(ptname, data_directory):
         ptname = ptname
         rid = 0
     else:
-        relabeled_df = label_fix(ptname, data_directory, threshold = 0.25)
+        relabeled_df = label_fix(ptname, data_directory, threshold = 0.20)
 
     soz_region = pd.read_csv("/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/soz_locations.csv")
     soz_region_pt = soz_region[soz_region['name'] == ptname]['region'].to_list()
@@ -376,7 +348,7 @@ def value_basis(spike, brain_df, roi):
     counts,chs = hifreq_ch_spike(spike.select)
 
     select_oi = []
-    for chroi in idx_roich:
+    for chroi in chnum:
         idx = np.where(chs == chroi)[0]
         select_oi.append(idx)
 
@@ -427,7 +399,7 @@ def value_basis_multiroi(spike, brain_df, region_of_interests):
         counts,chs = hifreq_ch_spike(spike.select)
 
         select_oi = []
-        for chroi in idx_roich:
+        for chroi in chnum:
             idx = np.where(chs == chroi)[0]
             select_oi.append(idx)
 
