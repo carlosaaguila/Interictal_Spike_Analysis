@@ -251,15 +251,17 @@ def load_rid_forjson(ptname, data_directory):
     brain_df = pd.read_csv(dkt_directory)
     brain_df['name'] = brain_df['name'].astype(str) + '-CAR'
     return rid[0], brain_df
-        
+
+'''     
+#outdated code (changed to a newer version that looks for gray matter)   
 def label_fix(pt, data_directory, threshold = 0.20):
-    '''
-    label_fix reassigns labels overlapping brain regions to "empty labels" in our DKTantspynet output from IEEG_recon
-    input:  pt - name of patient. example: 'HUP100' 
-            data_directory - directory containing CNT_iEEG_BIGS folder. (must end in '/')
-            threshold - arbitrary threshold that r=2mm surround of electrode must overlap with a brain region. default: threshold = 25%, Brain region has a 25% or more overlap.
-    output: relabeled_df - a dataframe that contains 2 extra columns showing the second most overlapping brain region and the percent of overlap. 
-    '''
+    
+    #label_fix reassigns labels overlapping brain regions to "empty labels" in our DKTantspynet output from IEEG_recon
+    #input:  pt - name of patient. example: 'HUP100' 
+    #        data_directory - directory containing CNT_iEEG_BIGS folder. (must end in '/')
+    #        threshold - arbitrary threshold that r=2mm surround of electrode must overlap with a brain region. default: threshold = 25%, Brain region has a 25% or more overlap.
+    #output: relabeled_df - a dataframe that contains 2 extra columns showing the second most overlapping brain region and the percent of overlap. 
+    
 
     rid, brain_df = load_rid_forjson(pt, data_directory)
     if path.exists(data_directory[1] + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-research3T_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.json'.format(rid,rid)) == True:
@@ -281,6 +283,97 @@ def label_fix(pt, data_directory, threshold = 0.20):
     relabeled_df['name'] = relabeled_df['name'].astype(str) + '-CAR' #added for this version for our analysis
 
     return relabeled_df
+'''
+
+def gray_labels(row):
+    '''
+    function looks for gray matter, if it finds it then it will look to return the label in which it is not Empty or None
+    '''
+    #check if a dataframe contains a column by the name of 'hi'
+
+    if 'AT_labels1' in row:
+        if (row['AT_labels0'] == 'gray matter') | (row['AT_labels1'] == 'gray matter'): #change this to 3 == stATEMENTS    MY GROUPING IS INCORRECT
+
+            if (row['labels_sorted1'] != "EmptyLabel") | (row['labels_sorted1'] != None):
+                return row['labels_sorted1']
+            
+            elif (row['labels_sorted2'] != "EmptyLabel") | (row['labels_sorted2'] != None):
+                return row['labels_sorted2']
+            
+            elif (row['labels_sorted3'] != "EmptyLabel") | (row['labels_sorted3'] != None):
+                return row['labels_sorted3']
+            
+            elif (row['labels_sorted4'] != "EmptyLabel") | (row['labels_sorted1'] != None):
+                return row['labels_sorted4']
+
+    if 'AT_labels2' in row:
+        if (row['AT_labels0'] == 'gray matter') | (row['AT_labels1'] == 'gray matter') | (row['AT_labels2'] == 'gray matter'): #change this to 3 == stATEMENTS    MY GROUPING IS INCORRECT
+
+            if (row['labels_sorted1'] != "EmptyLabel") | (row['labels_sorted1'] != None):
+                return row['labels_sorted1']
+            
+            elif (row['labels_sorted2'] != "EmptyLabel") | (row['labels_sorted2'] != None):
+                return row['labels_sorted2']
+            
+            elif (row['labels_sorted3'] != "EmptyLabel") | (row['labels_sorted3'] != None):
+                return row['labels_sorted3']
+            
+            elif (row['labels_sorted4'] != "EmptyLabel") | (row['labels_sorted1'] != None):
+                return row['labels_sorted4']
+    
+
+def label_fix(pt, data_directory, threshold = 0.20):
+    '''
+    label_fix reassigns labels overlapping brain regions to "empty labels" in our DKTantspynet output from IEEG_recon
+    input:  pt - name of patient. example: 'HUP100' 
+            data_directory - directory containing CNT_iEEG_BIGS folder. (must end in '/')
+            threshold - arbitrary threshold that r=2mm surround of electrode must overlap with a brain region. default: threshold = 25%, Brain region has a 25% or more overlap.
+    output: relabeled_df - a dataframe that contains 2 extra columns showing the second most overlapping brain region and the percent of overlap. 
+    '''
+
+    rid, brain_df = load_rid_forjson(pt, data_directory)
+    if path.exists(data_directory[1] + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-research3T_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.json'.format(rid,rid)) == True:
+        json_labels = data_directory[1] + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-research3T_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.json'.format(rid,rid)
+    if path.exists(data_directory[1] + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-implant01_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.json'.format(rid,rid)) == True:
+        json_labels = data_directory[1] + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-implant01_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.json'.format(rid,rid)
+    if path.exists(data_directory[1] + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-clinical01_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.json'.format(rid,rid)) == True:
+        json_labels = data_directory[1] + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-clinical01_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.json'.format(rid,rid)
+        
+    workinglabels = pd.read_json(json_labels, lines=True)
+    empty = (workinglabels[workinglabels['label'] == 'EmptyLabel'])
+    empty = unnesting(empty, ['labels_sorted', 'percent_assigned'], axis=0)
+    empty = empty[np.isnan(empty['percent_assigned1']) == False]
+    changed = empty[empty['percent_assigned1'] >= threshold]
+    
+    brain_df['name'] = brain_df['name'].str.replace('-CAR','')
+    relabeled_df = brain_df.merge(changed[['labels_sorted1', 'percent_assigned1']], left_on=brain_df['name'], right_on=changed['name'], how = 'left', indicator=True)   
+    relabeled_df['final_label'] = relabeled_df['labels_sorted1'].fillna(relabeled_df['label'])
+    
+    relabeled_df = relabeled_df[['name', 'x', 'y', 'z', 'label', 'labels_sorted1', 'percent_assigned1', 'final_label']]
+    relabeled_df = relabeled_df.rename(columns={'final_label': 'threshold_label'})
+
+    #load atropos
+    if path.exists(data_directory[1] + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-research3T_space-T00mri_atlas-atropos_radius-2_desc-vox_coordinates.json'.format(rid,rid)) == True:
+        at_json_labels = data_directory[1] + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-research3T_space-T00mri_atlas-atropos_radius-2_desc-vox_coordinates.json'.format(rid,rid)
+    elif path.exists(data_directory[1] + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-implant01_space-T00mri_atlas-atropos_radius-2_desc-vox_coordinates.json'.format(rid,rid)) == True:
+        at_json_labels = data_directory[1] + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-implant01_space-T00mri_atlas-atropos_radius-2_desc-vox_coordinates.json'.format(rid,rid)
+    elif path.exists(data_directory[1] + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-clinical01_space-T00mri_atlas-atropos_radius-2_desc-vox_coordinates.json'.format(rid,rid)) == True:
+        at_json_labels = data_directory[1] + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-clinical01_space-T00mri_atlas-atropos_radius-2_desc-vox_coordinates.json'.format(rid,rid)
+
+    atropos_labels = pd.read_json(at_json_labels, lines = True)    
+    atropos_labels = atropos_labels.rename(columns={'labels_sorted': 'AT_labels', 'percent_assigned':'AT_perc'})
+    #MERGE ATROPOS AND DKT
+    merge_keys = workinglabels.merge(atropos_labels[['AT_labels', 'AT_perc']], left_on = workinglabels['name'], right_on= atropos_labels['name'], how='left')
+    
+    empty_mergekeys = (merge_keys[merge_keys['label'] == 'EmptyLabel'])
+    empty_mergekeys = unnesting(empty_mergekeys, ['labels_sorted', 'percent_assigned','AT_labels','AT_perc'], axis=0)
+    empty_mergekeys['at_dkt_labels'] = empty_mergekeys.apply(gray_labels, axis=1)
+    relabeled_df_2 = relabeled_df.merge(empty_mergekeys['at_dkt_labels'], left_on=relabeled_df['name'], right_on=empty_mergekeys['name'], how = 'left', indicator='merge_indicator')
+    relabeled_df_2['final_label'] = relabeled_df_2['at_dkt_labels'].fillna(relabeled_df_2['threshold_label'])
+
+    relabeled_df_2['name'] = relabeled_df_2['name'].astype(str) + '-CAR' #added for this version for our analysis
+
+    return relabeled_df_2
 
     
 def load_ptall(ptname, data_directory):

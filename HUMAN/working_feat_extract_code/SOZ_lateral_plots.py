@@ -132,3 +132,88 @@ save = 'CONTRA_R_neopt'
 fig.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/ipsi_contra_soz_plts/norm/{}_norm".format(save)) #save as jpg
 fig_abs.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/ipsi_contra_soz_plts/abs/{}_abs".format(save)) #save as jpg
 fig_flip.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/ipsi_contra_soz_plts/flip/{}_flip".format(save))
+
+
+#%% SOZ lateralization code
+
+#right sided pts
+right_pts = clinic_soz_df['pt'][clinic_soz_df['lateralization'] == 'right'].to_list()
+ptnames = right_pts
+fig, fig_abs, fig_flip, total_avg, abs_total_avg, flip_total_avg, all_chs, flip_allchs = plot_avgROIwave_multipt(ptnames, data_directory, LEFTSIDE, title='Contra Avg. Spike for Right-sided Epilepsy Pts.')
+fig, fig_abs, fig_flip, total_avg, abs_total_avg, flip_total_avg, all_chs, flip_allchs = plot_avgROIwave_multipt(ptnames, data_directory, RIGHTSIDE, title='Ipsi Avg. Spike for Right-sided Epilepsy Pts.')
+
+
+#left sided pts 
+left_pts = clinic_soz_df['pt'][clinic_soz_df['lateralization'] == 'left'].to_list()
+ptnames = left_pts
+fig, fig_abs, fig_flip, total_avg, abs_total_avg, flip_total_avg, all_chs, flip_allchs = plot_avgROIwave_multipt(ptnames, data_directory, LEFTSIDE, title='Ipsi Avg. Spike for Left-sided Epilepsy Pts.')
+fig, fig_abs, fig_flip, total_avg, abs_total_avg, flip_total_avg, all_chs, flip_allchs = plot_avgROIwave_multipt(ptnames, data_directory, RIGHTSIDE, title='Contra Avg. Spike for Left-sided Epilepsy Pts.')
+
+
+# %% localization ROI code MESIAL 
+
+
+ptnames = mesialtemp['pt'].to_list()
+
+roi = roiL_mesial+roiR_mesial
+
+fig, fig2, fig3, total_avg, abs_total_avg, flip_total_avg, all_chs, flip_allchs = plot_avgROIwave_multipt(ptnames, data_directory, roi, title = 'Avg. Mesial Temporal Spikes - MT patients')
+
+save = 'mt_mesial'
+fig.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/localization_waves/norm/{}_norm".format(save)) #save as jpg
+fig2.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/localization_waves/abs/{}abs".format(save)) #save as jpg
+fig3.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/localization_waves/flip/{}_flip".format(save)) #save as jpg
+
+roi2 = roiL_lateral + roiR_lateral
+
+fig, fig2, fig3, total_avg, abs_total_avg, flip_total_avg, all_chs, flip_allchs = plot_avgROIwave_multipt(ptnames, data_directory, roi2, title = 'Avg. Lateral Spikes - MT patients')
+
+save = 'mt_lateral'
+fig.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/localization_waves/norm/{}_norm".format(save)) #save as jpg
+fig2.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/localization_waves/abs/{}abs".format(save)) #save as jpg
+fig3.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/localization_waves/flip/{}_flip".format(save)) #save as jpg
+
+roi3 = L_OC + R_OC
+
+fig, fig2, fig3, total_avg, abs_total_avg, flip_total_avg, all_chs, flip_allchs = plot_avgROIwave_multipt(ptnames, data_directory, roi3, title = 'Avg. Other Spikes - MT patients')
+
+save = 'mt_other'
+fig.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/localization_waves/norm/{}_norm".format(save)) #save as jpg
+fig2.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/localization_waves/abs/{}abs".format(save)) #save as jpg
+fig3.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/localization_waves/flip/{}_flip".format(save)) #save as jpg
+
+
+#%% Localization ROI CODE LATERAL
+
+
+ptnames = neocortemp['pt'].to_list()
+
+roi = roiL_mesial+roiR_mesial
+
+fig, fig2, fig3, total_avg, abs_total_avg, flip_total_avg, all_chs, flip_allchs = plot_avgROIwave_multipt(ptnames, data_directory, roi, title = 'Avg. Mesial Temporal Spikes - Neo patients')
+
+save = 'neo_mesial'
+fig.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/localization_waves/Lateral/norm/{}_norm".format(save)) #save as jpg
+fig2.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/localization_waves/Lateral/abs/{}abs".format(save)) #save as jpg
+fig3.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/localization_waves/Lateral/flip/{}_flip".format(save)) #save as jpg
+
+roi2 = roiL_lateral + roiR_lateral
+
+fig, fig2, fig3, total_avg, abs_total_avg, flip_total_avg, all_chs, flip_allchs = plot_avgROIwave_multipt(ptnames, data_directory, roi2, title = 'Avg. Lateral Spikes - Neo patients')
+
+save = 'neo_lateral'
+fig.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/localization_waves/Lateral/norm/{}_norm".format(save)) #save as jpg
+fig2.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/localization_waves/Lateral/abs/{}abs".format(save)) #save as jpg
+fig3.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/localization_waves/Lateral/flip/{}_flip".format(save)) #save as jpg
+
+roi3 = L_OC + R_OC
+
+fig, fig2, fig3, total_avg, abs_total_avg, flip_total_avg, all_chs, flip_allchs = plot_avgROIwave_multipt(ptnames, data_directory, roi3, title = 'Avg. Other Spikes - Neo patients')
+
+save = 'neo_other'
+fig.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/localization_waves/Lateral/norm/{}_norm".format(save)) #save as jpg
+fig2.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/localization_waves/Lateral/abs/{}abs".format(save)) #save as jpg
+fig3.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/localization_waves/Lateral/flip/{}_flip".format(save)) #save as jpg
+
+
+#%% Localization ROI CODE OTHER?
