@@ -383,7 +383,7 @@ def load_ptall(ptname, data_directory):
     spike = load_pt(ptname,data_directory)
     rid, brain_df = load_rid(ptname, data_directory)
     if isinstance(brain_df, pd.DataFrame) == False:
-        spike = 0
+        spike = spike
         relabeled_df = 0
         ptname = ptname
         rid = 0
@@ -414,13 +414,33 @@ def load_cleaned_braindf(ptname, data_directory):
         relabeled_df = label_fix(ptname, data_directory, threshold = 0.25)
     return [ptname, rid], relabeled_df
 
+def downsample_to_2001(vals):
+    """
+    Use only on the per sample level (samples x channels), in our stuff it works on values[0]
+    """
+    if len(vals) > 4000:
+        downsamp_vals = vals[::2]
+        biglen = len(downsamp_vals)
+        diff = int((biglen - 2001)/2)
+        new_sample = downsamp_vals[diff:-diff]
+    elif (len(vals) > 2001) & (len(vals) < 3000):
+        biglen = len(vals)
+        diff = int((biglen-2001)/2)
+        new_sample = vals[diff:-diff]
+    else:
+        print('fs<500. Recalculate')
+        new_sample = "ERROR"
+
+    return new_sample
+
 def value_basis(spike, brain_df, roi):
     """
     Function that takes in all values, the DKT atlas dataframe, and a region of interest (ROI)
     returns a tailored, truncated list of the all the values given a specific ROI
     input: spike object, brain dataframe, roi list
     output: correlated values, channel number (matlab), indices of channels
-    """
+    
+    OLD CODE WAS LOGICALLY INCORRECT
     roi_ch = pd.DataFrame()
     for x in roi:
         roi_ch = roi_ch.append(brain_df[(brain_df['final_label'] == x)])
@@ -454,12 +474,56 @@ def value_basis(spike, brain_df, roi):
             holder = []
             for x in soi:
                 x  = int(x)
-                holder.append(spike.values[x])
+                y = spike.values[x]
+                if len(x) > 2001: 
+                    spike_down = downsample_to_2001(y)
+                else:
+                    spike_down = y
+                holder.append(spike_down)
+            
             values_oi.append(holder)
 
     based_values = values_oi
+    """
+    roi_ch = pd.DataFrame()
+    for x in roi:
+        roi_ch = roi_ch.append(brain_df[(brain_df['final_label'] == x)])
 
-    return based_values, chnum, idx_roich
+    roi_chlist = np.array(roi_ch['name'])
+
+    idx_roich = []
+    for i in range(len(spike.chlabels[0])):
+        idx_holder = []
+        for ch in roi_chlist:
+            x = np.where(spike.chlabels[0][i] == ch)[0]
+            idx_holder.append(x)
+        idx_holder = [x for x in idx_holder for x in x]
+        idx_roich.append(idx_holder)
+
+    counts,chs = hifreq_ch_spike(spike.select)
+
+    select_oi = []
+
+    for i, list_of_idx in enumerate(idx_roich):
+        if chs[i]-1 in list_of_idx:
+            select_oi.append(i)
+
+    values_oi = []
+    if np.size(select_oi) == 0:
+        values_oi = 0
+        print("NO MATCHES {}".format(roi[0]))
+    else:
+        for soi in select_oi:
+            y = spike.values[soi]
+            if len(y) > 2001:
+                spike_down = downsample_to_2001(y)
+            else:
+                spike_down = y
+            values_oi.append(spike_down)
+
+    based_values = values_oi
+
+    return based_values, idx_roich, chs, select_oi
 
 def value_basis_multiroi(spike, brain_df, region_of_interests):
     """
@@ -469,52 +533,19 @@ def value_basis_multiroi(spike, brain_df, region_of_interests):
     output: correlated values, channel number (matlab), indices of channels
     """
     all_vals = []
-    all_chnum = []
     all_idx_roich = []
+    all_chs = []
+    all_select_oi = []
+
     for roi in region_of_interests:
-        roi_ch = pd.DataFrame()
-        for x in roi:
-            roi_ch = roi_ch.append(brain_df[(brain_df['final_label'] == x)])
-            #roi_ch = roi_ch.concat([roi_ch, brain_df[(brain_df['label'] == x )]])
-
-        #roi_ch = brain_df.loc[brain_df['label']== roi] #creates truncated dataframe of ROI labels
-        roi_chlist = np.array(roi_ch['name']) #converts DF to array
-
-        #finds the index of where to find the channel
-        idx_roich = []
-        for ch in roi_chlist:
-            x = np.where(spike.chlabels[0][-1] == ch)[0]
-            idx_roich.append(x)
-
-        idx_roich = [x[0] for x in idx_roich if np.size(x)!=0]
-        chnum = [x+1 for x in idx_roich if np.size(x)!=0]
-
-        counts,chs = hifreq_ch_spike(spike.select)
-
-        select_oi = []
-        for chroi in chnum:
-            idx = np.where(chs == chroi)[0]
-            select_oi.append(idx)
-
-        values_oi = []
-        if np.size(select_oi) == 0:
-            values_oi.append([0]) #changed this from values_oi = 0 to append [0]
-            print("NO MATCHES")
-        else:
-            for soi in select_oi:
-                holder = []
-                for x in soi:
-                    x  = int(x)
-                    holder.append(spike.values[x])
-                values_oi.append(holder)
-
-        based_values = values_oi
+        based_values, idx_roich, chs, select_oi = value_basis(spike, brain_df, roi)
         
         all_vals.append(based_values)
-        all_chnum.append(chnum)
+        all_chs.append(chs)
         all_idx_roich.append(idx_roich)
+        all_select_oi.append(select_oi)
 
-    return all_vals, all_chnum, all_idx_roich
+    return all_vals, all_idx_roich, all_chs, all_select_oi
 
 def avgroi_wave(idx_roich, based_vals):
     #per channel
@@ -544,25 +575,6 @@ def plot_avgroiwave(avg_waveform, roi,chnum,brain_df):
         axs[i].set_title("Average Waveform for Channel {} in {}".format(int(chnum[i]),roi_labels[i]))
     return fig
 
-def downsample_to_2001(vals):
-    """
-    Use only on the per sample level (samples x channels), in our stuff it works on values[0]
-    """
-    if len(vals) > 4000:
-        downsamp_vals = vals[::2]
-        biglen = len(downsamp_vals)
-        diff = int((biglen - 2001)/2)
-        new_sample = downsamp_vals[diff:-diff]
-    elif (len(vals) > 2001) & (len(vals) < 3000):
-        biglen = len(vals)
-        diff = int((biglen-2001)/2)
-        new_sample = vals[diff:-diff]
-    else:
-        print('fs<500. Recalculate')
-        new_sample = "ERROR"
-
-    return new_sample
-
 def totalavg_roiwave(idxch, vals):
     #total per ROI
     all_waveforms = []
@@ -579,8 +591,8 @@ def totalavg_roiwave(idxch, vals):
         
     stacked = [x for x in all_waveforms if np.size(x) != 0]
     all_chs_stacked = np.concatenate(stacked)
-    abs_avg_waveform = np.nanmean(np.abs(all_chs_stacked), axis=0)
     avg_waveform =  np.nanmean(all_chs_stacked,axis=0)
+    abs_avg_waveform = np.nanmean(np.abs(all_chs_stacked-avg_waveform), axis=0) #changed this added the subtraction of avg_waveform
 
     flip_wave = []
     for ch in all_chs_stacked:
@@ -595,7 +607,7 @@ def totalavg_roiwave(idxch, vals):
     abs_avg_per_ch = []
     for waves in all_waveforms:
         avg_per_ch.append(np.nanmean(waves, axis=0))
-        abs_avg_per_ch.append(np.nanmean(np.abs(waves), axis=0))
+        abs_avg_per_ch.append(np.nanmean(np.abs(waves-np.nanmean(waves, axis=0)), axis=0)) #added the subtraction of the mean
 
     return avg_waveform, abs_avg_waveform, flip_avgwaveform, all_chs_stacked, flip_wave, avg_per_ch, abs_avg_per_ch
 
@@ -611,7 +623,7 @@ def plot_avgroiwave(avg_waveform, title_label):
     return fig
 
 
-def plot_avgROIwave_multipt(ptnames, data_directory, roi, title):
+def plot_avgROIwave_multipt(ptnames, data_directory, roi, title, ymin, ymax):
     all_indiv_vals = []
     all_flip_vals = []
     avgwaves = []
@@ -641,7 +653,7 @@ def plot_avgROIwave_multipt(ptnames, data_directory, roi, title):
     all_chs = np.concatenate(all_indiv_vals)
     flip_allchs = np.concatenate(all_flip_vals)
     total_avg = np.nanmean(all_chs, axis=0)
-    abs_total_avg = np.nanmean(np.abs(all_chs), axis=0)
+    abs_total_avg = np.nanmean(np.abs(all_chs-total_avg), axis=0)
     flip_total_avg = np.nanmean(flip_allchs, axis =0)
 
     single = mpatches.Patch(color='grey', label='Patient Average') #imported matplotlib.patches -> manually creates legend since auto-detection of the legend via plt.legend() didn't work
@@ -655,6 +667,7 @@ def plot_avgROIwave_multipt(ptnames, data_directory, roi, title):
         plt.plot(time, vals, color='grey')
     plt.plot(time, total_avg,'r')
     plt.title('{} Average Spike in {} Patients'.format(title, samps))
+    plt.ylim([ymin,ymax])
     plt.xlabel('time (s)')
     plt.ylabel('Voltage (mV)')
     plt.legend(handles=[single,cohort])   
@@ -666,6 +679,7 @@ def plot_avgROIwave_multipt(ptnames, data_directory, roi, title):
         plt.plot(time, vals, color='grey')
     plt.plot(time, abs_total_avg,'r')
     plt.title('[ABS] {} Average Spike in {} Patients'.format(title, samps))
+    plt.ylim([ymin,ymax])
     plt.xlabel('time (s)')
     plt.ylabel('Voltage (mV)')
     plt.legend(handles=[single,cohort]) 
@@ -677,6 +691,7 @@ def plot_avgROIwave_multipt(ptnames, data_directory, roi, title):
         plt.plot(time, vals, color='grey')
     plt.plot(time, flip_total_avg,'r')
     plt.title('[FLIP] {} Average Spike in {} Patients'.format(title, samps))
+    plt.ylim([ymin,ymax])
     plt.xlabel('time (s)')
     plt.ylabel('Voltage (mV)')
     plt.legend(handles=[single,cohort]) 
@@ -736,7 +751,7 @@ def spike_count_perregion(values): #could be generalized to multiple features ea
         for roi in pt:
             count = []
             for x in roi:
-                if np.shape(roi) == (1,1):
+                if (len(roi)) == 1:
                     idv_count = 0
                     count.append(idv_count)
                     continue
@@ -768,7 +783,7 @@ def spike_amplitude_perregion(values, idxch): #could be generalized to multiple 
         for j, roi in enumerate(pt):
             spikefeat = []
             for l, xs in enumerate(roi):
-                if np.shape(roi) == (1,1):
+                if (len(roi)) == 1:
                     feat = np.nan
                     spikefeat.append(feat)
                     continue
@@ -797,7 +812,7 @@ def spike_LL_perregion(values, idxch): #could be generalized to multiple feature
         for j, roi in enumerate(pt):
             spikefeat = []
             for l, xs in enumerate(roi):
-                if np.shape(roi) == (1,1):
+                if (len(roi)) == 1:
                     feat = np.nan
                     spikefeat.append(feat)
                     continue
@@ -816,8 +831,11 @@ def spike_LL_perregion(values, idxch): #could be generalized to multiple feature
 
 def divide_chunks(l, n):
     # looping till length l
+    biglist = []
     for i in range(0, len(l), n):
-        yield l[i:i + n]
+        list = l[i:i + n]
+        biglist.append(list)
+    return biglist
 
 def feat_extract(lists_ptnames, roilist, data_directory):
     clinic_soz_all = []
