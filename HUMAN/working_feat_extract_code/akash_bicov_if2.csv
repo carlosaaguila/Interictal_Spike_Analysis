@@ -1,0 +1,112 @@
+,Unnamed: 0,bi-coverage ids,merge1,hup_id,merge2,region,lateralization,_merge
+0,1,sub-RID0238,both,HUP130,both,other cortex,left,both
+1,2,sub-RID0356,both,HUP178,both,temporal,right,both
+2,3,sub-RID0230,both,HUP166,both,other cortex,left,both
+3,6,sub-RID0785,both,HUP223,both,mesial temporal,left,both
+4,7,sub-RID0139,both,HUP179,both,other cortex,left,both
+5,9,sub-RID0051,both,HUP094,both,temporal,right,both
+6,10,sub-RID0117,both,HUP107,both,temporal neocortical,right,both
+7,11,sub-RID0089,both,HUP126,both,mesial temporal,left,both
+8,14,sub-RID0106,both,HUP100,both,diffuse,left,both
+9,15,sub-RID0365,both,HUP157,both,temporal,left,both
+10,16,sub-RID0101,both,HUP105,both,temporal neocortical,right,both
+11,19,sub-RID0472,both,HUP188,both,other cortex,left,both
+12,20,sub-RID0309,both,HUP151,both,frontal,right,both
+13,21,sub-RID0420,both,HUP186,both,temporal,left,both
+14,23,sub-RID0021,both,HUP088,both,mesial temporal,left,both
+15,24,sub-RID0332,both,HUP185,both,mesial temporal,left,both
+16,26,sub-RID0405,both,HUP190,both,mesial temporal,left,both
+17,28,sub-RID0278,both,HUP138,both,mesial temporal,left,both
+18,29,sub-RID0442,both,HUP170,both,other cortex,right,both
+19,32,sub-RID0382,both,HUP158,both,other cortex,right,both
+20,33,sub-RID0490,both,HUP181,both,mesial temporal,left,both
+21,34,sub-RID0424,both,HUP177,both,temporal,right,both
+22,35,sub-RID0031,both,HUP173,both,mesial temporal,right,both
+23,38,sub-RID0294,both,HUP141,both,mesial temporal,right,both
+24,39,sub-RID0392,both,HUP174,both,temporal,left,both
+25,41,sub-RID0272,both,HUP128,both,temporal neocortical,left,both
+26,44,sub-RID0371,both,HUP171,both,other cortex,left,both
+27,45,sub-RID0194,both,HUP134,both,other cortex,right,both
+28,46,sub-RID0143,right_only,HUP106,both,temporal neocortical,left,both
+29,47,sub-RID0063,right_only,HUP073,both,other cortex,right,both
+30,48,sub-RID0179,right_only,HUP111,both,other cortex,right,both
+31,49,sub-RID0015,right_only,HUP084,both,temporal,left,both
+32,51,sub-RID0250,right_only,HUP136,both,multifocal,left,both
+33,52,sub-RID0058,right_only,HUP068,both,temporal,right,both
+34,53,sub-RID0338,right_only,HUP161,both,other cortex,right,both
+35,54,sub-RID0440,right_only,HUP172,both,other cortex,left,both
+36,55,sub-RID0381,right_only,HUP160,both,multifocal,right,both
+37,56,sub-RID0646,right_only,HUP202,both,mesial temporal,left,both
+38,57,sub-RID0013,right_only,HUP082,both,temporal,right,both
+39,58,sub-RID0329,right_only,HUP159,both,temporal neocortical,left,both
+40,59,sub-RID0018,right_only,HUP086,both,temporal,left,both
+41,60,sub-RID0320,right_only,HUP140,both,mesial temporal,left,both
+42,62,,,HUP102,right_only,multifocal,left,both
+43,63,,,HUP110,right_only,diffuse,left,both
+44,64,,,HUP112,right_only,other cortex,right,both
+45,65,,,HUP113,right_only,mesial temporal,left,both
+46,66,,,HUP114,right_only,mesial temporal,right,both
+47,67,,,HUP115,right_only,temporal neocortical,left,both
+48,68,,,HUP116,right_only,mesial temporal,right,both
+49,69,,,HUP117,right_only,mesial temporal,left,both
+50,70,,,HUP118,right_only,mesial temporal,left,both
+51,72,,,HUP121,right_only,other cortex,left,both
+52,73,,,HUP122,right_only,mesial temporal,right,both
+53,74,,,HUP123,right_only,mesial temporal,right,both
+54,75,,,HUP124,right_only,mesial temporal,right,both
+55,76,,,HUP129,right_only,other cortex,right,both
+56,77,,,HUP131,right_only,other cortex,left,both
+57,78,,,HUP132,right_only,temporal neocortical,left,both
+58,79,,,HUP133,right_only,mesial temporal,left,both
+59,80,,,HUP135,right_only,mesial temporal,right,both
+60,82,,,HUP139,right_only,other cortex,left,both
+61,83,,,HUP142,right_only,mesial temporal,left,both
+62,84,,,HUP144,right_only,temporal multifocal,right,both
+63,85,,,HUP145,right_only,other cortex,right,both
+64,86,,,HUP146,right_only,other cortex,right,both
+65,87,,,HUP147,right_only,multifocal,left,both
+66,88,,,HUP150,right_only,other cortex,right,both
+67,89,,,HUP152,right_only,diffuse,left,both
+68,91,,,HUP162,right_only,mesial temporal,left,both
+69,92,,,HUP163,right_only,mesial temporal,left,both
+70,93,,,HUP164,right_only,mesial temporal,left,both
+71,97,,,HUP180,right_only,other cortex,left,both
+72,99,,,HUP184,right_only,temporal,left,both
+73,100,,,HUP187,right_only,mesial temporal,right,both
+74,101,,,HUP189,right_only,temporal neocortical,left,both
+75,103,,,HUP193,right_only,temporal neocortical,left,both
+76,104,,,HUP194,right_only,other cortex,right,both
+77,106,,,HUP196,right_only,other cortex,right,both
+78,107,,,HUP197,right_only,temporal,left,both
+79,109,,,HUP201,right_only,multifocal,left,both
+80,110,,,HUP204,right_only,mesial temporal,left,both
+81,111,,,HUP206,right_only,multifocal,right,both
+82,112,,,HUP207,right_only,temporal neocortical,left,both
+83,113,,,HUP208,right_only,temporal,left,both
+84,114,,,HUP209,right_only,temporal neocortical,left,both
+85,115,,,HUP210,right_only,diffuse,left,both
+86,118,,,HUP213,right_only,multifocal,left,both
+87,120,,,HUP215,right_only,temporal neocortical,left,both
+88,121,,,HUP216,right_only,other cortex,left,both
+89,122,,,HUP217,right_only,mesial temporal,right,both
+90,123,,,HUP099,right_only,other cortex,right,both
+91,124,,,HUP219,right_only,mesial temporal,right,both
+92,125,,,HUP221,right_only,mesial temporal,right,both
+93,126,,,HUP225,right_only,temporal neocortical,right,both
+94,127,,,HUP218,right_only,mesial temporal,right,both
+95,128,,,HUP064,right_only,other cortex,left,both
+96,129,,,HUP065,right_only,temporal,right,both
+97,130,,,HUP070,right_only,other cortex,left,both
+98,131,,,HUP071,right_only,other cortex,left,both
+99,132,,,HUP072,right_only,other cortex,left,both
+100,133,,,HUP074,right_only,temporal,left,both
+101,134,,,HUP075,right_only,temporal,left,both
+102,135,,,HUP078,right_only,temporal,left,both
+103,136,,,HUP079,right_only,other cortex,left,both
+104,137,,,HUP080,right_only,temporal,left,both
+105,138,,,HUP083,right_only,other cortex,left,both
+106,140,,,HUP087,right_only,other cortex,left,both
+107,141,,,HUP089,right_only,mesial temporal,right,both
+108,142,,,HUP093,right_only,mesial temporal,left,both
+109,144,,,HUP097,right_only,multifocal,left,both
+110,145,,,HUP098,right_only,temporal,left,both

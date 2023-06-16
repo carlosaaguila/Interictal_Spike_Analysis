@@ -20,7 +20,7 @@ def load_pt(ptname, data_directory):
     """
     filename = data_directory[0] + '/pickle_spike/{}_obj.pkl'.format(ptname)
     with open(filename, 'rb') as f:
-        spike = pkl.load(f)
+        spike = pkl.load(f)    
     return spike
 
 # line length
@@ -375,8 +375,19 @@ def label_fix(pt, data_directory, threshold = 0.20):
 
     return relabeled_df_2
 
+def replace_letters(string, replace_dict):
+    for original, replacement in replace_dict.items():
+        string = string.replace(original, replacement)
+    return string
+
+
+def changelabel(ptname, brain_df, data_directory):
+    directions = pd.read_csv('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/label_change/{}.csv'.format(ptname))
+    replace_dict = dict(zip(directions['name'], directions['change_to']))
+    brain_df['name'] = brain_df['name'].apply(replace_letters, replace_dict = replace_dict)
+    return brain_df
     
-def load_ptall(ptname, data_directory):
+def load_ptall(ptname, data_directory, change_label = True):
     """ load_ptall combines all the functions together, loading both the RID and the IEEG data just using the Patient NAME
         Will create a dataframe, and a spike object containing: values, fs, chlabels, 
     """
@@ -386,9 +397,11 @@ def load_ptall(ptname, data_directory):
         spike = spike
         relabeled_df = 0
         ptname = ptname
-        rid = 0
+        rid = rid
     else:
         relabeled_df = label_fix(ptname, data_directory, threshold = 0.20)
+        if change_label == True:
+            relabeled_df = changelabel(ptname, relabeled_df, data_directory)
 
     soz_region = pd.read_csv("/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/soz_locations.csv")
     soz_region_pt = soz_region[soz_region['name'] == ptname]['region'].to_list()

@@ -1,0 +1,176 @@
+,rid,combined left/right,hup_id,hupid merge,region,lateralization,attached SOZ
+0,sub-RID0106,both,HUP100,both,diffuse,left,both
+77,sub-RID0490,both,HUP181,both,mesial temporal,left,both
+144,sub-RID0033,left_only,HUP097,both,multifocal,left,both
+89,sub-RID0131,left_only,HUP193,both,temporal neocortical,left,both
+88,sub-RID0530,both,HUP192,both,mesial temporal,bilateral,both
+86,sub-RID0405,both,HUP190,both,mesial temporal,left,both
+85,sub-RID0520,left_only,HUP189,both,temporal neocortical,left,both
+84,sub-RID0472,both,HUP188,both,other cortex,left,both
+83,sub-RID0522,right_only,HUP187,both,mesial temporal,right,both
+82,sub-RID0420,both,HUP186,both,temporal,left,both
+81,sub-RID0332,both,HUP185,both,mesial temporal,left,both
+80,sub-RID0508,left_only,HUP184,both,temporal,left,both
+78,sub-RID0502,both,HUP182,both,,bilateral,both
+76,sub-RID0476,left_only,HUP180,both,other cortex,left,both
+93,sub-RID0583,left_only,HUP197,both,temporal,left,both
+75,sub-RID0139,both,HUP179,both,other cortex,left,both
+74,sub-RID0356,both,HUP178,both,temporal,right,both
+73,sub-RID0424,both,HUP177,both,temporal,right,both
+70,sub-RID0392,both,HUP174,both,temporal,left,both
+69,sub-RID0031,both,HUP173,both,mesial temporal,right,both
+68,sub-RID0440,left_only,HUP172,both,other cortex,left,both
+67,sub-RID0371,both,HUP171,both,other cortex,left,both
+66,sub-RID0442,both,HUP170,both,other cortex,right,both
+65,sub-RID0296,both,HUP169,both,temporal,bilateral,both
+63,sub-RID0330,both,HUP167,both,diffuse,bilateral,both
+61,sub-RID0325,both,HUP165,both,mesial temporal,bilateral,both
+142,sub-RID0051,both,HUP094,both,temporal,right,both
+141,sub-RID0050,right_only,HUP093,both,mesial temporal,left,both
+55,sub-RID0329,left_only,HUP159,both,temporal neocortical,left,both
+135,sub-RID0015,left_only,HUP084,both,temporal,left,both
+128,sub-RID0065,left_only,HUP075,both,temporal,left,both
+129,sub-RID0068,left_only,HUP078,both,temporal,left,both
+121,sub-RID0055,right_only,HUP065,both,temporal,right,both
+119,sub-RID0677,right_only,HUP218,both,mesial temporal,right,both
+131,sub-RID0070,left_only,HUP080,both,temporal,left,both
+117,sub-RID0617,both,HUP224,both,mesial temporal,bilateral,both
+116,sub-RID0785,both,HUP223,both,mesial temporal,left,both
+132,sub-RID0037,both,HUP081,both,multifocal,bilateral,both
+113,sub-RID0032,right_only,HUP099,both,other cortex,right,both
+111,sub-RID0658,right_only,HUP216,both,other cortex,left,both
+110,sub-RID0566,left_only,HUP215,both,temporal neocortical,left,both
+108,sub-RID0649,left_only,HUP213,both,multifocal,left,both
+95,sub-RID0582,both,HUP199,both,mesial temporal,bilateral,both
+137,sub-RID0018,left_only,HUP086,both,temporal,left,both
+105,sub-RID0459,left_only,HUP210,both,diffuse,left,both
+104,sub-RID0647,left_only,HUP209,both,temporal neocortical,left,both
+103,sub-RID0648,left_only,HUP208,both,temporal,left,both
+102,sub-RID0589,left_only,HUP207,both,temporal neocortical,left,both
+138,sub-RID0020,left_only,HUP087,both,other cortex,left,both
+100,sub-RID0588,both,HUP205,both,mesial temporal,bilateral,both
+99,sub-RID0596,left_only,HUP204,both,mesial temporal,left,both
+139,sub-RID0021,both,HUP088,both,mesial temporal,left,both
+97,sub-RID0646,left_only,HUP202,both,mesial temporal,left,both
+140,sub-RID0024,right_only,HUP089,both,mesial temporal,right,both
+56,sub-RID0381,right_only,HUP160,both,multifocal,right,both
+62,sub-RID0230,both,HUP166,both,other cortex,left,both
+54,sub-RID0382,both,HUP158,both,other cortex,right,both
+40,sub-RID0112,right_only,HUP144,both,temporal multifocal,right,both
+38,sub-RID0295,left_only,HUP142,both,mesial temporal,left,both
+37,sub-RID0294,both,HUP141,both,mesial temporal,right,both
+36,sub-RID0320,right_only,HUP140,both,mesial temporal,left,both
+34,sub-RID0278,both,HUP138,both,mesial temporal,left,both
+32,sub-RID0250,left_only,HUP136,both,multifocal,left,both
+31,sub-RID0274,right_only,HUP135,both,mesial temporal,right,both
+26,sub-RID0238,both,HUP130,both,other cortex,left,both
+24,sub-RID0272,both,HUP128,both,temporal neocortical,left,both
+23,sub-RID0186,both,HUP127,both,mesial temporal,bilateral,both
+22,sub-RID0089,both,HUP126,both,mesial temporal,left,both
+20,sub-RID0193,right_only,HUP123,both,mesial temporal,right,both
+16,sub-RID0213,both,HUP119,both,mesial temporal,bilateral,both
+10,sub-RID0190,left_only,HUP113,both,mesial temporal,left,both
+8,sub-RID0179,left_only,HUP111,both,other cortex,right,both
+7,sub-RID0160,left_only,HUP110,both,diffuse,left,both
+6,sub-RID0165,both,HUP108,both,mesial temporal,bilateral,both
+5,sub-RID0117,both,HUP107,both,temporal neocortical,right,both
+4,sub-RID0143,left_only,HUP106,both,temporal neocortical,left,both
+3,sub-RID0101,both,HUP105,both,temporal neocortical,right,both
+39,sub-RID0206,both,HUP143,both,multifocal,bilateral,both
+30,sub-RID0194,both,HUP134,both,other cortex,right,both
+127,sub-RID0064,left_only,HUP074,both,temporal,left,both
+45,sub-RID0240,both,HUP149,both,multifocal,bilateral,both
+50,sub-RID0146,left_only,HUP154,both,diffuse,bilateral,both
+49,sub-RID0328,both,HUP153,both,temporal,bilateral,both
+47,sub-RID0309,both,HUP151,both,frontal,right,both
+53,sub-RID0365,both,HUP157,both,temporal,left,both
+52,sub-RID0337,left_only,HUP156,both,temporal,bilateral,both
+51,sub-RID0394,both,HUP155,both,other cortex,bilateral,both
+42,sub-RID0301,right_only,HUP146,both,other cortex,right,both
+43,sub-RID0334,left_only,HUP147,both,multifocal,left,both
+44,sub-RID0267,both,HUP148,both,temporal multifocal,bilateral,both
+151,,,,,frontal,left,right_only
+136,,,,,,,right_only
+168,,,,,mesial temporal,right,right_only
+169,,,,,temporal,right,right_only
+170,,,,,other cortex,left,right_only
+171,,,,,temporal,right,right_only
+152,,,,,,,right_only
+149,,,,,temporal,left,right_only
+133,,,,,temporal,right,right_only
+172,,,,,temporal,right,right_only
+167,,,,,temporal,left,right_only
+126,,,,,other cortex,right,right_only
+173,,,,,temporal,right,right_only
+150,,,,,temporal,right,right_only
+130,,,,,other cortex,left,right_only
+134,,,,,other cortex,left,right_only
+146,,,,,temporal,bilateral,right_only
+166,,,,,temporal,left,right_only
+165,,,,,mesial temporal,right,right_only
+157,,,,,temporal,right,right_only
+158,,,,,mesial temporal,left,right_only
+145,,,,,temporal,left,right_only
+147,,,,,,,right_only
+148,,,,,temporal,bilateral,right_only
+153,,,,,temporal,bilateral,right_only
+143,,,,,temporal,bilateral,right_only
+159,,,,,temporal,left,right_only
+160,,,,,,,right_only
+161,,,,,temporal,left,right_only
+155,,,,,,left,right_only
+162,,,,,temporal,right,right_only
+154,,,,,temporal,right,right_only
+163,,,,,temporal,right,right_only
+156,,,,,temporal,left,right_only
+164,,,,,,,right_only
+87,,,,,mesial temporal,bilateral,right_only
+125,,,,,other cortex,left,right_only
+59,,,,,mesial temporal,left,right_only
+57,,,,,other cortex,right,right_only
+48,,,,,diffuse,left,right_only
+46,,,,,other cortex,right,right_only
+41,,,,,other cortex,right,right_only
+35,,,,,other cortex,left,right_only
+33,,,,,multifocal,bilateral,right_only
+29,,,,,mesial temporal,left,right_only
+28,,,,,temporal neocortical,left,right_only
+27,,,,,other cortex,left,right_only
+25,,,,,other cortex,right,right_only
+21,,,,,mesial temporal,right,right_only
+19,,,,,mesial temporal,right,right_only
+18,,,,,other cortex,left,right_only
+17,,,,,temporal multifocal,bilateral,right_only
+15,,,,,mesial temporal,left,right_only
+14,,,,,mesial temporal,left,right_only
+13,,,,,mesial temporal,right,right_only
+12,,,,,temporal neocortical,left,right_only
+11,,,,,mesial temporal,right,right_only
+9,,,,,other cortex,right,right_only
+2,,,,,multifocal,left,right_only
+58,,,,,mesial temporal,left,right_only
+60,,,,,mesial temporal,left,right_only
+124,,,,,other cortex,left,right_only
+64,,,,,multifocal,bilateral,right_only
+123,,,,,other cortex,left,right_only
+122,,,,,temporal,right,right_only
+120,,,,,other cortex,left,right_only
+118,,,,,temporal neocortical,right,right_only
+115,,,,,mesial temporal,right,right_only
+114,,,,,mesial temporal,right,right_only
+112,,,,,mesial temporal,right,right_only
+109,,,,,mesial temporal,bilateral,right_only
+107,,,,,,,right_only
+106,,,,,temporal,bilateral,right_only
+101,,,,,multifocal,right,right_only
+98,,,,,,bilateral,right_only
+96,,,,,multifocal,left,right_only
+94,,,,,,,right_only
+92,,,,,other cortex,right,right_only
+91,,,,,temporal neocortical,bilateral,right_only
+90,,,,,other cortex,right,right_only
+1,,,,,multifocal,bilateral,right_only
+79,,,,,,,right_only
+72,,,,,,,right_only
+71,,,,,diffuse,diffuse,right_only
+174,,,,,temporal,bilateral,right_only

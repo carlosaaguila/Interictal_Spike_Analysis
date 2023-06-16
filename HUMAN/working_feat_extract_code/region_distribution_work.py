@@ -419,3 +419,67 @@ plt.xlabel('Clinically Defined SOZ')
 plt.ylabel('Spiking Brain Region')
 plt.title('Normative Amplitude across all Patients')
 plt.yticks(rotation = 0)
+
+#%% CHECKER
+from matplotlib import pyplot
+from mpl_toolkits.mplot3d import Axes3D
+from numpy.random import rand
+from pylab import figure
+
+def checker(ptname):
+        
+    data_directory = ['/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2', '/mnt/leif/littlab/data/Human_Data']
+    spike, brain_df, soz, id = load_ptall(ptname, data_directory)
+    print(id)
+    print(soz)
+
+    print(np.unique(spike.select[:,3]))
+    #establish ROI's
+    roiL_mesial = [' left entorhinal ', ' left parahippocampal ' , ' left hippocampus ', ' left amygdala ', ' left perirhinal ']
+    roiL_lateral = [' left inferior temporal ', ' left superior temporal ', ' left middle temporal ', ' left fusiform '] #lingual??
+    roiR_mesial = [' right entorhinal ', ' right parahippocampal ', ' right hippocampus ', ' right amygdala ', ' right perirhinal ']
+    roiR_lateral = [' right inferior temporal ', ' right superior temporal ', ' right middle temporal ', ' right fusiform ']
+    emptylabel = ['EmptyLabel','NaN']
+    L_OC = [' left inferior parietal ', ' left postcentral ', ' left superior parietal ', ' left precentral ', ' left rostral middle frontal ', ' left pars triangularis ', ' left supramarginal ', ' left insula ', ' left caudal middle frontal ', ' left posterior cingulate ', ' left lateral orbitofrontal ', ' left lateral occipital ', ' left cuneus ']
+    R_OC = [' right inferior parietal ', ' right postcentral ', ' right superior parietal ', ' right precentral ', ' right rostral middle frontal ', ' right pars triangularis ', ' right supramarginal ', ' right insula ', ' right caudal middle frontal ', ' right posterior cingulate ', ' right lateral orbitofrontal ', ' right lateral occipital ', ' right cuneus ']
+
+    #label name check
+    roilist = [roiL_mesial, roiL_lateral, roiR_mesial, roiR_lateral, L_OC, R_OC, emptylabel]
+    pd.options.display.max_rows = 999
+    display(brain_df)
+
+    #plot check
+    X = brain_df['x'].to_list()
+    Y = brain_df['y'].to_list()
+    Z = brain_df['z'].to_list()
+ 
+    fig = figure(figsize=(15,15))
+    ax = fig.add_subplot(projection='3d')
+
+    X = brain_df['x'].to_list()
+    Y = brain_df['y'].to_list()
+    Z = brain_df['z'].to_list()
+    names = brain_df['key_0'].to_list()
+
+    for i in range(len(X)): #plot each point + it's index as text above
+        ax.scatter(X[i],Y[i],Z[i],color='b') 
+        ax.text(X[i],Y[i],Z[i],  '%s' % (str(names[i])), size=10, zorder=1,  
+        color='k') 
+
+    ax.set_xlabel('x')
+    ax.set_ylabel('y')
+    ax.set_zlabel('z')
+    pyplot.show()
+
+    #value check
+    vals, idxch, chs, select_oi = value_basis_multiroi(spike, brain_df, roilist)
+    basis_results = [vals, idxch, chs, select_oi]
+    count_roi = []
+    for roi in select_oi:
+        count_roi.append(np.size(roi))
+    print('L Mesial, L lateral, R Mesial, R Lateral, L OC, R OC, Empty')
+    print(count_roi)
+
+    return count_roi, brain_df, spike, basis_results
+
+# %%

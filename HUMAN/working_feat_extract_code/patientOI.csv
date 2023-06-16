@@ -1,0 +1,74 @@
+,name,region_x,lateralization,pt,side,region_y,# of files,label,image,values,FIXED?,note,_merge
+0,HUP215,temporal neocortical,left,,,,,,,,,,left_only
+1,HUP187,mesial temporal,right,,,,,,,,,,left_only
+2,HUP189,temporal neocortical,left,,,,,,,,,,left_only
+3,HUP193,temporal neocortical,left,,,,,,,,,,left_only
+4,HUP204,mesial temporal,left,,,,,,,,,,left_only
+5,HUP207,temporal neocortical,left,,,,,,,,,,left_only
+6,HUP209,temporal neocortical,left,,,,,,,,,,left_only
+7,MP0015,mesial temporal,left,,,,,,,,,,left_only
+8,HUP217,mesial temporal,right,,,,,,,,,,left_only
+9,MP0029,mesial temporal,right,,,,,,,,,,left_only
+10,HUP225,temporal neocortical,right,,,,,,,,,,left_only
+11,HUP218,mesial temporal,right,,,,,,,,,,left_only
+12,HUP088,mesial temporal,left,,,,,,,,,,left_only
+13,HUP089,mesial temporal,right,,,,,,,,,,left_only
+14,HUP093,mesial temporal,left,,,,,,,,,,left_only
+15,HUP219,mesial temporal,right,,,,,,,,,,left_only
+16,HUP142,mesial temporal,left,,,,,,,,,,left_only
+17,MP0026,mesial temporal,right,,,,,,,,,,left_only
+18,HUP135,mesial temporal,right,,,,,,,,,,left_only
+19,HUP113,mesial temporal,left,,,,,,,,,,left_only
+20,HUP133,mesial temporal,left,,,,,,,,,,left_only
+21,HUP115,temporal neocortical,left,,,,,,,,,,left_only
+22,HUP116,mesial temporal,right,,,,,,,,,,left_only
+23,HUP117,mesial temporal,left,,,,,,,,,,left_only
+24,HUP123,mesial temporal,right,,,,,,,,,,left_only
+25,HUP124,mesial temporal,right,,,,,,,,,,left_only
+26,,,,HUP178,right,temporal,"1, ",both,both,both,,GOOD counts + labels accounted for,right_only
+27,,,,HUP084,,,,,,,,,right_only
+28,,,,HUP224,,,,,,,,,right_only
+29,,,,HJP214,bilateral?,mesial temp,"1,2,",,,,,NO IMAGE DATA,right_only
+30,,,,HUP108,bilateral?,mesial temp,,both,both ,both,ya,"BILATERAL Patient. Has low lateral counts, but great numbers in mesial temp structures",right_only
+31,,,,HUP211,bilateral?,temporal,,,,,,NO IMAGE DATA,right_only
+32,,,,HUP119,,,,,,,,don’t have PT data - broken IEEG patient (whichpt = 17),right_only
+33,,,,HUP205,bilateral?,mesial temp,"1, ",both,both,both,,good counts all around,right_only
+34,,,,HUP120,bilateral?,temporal multifocal?,,,,,,NO IMAGE DATA,right_only
+35,,,,HUP199,bilateral?,mesial temporal,"1,",both,both,both,,"good counts in the mesial structures, not so much in the R-lateral (1 vs. 369)",right_only
+36,,,,HUP127,bilateral?,mesial temp,"1, ",both ,both,both,,"good mesial counts, low-ish lateral counts + some values in brain_df aren't in EEGlist (mostly emptylabel, but L temp (2), L mesial (3)",right_only
+37,,,,HUP192,bilateral?,mesial temporal,"1,",both,both,both,,good counts! All accounted for,right_only
+38,,,,HUP191,bilateral?,mesial temp,,,,,,NO IMAGE DATA,right_only
+39,,,,HUP148,bilateral?,temporal multifocal?,"1, 2",both,both,both,,has counts for all + missing 2 ieeg labels but all of them are accounted for by the brain_df,right_only
+40,,,,HUP154,bilateral?,diffuse,"1,",both,both,NO,no,"missing l/r mesial, r lateral + all EEG labels are accounted for by brain_df",right_only
+41,,,,HUP156,bilateral?,temporal,"1,2,3",both,both,no,,"missing R Mesial, + no missing labels",right_only
+42,,,,HUP157,left,temporal,"1,",both,both,yes,,"has counts, ",right_only
+43,,,,HUP169,bilateral?,temporal,"1,",both,both,both,,works really well,right_only
+44,,,,HUP174,left,temporal,"1,",both,both,both,,"low counts (9, 1) in the Right region.  + all ieeg labels are accounted for",right_only
+45,,,,HUP177,right,temporal ,"1,",both,both,both,,good counts all around. + everything in ieeg accounted for,right_only
+46,,,,HUP186,left,temporal,"1,",both,both,no,,"good left side counts, but not right side. (0/10 R mesi/lat)",right_only
+47,,,,HUP165,bilateral?,mesial temporal,"1, ",both,both,both,,WORKS REALLY WELL,right_only
+48,,,,HUP096,,,,,,,,,right_only
+49,,,,HUP094,,,,,,,,,right_only
+50,HUP221,mesial temporal,right,HUP221,right ,mesial temp,"1,",,,,,NO IMAGE DATA,both
+51,HUP106,temporal neocortical,left,HUP106,left,neocortical,,both,both,changed,no,"seems like after the changes we increased our mesial temporal count, but not right lateral region. No recorded sample of RAT electrodes in sampling",both
+52,HUP107,temporal neocortical,right,HUP107,right,neocortical,,both,both,both ,ya,only 1 spike in all the channels for the contralateral SOZ (left neocort),both
+53,HUP114,mesial temporal,right,HUP114,right,mesial temp,,,,,,NO IMAGE DATA,both
+54,HUP118,mesial temporal,left,HUP118,left,mesial temp,,,,,,NO IMAGE DATA,both
+55,HUP122,mesial temporal,right,HUP122,right ,mesial temp,"1,2",,,,,NO IMAGE DATA,both
+56,HUP126,mesial temporal,left,HUP126,left,mesial temp,"1,2",both,both,both,,LOW contra side (neo + mesial)  sampling. missing some contacts in IEEG (LOC usually),both
+57,HUP128,temporal neocortical,left,HUP128,left,neocortical,"1,2",both,both,both,no,good counts all around. + extra values in brain_df that are not in the ieeg list,both
+58,HUP132,temporal neocortical,left,HUP132,left,neocortical,"1,2,3",,,,,NO IMAGE DATA,both
+59,HUP138,mesial temporal,left,HUP138,left,mesial temp,"1,",both,both,both,,good values + all labels in the brain_df are accounted for,both
+60,HUP140,mesial temporal,left,HUP140,left,mesial temp,"1,2",both,both,both,,"good values, lower contralateral amount of spikes.",both
+61,HUP141,mesial temporal,right,HUP141,right,mesial temp,"1,",,,,,"has counts for all zones, missing ieeg labels, but all the labels are accounted for by the brain_df",both
+62,HUP159,temporal neocortical,left,HUP159,left,neocortical,"1,2 ",both,both,NO,,"3 L Mesi, 1/0 R meis/lat + looks like file 1 is covered by brain_df, but lots missing",both
+63,HUP162,mesial temporal,left,HUP162,left,mesial temp,,,,,,NO IMAGE DATA,both
+64,HUP163,mesial temporal,left,HUP163,left,mesial temp,,,,,,NO IMAGE DATA,both
+65,HUP164,mesial temporal,left,HUP164,left,mesial temp,,,,,,NO IMAGE DATA,both
+66,HUP173,mesial temporal,right,HUP173,right,mesial temp,"1, ",both,both,both,,"low counts in the L_lateral region, but the mesial zones are great",both
+67,HUP181,mesial temporal,left,HUP181,,,,,,,,,both
+68,HUP185,mesial temporal,left,HUP185,left,mesial temp,"1,",both,both,both,,"GOOD COUNTS + missing some ieeg labels but they are ( c3, c4, cz, ekg1,ekg2, fz,LOC, ROC) otherwise good!",both
+69,HUP190,mesial temporal,left,HUP190,left,mesial temp,"1, ",both,both,,,694 vs 24 L/R meisal spikes. Huge difference,both
+70,HUP202,mesial temporal,left,HUP202,left,mesial temporal,"1, ",no,both,no,,"NO LABELS FOR RIGHT MESIAL STRUCTURES, all labels accounted for",both
+71,HUP223,mesial temporal,left,HUP223,,,,,,,,,both
+72,HUP105,temporal neocortical,right,HUP105,right,neocortical,,both,both,both,ya,,both
