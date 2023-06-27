@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 from scipy import signal as sig
 from scipy.io import loadmat, savemat
 import warnings
-#from Interictal_Spike_Analysis.HUMAN.working_feat_extract_code.functions.ied_fx_v3 import value_basis_multiroi
 warnings.filterwarnings('ignore')
 import seaborn as sns
 #get all functions 
@@ -289,6 +288,7 @@ def run_interSOZ(ptnames, data_directory):
     lists_ptnames = (divide_chunks(ptnames, n))
 
     for Z, ptlist in enumerate(lists_ptnames):
+        print('Running Patient List: {}'.format(Z))
         #RESET variables to not crash
         perpt_all = []
         perpt_mean = []
