@@ -1,0 +1,78 @@
+,hup id,rid id,L Mesial,L Lateral,R Mesial,R Lateral,L OC,R OC,Empty Label,region,lateralization
+0,HUP100,sub-RID0106,152,182,104,8,151,5,201,diffuse,left
+1,HUP105,sub-RID0101,199,61,366,62,7,2,247,temporal neocortical,right
+2,HUP143,sub-RID0206,274,106,64,191,8,21,319,multifocal,bilateral
+3,HUP184,sub-RID0508,796,39,0,0,12,0,152,temporal,left
+4,HUP106,sub-RID0143,425,266,62,0,19,0,223,temporal neocortical,left
+5,HUP185,sub-RID0332,248,245,124,71,22,0,283,mesial temporal,left
+6,HUP107,sub-RID0117,35,1,337,288,0,30,293,temporal neocortical,right
+7,HUP145,sub-RID0167,0,0,1,0,0,296,507,other cortex,right
+8,HUP186,sub-RID0420,378,173,0,10,6,0,432,temporal,left
+9,HUP108,sub-RID0165,467,13,248,21,5,1,241,mesial temporal,bilateral
+10,HUP146,sub-RID0301,0,0,191,245,5,65,381,other cortex,right
+11,HUP187,sub-RID0522,0,0,561,193,0,8,202,mesial temporal,right
+12,HUP110,sub-RID0160,0,414,0,0,192,0,207,diffuse,left
+13,HUP188,sub-RID0472,1,51,0,0,265,0,424,other cortex,left
+14,HUP111,sub-RID0179,209,100,0,267,0,5,85,other cortex,right
+15,HUP148,sub-RID0267,453,49,61,29,1,0,399,temporal multifocal,bilateral
+16,HUP189,sub-RID0520,0,637,0,0,135,0,224,temporal neocortical,left
+17,HUP190,sub-RID0405,694,73,24,1,26,3,174,mesial temporal,left
+18,HUP113,sub-RID0190,227,540,0,0,93,0,115,mesial temporal,left
+19,HUP150,sub-RID0322,0,0,0,0,0,63,665,other cortex,right
+20,HUP151,sub-RID0309,111,58,77,11,106,98,435,frontal,right
+21,HUP192,sub-RID0530,172,43,227,218,0,0,337,mesial temporal,bilateral
+22,HUP116,sub-RID0175,0,0,709,0,0,9,270,mesial temporal,right
+23,HUP153,sub-RID0328,196,29,303,45,5,19,387,temporal,bilateral
+24,HUP154,sub-RID0146,0,35,0,0,271,0,559,diffuse,bilateral
+25,HUP196,sub-RID0529,0,0,0,0,0,49,750,other cortex,right
+26,HUP156,sub-RID0337,22,36,0,110,18,14,567,temporal,bilateral
+27,HUP197,sub-RID0583,506,59,0,0,10,0,422,temporal,left
+28,HUP157,sub-RID0365,76,197,104,79,54,12,347,temporal,left
+29,HUP199,sub-RID0582,87,369,163,1,8,0,323,mesial temporal,bilateral
+30,HUP158,sub-RID0382,6,0,9,0,52,114,632,other cortex,right
+31,HUP121,sub-RID0171,0,20,0,0,841,0,134,other cortex,left
+32,HUP159,sub-RID0329,3,420,1,0,55,0,126,temporal neocortical,left
+33,HUP160,sub-RID0381,0,1,306,34,0,106,334,multifocal,right
+34,HUP202,sub-RID0646,597,54,0,27,48,0,269,mesial temporal,left
+35,HUP123,sub-RID0193,0,0,22,21,0,0,27,mesial temporal,right
+36,HUP161,sub-RID0338,0,10,80,2,34,43,580,other cortex,right
+37,HUP204,sub-RID0596,692,51,0,0,14,0,243,mesial temporal,left
+38,HUP126,sub-RID0089,440,317,3,1,21,0,184,mesial temporal,left
+39,HUP205,sub-RID0588,118,86,109,82,85,59,410,mesial temporal,bilateral
+40,HUP127,sub-RID0186,227,45,169,24,2,0,517,mesial temporal,bilateral
+41,HUP128,sub-RID0272,139,55,192,191,21,9,374,temporal neocortical,left
+42,HUP165,sub-RID0325,176,95,230,364,5,2,68,mesial temporal,bilateral
+43,HUP207,sub-RID0589,207,216,0,0,23,0,548,temporal neocortical,left
+44,HUP166,sub-RID0230,1,187,2,0,3,0,621,other cortex,left
+45,HUP130,sub-RID0238,208,7,183,65,0,1,525,other cortex,left
+46,HUP167,sub-RID0330,0,1,3,7,59,133,483,diffuse,bilateral
+47,HUP209,sub-RID0647,1,413,0,0,228,0,333,temporal neocortical,left
+48,HUP210,sub-RID0459,55,198,0,0,89,0,317,diffuse,left
+49,HUP218,sub-RID0677,0,0,433,105,0,23,420,mesial temporal,right
+50,HUP169,sub-RID0296,331,31,199,66,7,0,360,temporal,bilateral
+51,HUP170,sub-RID0442,119,5,107,4,72,215,416,other cortex,right
+52,HUP065,sub-RID0055,0,0,24,512,0,375,52,temporal,right
+53,HUP134,sub-RID0194,31,30,3,33,0,408,408,other cortex,right
+54,HUP171,sub-RID0371,25,390,105,54,82,18,288,other cortex,left
+55,HUP213,sub-RID0649,331,131,0,0,16,0,443,multifocal,left
+56,HUP068,sub-RID0058,0,32,0,783,4,169,0,temporal,right
+57,HUP135,sub-RID0274,0,0,477,14,0,27,477,mesial temporal,right
+58,HUP172,sub-RID0440,51,6,46,17,244,0,486,other cortex,left
+59,HUP070,sub-RID0060,0,80,0,0,238,0,306,other cortex,left
+60,HUP136,sub-RID0250,154,261,37,38,8,0,493,multifocal,left
+61,HUP215,sub-RID0566,133,376,0,0,0,0,491,temporal neocortical,left
+62,HUP173,sub-RID0031,140,4,408,155,33,42,190,mesial temporal,right
+63,HUP174,sub-RID0392,13,393,9,1,162,0,418,temporal,left
+64,HUP138,sub-RID0278,498,42,113,32,0,10,231,mesial temporal,left
+65,HUP175,sub-RID0452,0,0,0,0,191,100,374,diffuse,diffuse
+66,HUP139,sub-RID0307,0,20,0,0,450,3,316,other cortex,left
+67,HUP099,sub-RID0032,0,0,148,252,0,20,143,other cortex,right
+68,HUP074,sub-RID0064,140,691,0,0,22,0,142,temporal,left
+69,HUP140,sub-RID0320,243,81,5,11,22,0,638,mesial temporal,left
+70,HUP177,sub-RID0424,196,60,31,206,23,18,445,temporal,right
+71,HUP075,sub-RID0065,379,57,0,0,14,0,1,temporal,left
+72,HUP141,sub-RID0294,53,20,262,111,8,42,337,mesial temporal,right
+73,HUP178,sub-RID0356,319,73,289,124,0,0,194,temporal,right
+74,HUP078,sub-RID0068,0,118,0,0,42,0,113,temporal,left
+75,HUP142,sub-RID0295,622,62,0,0,31,0,237,mesial temporal,left
+76,HUP179,sub-RID0139,22,19,10,5,521,6,359,other cortex,left

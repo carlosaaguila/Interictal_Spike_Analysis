@@ -387,10 +387,11 @@ def changelabel(ptname, brain_df, data_directory):
     brain_df['name'] = brain_df['name'].apply(replace_letters, replace_dict = replace_dict)
     return brain_df
     
-def load_ptall(ptname, data_directory, change_label = True):
+def load_ptall(ptname, data_directory):
     """ load_ptall combines all the functions together, loading both the RID and the IEEG data just using the Patient NAME
         Will create a dataframe, and a spike object containing: values, fs, chlabels, 
     """
+
     spike = load_pt(ptname,data_directory)
     rid, brain_df = load_rid(ptname, data_directory)
     if isinstance(brain_df, pd.DataFrame) == False:
@@ -400,7 +401,7 @@ def load_ptall(ptname, data_directory, change_label = True):
         rid = rid
     else:
         relabeled_df = label_fix(ptname, data_directory, threshold = 0.20)
-        if change_label == True:
+        if ptname == 'HUP106':
             relabeled_df = changelabel(ptname, relabeled_df, data_directory)
 
     soz_region = pd.read_csv("/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/soz_locations.csv")
@@ -474,7 +475,7 @@ def value_basis(spike, brain_df, roi):
     counts,chs = hifreq_ch_spike(spike.select)
 
     select_oi = []
-    for chroi in chnum:
+    for chroi in chnum:a
         idx = np.where(chs == chroi)[0]
         select_oi.append(idx)
 
@@ -750,70 +751,59 @@ def biglist_roi(ptnames, roilist, data_directory):
             continue
     return roiLlat_values, roiLlat_idxch, infer_spike_soz, clinic_soz
 
-#update code to get count for each.
-def spike_count_perregion(values): #could be generalized to multiple features easily. 
-    """
-    returns a list of the counts of each pt, per channel in ROI
-    """
-    spike_count_perpt = []
-    count = []
-    roi_count_perpt = []
-    totalcount_perpt = []
-    for pt in values:
-        roi_count_perpt = []
+#THIS DOCUMENT CONTAINS THE MOST UP TO DATE VERSION OF EACH CODE:
+#THE OLD VERSION OF THIS IS LOCATED IN ARCHIVE FOLDER : REGION DISTRIBUTION
+#THIS CODE WAS MADE IN THE REGION_DISTRIBUTION_WORK IN THE MAIN FOLDER.
+
+def spike_count_perregion(select_oi): #could be generalized to multiple features easily. 
+
+    total_count_perpt = []
+    count_roi = []
+    count_perpt = []
+    for pt in select_oi:
+        count_roi = []
         for roi in pt:
-            count = []
-            for x in roi:
-                if (len(roi)) == 1:
-                    idv_count = 0
-                    count.append(idv_count)
-                    continue
-                else:
-                    count.append(len(x)) #here you replace with a feature maker
-            roi_count_perpt.append(count)
-        spike_count_perpt.append(roi_count_perpt)
+            count_roi.append(np.size(roi))
+        count_perpt.append(count_roi)
 
-    #clean up, and sort into pt > roi > values (counts in this case)
-    totalcount_perpt = []
-    for pt in spike_count_perpt:
-        sum_perroi = []
-        for roi in pt:
-            sum_perroi.append(np.sum(roi))
-        totalcount_perpt.append(sum_perroi)
+    total_count_perpt = np.sum(count_perpt, axis=1)
+        
+    return count_perpt, total_count_perpt
 
-    fullcount_perroi = np.sum(totalcount_perpt, axis=0)
-    return spike_count_perpt, totalcount_perpt, fullcount_perroi
+def spike_amplitude_perregion(values, chs, select_oi):
 
-def spike_amplitude_perregion(values, idxch): #could be generalized to multiple features easily. 
-    """
-    returns a list of the features of interest of each pt, per channel in ROI
-    """
     perpt = []
     perpt_mean = []
     for i, pt in enumerate(values):
+        #print('new pt {}'.format(i))
         perroi_mean = []
         perroi = []
+
         for j, roi in enumerate(pt):
+            #print('roi {}'.format(j))
             spikefeat = []
+
+            if not roi:
+                perroi.append(np.nan)
+                perroi_mean.append(np.nan)
+                continue
+
             for l, xs in enumerate(roi):
-                if (len(roi)) == 1:
-                    feat = np.nan
-                    spikefeat.append(feat)
-                    continue
-                else:
-                    for x in xs:
-                        val_want = np.transpose(x)
-                        val_want = val_want[idxch[i][j][l]]
-                        feat = np.max(np.absolute(val_want[750:1251]))
-                        spikefeat.append(feat)
+
+                val_want = np.transpose(xs)
+                val_want = val_want[chs[i][j][select_oi[i][j][l]]-1]
+                feat = np.max(np.absolute(val_want[750:1251]))
+                spikefeat.append(feat)
+
             perroi.append(spikefeat)
             perroi_mean.append(np.nanmean(spikefeat))
         perpt.append(perroi)
-        perpt_mean.append(perroi_mean)
+        perpt_mean.append(perroi_mean)  
+
 
     return perpt, perpt_mean
 
-def spike_LL_perregion(values, idxch): #could be generalized to multiple features easily. 
+def spike_LL_perregion(values, chs, select_oi): #could be generalized to multiple features easily. 
     """
     returns a list of the features of interest of each pt, per channel in ROI
     """
@@ -822,19 +812,19 @@ def spike_LL_perregion(values, idxch): #could be generalized to multiple feature
     for i, pt in enumerate(values):
         perroi_mean = []
         perroi = []
+
         for j, roi in enumerate(pt):
             spikefeat = []
+
+            if not roi:
+                perroi.append(np.nan)
+                perroi_mean.append(np.nan)
+                continue
             for l, xs in enumerate(roi):
-                if (len(roi)) == 1:
-                    feat = np.nan
+                    val_want = np.transpose(xs)
+                    val_want = val_want[chs[i][j][select_oi[i][j][l]]-1]
+                    feat = LL(val_want[750:1500]) #added a constraint to hopefully capture the spike
                     spikefeat.append(feat)
-                    continue
-                else:
-                    for x in xs:
-                        val_want = np.transpose(x)
-                        val_want = val_want[idxch[i][j][l]]
-                        feat = LL(val_want[750:1500]) #added a constraint to hopefully capture the spike
-                        spikefeat.append(feat)
             perroi.append(spikefeat)
             perroi_mean.append(np.nanmean(spikefeat))
         perpt.append(perroi)
