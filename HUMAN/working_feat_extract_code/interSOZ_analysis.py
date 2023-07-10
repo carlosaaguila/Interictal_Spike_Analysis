@@ -380,9 +380,19 @@ def run_interSOZ(ptnames, data_directory, load = True):
 # %%
 SOZ_all_chs_stacked_DF, nonSOZ_all_chs_stacked_DF, SOZ_average_waveform_DF, nonSOZ_average_waveform_DF, id_df = run_interSOZ(ptnames, data_directory, load = True)
 
+#%% function to fix id_df if it ever has to be remade
+def fix_id_df(id_df):
+    id_df.columns = ['id', '# SOZ', '# nonSOZ']
+    #in the column # SOZ, get the number after first paranthesis and before the first comma
+    id_df['# SOZ'] = id_df['# SOZ'].str.extract(r'\((.*?)\,').astype(int)
+    #in the column # nonSOZ, get the number after first paranthesis and before the first comma
+    id_df['# nonSOZ'] = id_df['# nonSOZ'].str.extract(r'\((.*?)\,').astype(int)
+
+    id_df['cumsum SOZ'] = id_df['# SOZ'].cumsum()
+    id_df['cumsum nonSOZ'] = id_df['# nonSOZ'].cumsum()
+    return id_df
 
 #%%
-
 #find patients to remove:
 id_df_cleaned = id_df[(id_df['# SOZ'] > 10) & (id_df['# nonSOZ'] > 10)]
 
