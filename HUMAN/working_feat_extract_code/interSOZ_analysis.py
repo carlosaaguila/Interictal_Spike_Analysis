@@ -14,6 +14,7 @@ import sys, os
 code_path = os.path.dirname('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/functions/')
 sys.path.append(code_path)
 from ied_fx_v3 import *
+#pd.set_option('display.max_rows', None)
 
 
 #Setup ptnames and directory
@@ -283,87 +284,321 @@ def totalavg_roiwave(values, chs, select_oi):
 
     return perroi, perroi_mean
 
-def run_interSOZ(ptnames, data_directory):
-    n = 15
-    lists_ptnames = (divide_chunks(ptnames, n))
+def run_interSOZ(ptnames, data_directory, load = True):
 
-    for Z, ptlist in enumerate(lists_ptnames):
-        print('Running Patient List: {}'.format(Z))
-        #RESET variables to not crash
-        perpt_all = []
-        perpt_mean = []
-        SOZ_all_chs_stacked = []
-        nonSOZ_all_chs_stacked = []
-        SOZ_all_chs_stacked_DF = pd.DataFrame()
-        nonSOZ_all_chs_stacked_DF = pd.DataFrame()
-        SOZ_average_waveform_DF = pd.DataFrame()
-        nonSOZ_average_waveform_DF = pd.DataFrame()
-        id_df = pd.DataFrame()
-        SOZ_avgs = []
-        nonSOZ_avgs = []
-        id = []
+    if load == True:
+        print('loading data')
+        SOZ_all_chs_stacked_DF = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/SOZ_all_chs_stacked_DF.csv')
+        nonSOZ_all_chs_stacked_DF = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/nonSOZ_all_chs_stacked_DF.csv')
+        SOZ_average_waveform_DF = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/SOZ_average_waveform_DF.csv')
+        nonSOZ_average_waveform_DF = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/nonSOZ_average_waveform_DF.csv')
+        id_df = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/id_df.csv')
 
-        #get vals and perroi values for each patient in a ptlist.
-        for ptname in ptlist:
-            print('Running Patient: {}'.format(ptname))
+    else:
+        print('getting data')
+        n = 15
+        lists_ptnames = (divide_chunks(ptnames, n))
 
-            #get the values for the SOZ and non-SOZ electrodes
-            vals, idx_roich, chs, select_oi = value_basis_interSOZ(ptname, data_directory)
-            #vals2, idx_roich2, chs2, select_oi2 = value_basis_interSOZ_v2(ptname, data_directory)
+        for Z, ptlist in enumerate(lists_ptnames):
+            print('Running Patient List: {}'.format(Z))
+            #RESET variables to not crash
+            perpt_all = []
+            perpt_mean = []
+            SOZ_all_chs_stacked = []
+            nonSOZ_all_chs_stacked = []
+            SOZ_all_chs_stacked_DF = pd.DataFrame()
+            nonSOZ_all_chs_stacked_DF = pd.DataFrame()
+            SOZ_average_waveform_DF = pd.DataFrame()
+            nonSOZ_average_waveform_DF = pd.DataFrame()
+            id_df = pd.DataFrame()
+            SOZ_avgs = []
+            nonSOZ_avgs = []
+            id = []
 
-            #get the average waveform for the SOZ and non-SOZ electrodes
-            if vals != None: 
-                perroi, perroi_mean = totalavg_roiwave(vals, chs, select_oi)
-                perpt_all.append(perroi)
-                perpt_mean.append(perroi_mean)
-                id.append([ptname, np.shape(perroi[0]), np.shape(perroi[1])])
+            #get vals and perroi values for each patient in a ptlist.
+            for ptname in ptlist:
+                print('Running Patient: {}'.format(ptname))
 
+                #get the values for the SOZ and non-SOZ electrodes
+                vals, idx_roich, chs, select_oi = value_basis_interSOZ(ptname, data_directory)
+                #vals2, idx_roich2, chs2, select_oi2 = value_basis_interSOZ_v2(ptname, data_directory)
 
-        #add them to a dataframe
-        for pt in perpt_all:
-            SOZ_all_chs_stacked.append(pt[0])
-            nonSOZ_all_chs_stacked.append(pt[1])
-
-        for pt in perpt_mean:
-            SOZ_avgs.append([pt[0]])
-            nonSOZ_avgs.append([pt[1]])
-
-        #flatten the list
-        SOZ_all_chs_stacked = [x for x in SOZ_all_chs_stacked for x in x]
-        nonSOZ_all_chs_stacked = [x for x in nonSOZ_all_chs_stacked for x in x]
-
-        SOZ_avgs = [x for x in SOZ_avgs for x in x]
-        nonSOZ_avgs = [x for x in nonSOZ_avgs for x in x]
-
-        #append a new lines to dataframe
-        SOZ_all_chs_stacked_DF = SOZ_all_chs_stacked_DF.append(SOZ_all_chs_stacked)
-        nonSOZ_all_chs_stacked_DF = nonSOZ_all_chs_stacked_DF.append(nonSOZ_all_chs_stacked)
-        SOZ_average_waveform_DF = SOZ_average_waveform_DF.append(SOZ_avgs)
-        nonSOZ_average_waveform_DF = nonSOZ_average_waveform_DF.append(nonSOZ_avgs)
-        id_df = id_df.append(id)
+                #get the average waveform for the SOZ and non-SOZ electrodes
+                if vals != None: 
+                    perroi, perroi_mean = totalavg_roiwave(vals, chs, select_oi)
+                    perpt_all.append(perroi)
+                    perpt_mean.append(perroi_mean)
+                    id.append([ptname, np.shape(perroi[0]), np.shape(perroi[1])])
 
 
-        #save updated dataframes
-        if Z == 0:
-            SOZ_all_chs_stacked_DF.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/SOZ_all_chs_stacked_DF.csv', index = False)
-            nonSOZ_all_chs_stacked_DF.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/nonSOZ_all_chs_stacked_DF.csv',index = False)
-            SOZ_average_waveform_DF.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/SOZ_average_waveform_DF.csv',index = False)
-            nonSOZ_average_waveform_DF.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/nonSOZ_average_waveform_DF.csv',index = False)
-            id_df.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/id_df.csv', index = False)
-        if Z != 0:
-            SOZ_all_chs_stacked_DF.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/SOZ_all_chs_stacked_DF.csv', mode = 'a', index = False, header = False)
-            nonSOZ_all_chs_stacked_DF.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/nonSOZ_all_chs_stacked_DF.csv', mode = 'a', index = False, header = False)
-            SOZ_average_waveform_DF.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/SOZ_average_waveform_DF.csv', mode = 'a', index = False, header = False)
-            nonSOZ_average_waveform_DF.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/nonSOZ_average_waveform_DF.csv', mode = 'a', index = False, header = False)
-            id_df.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/id_df.csv', mode = 'a', index = False, header = False)
+            #add them to a dataframe
+            for pt in perpt_all:
+                SOZ_all_chs_stacked.append(pt[0])
+                nonSOZ_all_chs_stacked.append(pt[1])
+
+            for pt in perpt_mean:
+                SOZ_avgs.append([pt[0]])
+                nonSOZ_avgs.append([pt[1]])
+
+            #flatten the list
+            SOZ_all_chs_stacked = [x for x in SOZ_all_chs_stacked for x in x]
+            nonSOZ_all_chs_stacked = [x for x in nonSOZ_all_chs_stacked for x in x]
+
+            SOZ_avgs = [x for x in SOZ_avgs for x in x]
+            nonSOZ_avgs = [x for x in nonSOZ_avgs for x in x]
+
+            #append a new lines to dataframe
+            SOZ_all_chs_stacked_DF = SOZ_all_chs_stacked_DF.append(SOZ_all_chs_stacked)
+            nonSOZ_all_chs_stacked_DF = nonSOZ_all_chs_stacked_DF.append(nonSOZ_all_chs_stacked)
+            SOZ_average_waveform_DF = SOZ_average_waveform_DF.append(SOZ_avgs)
+            nonSOZ_average_waveform_DF = nonSOZ_average_waveform_DF.append(nonSOZ_avgs)
+            id_df = id_df.append(id)
 
 
-    SOZ_all_chs_stacked_DF = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/SOZ_all_chs_stacked_DF.csv')
-    nonSOZ_all_chs_stacked_DF = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/nonSOZ_all_chs_stacked_DF.csv')
-    SOZ_average_waveform_DF = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/SOZ_average_waveform_DF.csv')
-    nonSOZ_average_waveform_DF = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/nonSOZ_average_waveform_DF.csv')
-    id_df = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/id_df.csv')
+            #save updated dataframes
+            if Z == 0:
+                SOZ_all_chs_stacked_DF.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/SOZ_all_chs_stacked_DF.csv', index = False)
+                nonSOZ_all_chs_stacked_DF.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/nonSOZ_all_chs_stacked_DF.csv',index = False)
+                SOZ_average_waveform_DF.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/SOZ_average_waveform_DF.csv',index = False)
+                nonSOZ_average_waveform_DF.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/nonSOZ_average_waveform_DF.csv',index = False)
+                id_df.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/id_df.csv', index = False)
+            if Z != 0:
+                SOZ_all_chs_stacked_DF.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/SOZ_all_chs_stacked_DF.csv', mode = 'a', index = False, header = False)
+                nonSOZ_all_chs_stacked_DF.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/nonSOZ_all_chs_stacked_DF.csv', mode = 'a', index = False, header = False)
+                SOZ_average_waveform_DF.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/SOZ_average_waveform_DF.csv', mode = 'a', index = False, header = False)
+                nonSOZ_average_waveform_DF.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/nonSOZ_average_waveform_DF.csv', mode = 'a', index = False, header = False)
+                id_df.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/id_df.csv', mode = 'a', index = False, header = False)
+
+
+        SOZ_all_chs_stacked_DF = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/SOZ_all_chs_stacked_DF.csv')
+        nonSOZ_all_chs_stacked_DF = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/nonSOZ_all_chs_stacked_DF.csv')
+        SOZ_average_waveform_DF = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/SOZ_average_waveform_DF.csv')
+        nonSOZ_average_waveform_DF = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/nonSOZ_average_waveform_DF.csv')
+        id_df = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/id_df.csv')
 
     return SOZ_all_chs_stacked_DF, nonSOZ_all_chs_stacked_DF, SOZ_average_waveform_DF, nonSOZ_average_waveform_DF, id_df
 # %%
-SOZ_all_chs_stacked_DF, nonSOZ_all_chs_stacked_DF, SOZ_average_waveform_DF, nonSOZ_average_waveform_DF, id_df = run_interSOZ(ptnames, data_directory)
+SOZ_all_chs_stacked_DF, nonSOZ_all_chs_stacked_DF, SOZ_average_waveform_DF, nonSOZ_average_waveform_DF, id_df = run_interSOZ(ptnames, data_directory, load = True)
+
+
+#%%
+
+#find patients to remove:
+id_df_cleaned = id_df[(id_df['# SOZ'] > 10) & (id_df['# nonSOZ'] > 10)]
+
+#find the opposite of id_df_cleaned
+id_df_removed = id_df[(id_df['# SOZ'] <= 10) | (id_df['# nonSOZ'] <= 10)]
+
+# %% 
+#function that removes rows from a dataframe based on a range of indices
+def remove_rows_ALL(SOZ_df, nonSOZ_df, df_to_remove):
+    """
+    DF is a dataframe with all the values
+    df_to_remove is a dataframe with the patient name, and sum of SOZ and nonSOZ spikes
+    """
+    num_SOZ = df_to_remove['# SOZ'].to_list()
+    num_nonSOZ = df_to_remove['# nonSOZ'].to_list()
+    cumsum_SOZ = df_to_remove['cumsum SOZ'].to_list()
+    cumsum_nonSOZ = df_to_remove['cumsum nonSOZ'].to_list()
+
+    #find the start indices for those to remove.
+    startSOZ = [x - y for x, y in zip(cumsum_SOZ, num_SOZ)]
+    startnonSOZ = [x - y for x, y in zip(cumsum_nonSOZ, num_nonSOZ)]
+    #adjust for python indexing.
+    #startSOZ = [0 if x <= 0 else x - 1 for x in startSOZ]
+    #startnonSOZ = [0 if x <= 0 else x - 1 for x in startnonSOZ]
+
+    #find the end indices for those to remove.
+    endSOZ = cumsum_SOZ
+    endnonSOZ = cumsum_nonSOZ
+
+    #drop the rows from 
+    DF1 = pd.DataFrame()
+    for start, end in zip(startSOZ, endSOZ):
+        DF1 = DF1.append(SOZ_df.iloc[start:end])
+
+    DF2 = pd.DataFrame()
+    for start, end in zip(startnonSOZ, endnonSOZ):
+        DF2 = DF2.append(nonSOZ_df.iloc[start:end])
+    
+    DF1_idx_to_remove = DF1.index.to_list()
+    DF2_idx_to_remove = DF2.index.to_list()
+
+    SOZ_df_cleaned = SOZ_df.drop(index = DF1_idx_to_remove)
+    nonSOZ_df_cleaned = nonSOZ_df.drop(index = DF2_idx_to_remove)
+
+    return SOZ_df_cleaned, nonSOZ_df_cleaned
+
+def remove_rows_avg(SOZ_df, nonSOZ_df, df_to_remove):
+    """
+    DF is a dataframe with all the values
+    df_to_remove is a dataframe with the patient name, and sum of SOZ and nonSOZ spikes
+    """
+    index_to_remove = df_to_remove.index.to_list()
+    SOZ_df_cleaned = SOZ_df.drop(index = index_to_remove)
+    nonSOZ_df_cleaned = nonSOZ_df.drop(index = index_to_remove)
+
+    return SOZ_df_cleaned, nonSOZ_df_cleaned
+
+#%%
+#cleaned dataframes (removed low counts)
+SOZ_all_chs_stacked_DF_cleaned, nonSOZ_all_chs_stacked_DF_cleaned = remove_rows_ALL(SOZ_all_chs_stacked_DF,nonSOZ_all_chs_stacked_DF, id_df_removed)
+SOZ_average_waveform_DF_cleaned, nonSOZ_average_waveform_DF_cleaned = remove_rows_avg(SOZ_average_waveform_DF, nonSOZ_average_waveform_DF, id_df_removed)
+
+#%% functions to take index from cleaned ID, and calculate a feature for each patient
+def get_feat_per_pt(SOZ_df, nonSOZ_df, id_df_cleaned):
+
+    num_SOZ = id_df_cleaned['# SOZ'].to_list()
+    num_nonSOZ = id_df_cleaned['# nonSOZ'].to_list()
+    cumsum_SOZ = id_df_cleaned['cumsum SOZ'].to_list()
+    cumsum_nonSOZ = id_df_cleaned['cumsum nonSOZ'].to_list()
+    ids = id_df_cleaned['id'].to_list()
+
+    #find the start indices for those to remove.
+    startSOZ = [x - y for x, y in zip(cumsum_SOZ, num_SOZ)]
+    startnonSOZ = [x - y for x, y in zip(cumsum_nonSOZ, num_nonSOZ)]
+
+    #adjust for python indexing. (guess not needed)
+    #startSOZ = [0 if x <= 0 else x - 1 for x in startSOZ]
+    #startnonSOZ = [0 if x <= 0 else x - 1 for x in startnonSOZ]
+
+    #find the end indices for those to remove.
+    endSOZ = cumsum_SOZ
+    endnonSOZ = cumsum_nonSOZ
+
+    #drop the rows from 
+    DF1 = pd.DataFrame()
+    for start, end, id in zip(startSOZ, endSOZ, ids):
+        sub_df = SOZ_df.iloc[start:end]
+        sub_df['id'] = id
+        DF1 = DF1.append(sub_df)
+
+
+    DF2 = pd.DataFrame()
+    for start, end, id in zip(startnonSOZ, endnonSOZ, ids):
+        sub_df = nonSOZ_df.iloc[start:end]
+        sub_df['id'] = id
+        DF2 = DF2.append(sub_df)
+
+    SOZ_feats = pd.DataFrame()
+    nonSOZ_feats = pd.DataFrame()
+    #SOZ_feats['amp'] = DF1.groupby('id').max(axis = 0)
+    #nonSOZ_feats['amp'] = DF2.groupby('id').max(axis = 0)
+
+    return DF1, DF2
+
+soz_w_label, nonsoz_w_label = get_feat_per_pt(SOZ_all_chs_stacked_DF, nonSOZ_all_chs_stacked_DF, id_df_cleaned)
+# %% prepare data for plotting
+
+#time
+time = np.linspace(0,4,2001)
+
+#average cohort waveform
+avgcohort_SOZ = SOZ_all_chs_stacked_DF_cleaned.mean(axis = 0).to_list()
+avgcohort_nonSOZ = nonSOZ_all_chs_stacked_DF_cleaned.mean(axis = 0).to_list()
+
+stdcohort_SOZ = SOZ_all_chs_stacked_DF_cleaned.std(axis = 0).to_list()
+stdcohort_nonSOZ = nonSOZ_all_chs_stacked_DF_cleaned.std(axis = 0).to_list()
+
+#get per_pt average waveforms
+SOZ_avgs = SOZ_average_waveform_DF_cleaned.T
+nonSOZ_avgs = nonSOZ_average_waveform_DF_cleaned.T
+
+# append all the values of a column into a list
+SOZ_avgs_list = []
+nonSOZ_avgs_list = []
+for col in SOZ_avgs.columns:
+    SOZ_avgs_list.append(SOZ_avgs[col].to_list())
+for col in nonSOZ_avgs.columns:
+    nonSOZ_avgs_list.append(nonSOZ_avgs[col].to_list())
+
+
+# %% PLOT
+
+fig, ax = plt.subplots(1,2,figsize = (15,7))
+
+for SOZ, nonSOZ in zip(SOZ_avgs_list, nonSOZ_avgs_list):
+    ax[0].plot(time, SOZ, color = 'r', alpha = 0.3, linewidth=0.7)
+    ax[1].plot(time, nonSOZ, color = 'r', alpha = 0.3, linewidth=0.7)
+
+ax[0].plot(time, avgcohort_SOZ, color = 'k', linewidth=2)
+ax[1].plot(time, avgcohort_nonSOZ, color = 'k', linewidth=2)
+
+ax[0].fill_between(time, np.add(avgcohort_SOZ, stdcohort_SOZ), np.subtract(avgcohort_SOZ, stdcohort_SOZ), color = 'k', linewidth=0.5, alpha = 0.3, linestyle = '--')
+
+ax[1].fill_between(time, np.add(avgcohort_nonSOZ, stdcohort_nonSOZ),np.subtract(avgcohort_nonSOZ, stdcohort_nonSOZ), color = 'k', linewidth=0.5, alpha = 0.3, linestyle = '--')
+
+ax[0].set_title('SOZ')
+ax[1].set_title('nonSOZ')
+ax[0].set_xlabel('time (s)')
+ax[1].set_xlabel('time (s)')
+ax[0].set_ylabel('Amplitude (mV)')
+ax[1].set_ylabel('Amplitude (mV)')
+ax[0].set_ylim(-900,700)
+ax[1].set_ylim(-900,700)
+
+# %%
+#find the max amplitude across each row (only using the middle quartile of columns)
+SOZ_feats = pd.DataFrame()
+nonSOZ_feats = pd.DataFrame()
+
+#subtract mean_SOZ_amp from each row
+demeaned_SOZ = SOZ_all_chs_stacked_DF_cleaned.sub(SOZ_all_chs_stacked_DF_cleaned.mean(axis = 1), axis = 0)
+demeaned_nonSOZ = nonSOZ_all_chs_stacked_DF_cleaned.sub(nonSOZ_all_chs_stacked_DF_cleaned.mean(axis = 1), axis = 0)
+
+#find the absolute amplitude
+SOZ_feats['abs amp'] = demeaned_SOZ.iloc[:, int(2001/2 -200):int(2001/2 + 200)].abs().max(axis = 1)
+nonSOZ_feats['abs amp'] = demeaned_nonSOZ.iloc[:, int(2001/2 -200):int(2001/2 + 200)].abs().max(axis = 1)
+
+#find the linelength of the demeaned singal
+SOZ_feats['linelength'] = demeaned_SOZ.iloc[:, int(2001/2 -200):int(2001/2 + 200)].apply(LL, axis = 1)
+nonSOZ_feats['linelength'] = demeaned_nonSOZ.iloc[:, int(2001/2 -200):int(2001/2 + 200)].apply(LL, axis = 1)
+
+
+#%% use soz_w_labels and nonsoz_w_labels to merge id's with max and min amplitudes
+SOZ_feats['id'] = soz_w_label['id']
+nonSOZ_feats['id'] = nonsoz_w_label['id']
+
+#%% median values for each patient feat
+
+SOZ_median_feats= SOZ_feats.groupby('id').median()
+SOZ_median_feats = SOZ_median_feats.rename(columns = {'abs amp': 'SOZ abs amp', 'linelength': 'SOZ LL'})
+
+nonSOZ_median_feats = nonSOZ_feats.groupby('id').median()
+nonSOZ_median_feats = nonSOZ_median_feats.rename(columns = {'abs amp': 'nonSOZ abs amp', 'linelength': 'nonSOZ LL'})
+
+median_feats = pd.concat([SOZ_median_feats, nonSOZ_median_feats], axis = 1)
+median_feats = median_feats.dropna()
+
+median_feats['color_amp'] = median_feats['SOZ abs amp'] - median_feats['nonSOZ abs amp']
+median_feats['color_LL'] = median_feats['SOZ LL'] - median_feats['nonSOZ LL']
+
+median_feats['color_amp'] = median_feats['color_amp'].apply(lambda x: True if x > 0 else False).astype(int)
+median_feats['color_LL'] = median_feats['color_LL'].apply(lambda x: True if x > 0 else False).astype(int)
+
+#%% 
+#create a paired plot of SOZ abs amp vs. nonSOZ abs amp
+fig, ax = plt.subplots(1,1, figsize = (7,7))
+ax.scatter(median_feats[median_feats['color_amp'] == 1]['SOZ abs amp'], median_feats[median_feats['color_amp'] == 1]['nonSOZ abs amp'], color = 'r', label = 'Patients w/ SOZ > ({})'.format(len(median_feats[median_feats['color_amp'] == 1])))
+ax.scatter(median_feats[median_feats['color_amp'] == 0]['SOZ abs amp'], median_feats[median_feats['color_amp'] == 0]['nonSOZ abs amp'], color = 'b', label = 'Patients w/ nonSOZ > ({})'.format(len(median_feats[median_feats['color_amp'] == 0])))
+ax.set_xlabel('SOZ abs amp')
+ax.set_ylabel('nonSOZ abs amp')
+ax.set_title('SOZ vs. nonSOZ abs amp')
+ax.plot(np.linspace(0,1200,100), np.linspace(0,1200,100), color = 'k', linestyle = '--')
+ax.set_xlim(0,1200)
+ax.set_ylim(0,1200)
+ax.legend()
+
+#create a paired plot of SOZ LL vs. nonSOZ LL
+fig, ax = plt.subplots(1,1, figsize = (7,7))
+ax.scatter(median_feats[median_feats['color_LL'] == 1]['SOZ LL'], median_feats[median_feats['color_LL'] == 1]['nonSOZ LL'], color = 'r', label = "Patients w/ SOZ > ({})".format(len(median_feats[median_feats['color_LL'] == 1])))
+ax.scatter(median_feats[median_feats['color_LL'] == 0]['SOZ LL'], median_feats[median_feats['color_LL'] == 0]['nonSOZ LL'], color = 'b', label = "Patients w/ nonSOZ > ({})".format(len(median_feats[median_feats['color_LL'] == 0])))
+ax.set_xlabel('SOZ LL')
+ax.set_ylabel('nonSOZ LL')
+ax.set_title('SOZ vs. nonSOZ LL')
+ax.plot(np.linspace(0,6500,100), np.linspace(0,6500,100), color = 'k', linestyle = '--')
+ax.set_xlim(0,6500)
+ax.set_ylim(0,6500)
+ax.legend()
+
+# %%
