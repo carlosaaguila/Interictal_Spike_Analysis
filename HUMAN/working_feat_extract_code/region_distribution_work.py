@@ -75,6 +75,7 @@ def biglist_roi(ptnames, roi = roilist):
         roiLlat_selectoi.append(select_oi)
         region = find_soz_region(spike.soz, brain_df)
         infer_spike_soz.append([spike.soz, region]) #should get skipped if there isn't any 
+        soz_region.append(pt)
         clinic_soz.append(soz_region)
         if vals == 0: #checks if there is no overlap
             count += 1
@@ -111,15 +112,16 @@ def spike_amplitude_perregion(values, chs, select_oi):
             spikefeat = []
 
             if not roi:
-                perroi.append(np.nan)
-                perroi_mean.append(np.nan)
+                perroi.append([np.nan])
+                perroi_mean.append([np.nan])
                 continue
 
             for l, xs in enumerate(roi):
 
                 val_want = np.transpose(xs)
                 val_want = val_want[chs[i][j][select_oi[i][j][l]]-1]
-                feat = np.max(np.absolute(val_want[750:1251]))
+                demean_val = val_want - np.nanmean(val_want)
+                feat = np.max(np.absolute(demean_val[750:1251]))
                 spikefeat.append(feat)
 
             perroi.append(spikefeat)
@@ -144,8 +146,8 @@ def spike_LL_perregion(values, chs, select_oi): #could be generalized to multipl
             spikefeat = []
 
             if not roi:
-                perroi.append(np.nan)
-                perroi_mean.append(np.nan)
+                perroi.append([np.nan])
+                perroi_mean.append([np.nan])
                 continue
             for l, xs in enumerate(roi):
                     val_want = np.transpose(xs)
@@ -172,6 +174,8 @@ def feat_extract(lists_ptnames):
     Aperpt_mean_all = []
     totalcount_perpt_all = []
     LLperpt_mean_all = []
+    Aperpt_all = []
+    LLperpt_all = []
 
     for list in lists_ptnames:
         #clear at the start to reduce memory load
@@ -189,24 +193,27 @@ def feat_extract(lists_ptnames):
         count_perpt, total_count_perpt = spike_count_perregion(select_oi)
         LLperpt, LLperpt_mean = spike_LL_perregion(values, chs, select_oi)
 
-        Aperpt_mean_all.append(Aperpt_mean)
+        #Aperpt_mean_all.append(Aperpt_mean)
         totalcount_perpt_all.append(count_perpt)
-        LLperpt_mean_all.append(LLperpt_mean)
+        #LLperpt_mean_all.append(LLperpt_mean)
+        Aperpt_all.append(Aperpt)
+        LLperpt_all.append(LLperpt)
     
-
-    Aperpt_mean = [x for x in Aperpt_mean_all for x in x]
-    LLperpt_mean = [x for x in LLperpt_mean_all for x in x]
+    LLperpt = [x for x in LLperpt_all for x in x]
+    Aperpt = [x for x in Aperpt_all for x in x]
+    #Aperpt_mean = [x for x in Aperpt_mean_all for x in x]
+    #LLperpt_mean = [x for x in LLperpt_mean_all for x in x]
     totalcount_perpt = [x for x in totalcount_perpt_all for x in x]
     clinic_soz = [x for x in clinic_soz_all for x in x]
 
-    return Aperpt_mean, LLperpt_mean, totalcount_perpt, clinic_soz
+    return clinic_soz, Aperpt, LLperpt, totalcount_perpt #Aperpt_mean, LLperpt_mean, totalcount_perpt, clinic_soz, Aperpt, LLperpt
 
 # run biglist_roi >> gives you all the values/roi, idxch/roi, the inferred spike soz (based off electrodes), and the SOZ determined by the clinician. 
-
 #%% call em. 
 n=15
 lists_ptnames = (divide_chunks(ptnames, n))
-Aperpt_mean, LLperpt_mean, totalcount_perpt, clinic_soz = feat_extract(lists_ptnames)#, roilist, data_directory)
+#Aperpt_mean, LLperpt_mean, totalcount_perpt, clinic_soz, Aperpt, LLperpt = feat_extract(lists_ptnames[0:2])#, roilist, data_directory)
+clinic_soz, Aperpt, LLperpt, totalcount_perpt = feat_extract(lists_ptnames)
 
 #%%
 #CLASS LIST COMBINATION
@@ -218,7 +225,7 @@ test_df = pd.DataFrame(data = Aperpt_mean)
 soz_df  = pd.DataFrame(data = clinic_soz)
 test_df = test_df.rename(columns={0:'L_Mesial', 1:'L_Lateral', 2:'R_Mesial', 3:'R_Lateral',4:'L_OtherCortex', 5:'R_OtherCortex', 6:'Empty Label'})
 test_df = test_df.drop(columns = 'Empty Label')
-soz_df = soz_df.rename(columns = {0:'region', 1:'lateralization'})
+soz_df = soz_df.rename(columns = {0:'region', 1:'lateralization', 2:'pt'})
 amp_df_combine =  pd.concat([test_df, soz_df], axis = 1)
 
 for l in to_remove: #remove to_remove variables
@@ -483,3 +490,93 @@ def checker(ptname):
     return count_roi, brain_df, spike, basis_results
 
 # %%
+
+# for a list of 7 lists with varying sizes, append NaN's to the end of each list so that they are all the same size
+def append_nan(list_of_lists):
+    max_length = max([np.size(l) for l in list_of_lists])
+    for l in list_of_lists:
+        while np.size(l) < max_length:
+            l.append(np.nan)
+    return list_of_lists
+
+
+for pt in Aperpt:
+    pt = append_nan(pt)
+
+# %% Make a large dataframe for mixed effects model
+#CLASS LIST COMBINATION
+to_combine = ['bilateral - diffuse', 'bilateral - mesial temporal', 'bilateral - multifocal' , 'bilateral - temporal multifocal','diffuse - diffuse', 'left - diffuse' ,'left - multifocal', 'right - multifocal']
+to_remove = ['temporal', 'frontal']
+
+test_df = pd.DataFrame(data = Aperpt)
+soz_df  = pd.DataFrame(data = clinic_soz)
+test_df = test_df.rename(columns={0:'L_Mesial', 1:'L_Lateral', 2:'R_Mesial', 3:'R_Lateral',4:'L_OtherCortex', 5:'R_OtherCortex', 6:'Empty Label'})
+test_df = test_df.drop(columns = 'Empty Label')
+labels = test_df.columns
+soz_df = soz_df.rename(columns = {0:'region', 1:'lateralization', 2:'pt'})
+amp_df_combine =  pd.concat([test_df, soz_df], axis = 1)
+
+
+test_df2 = pd.DataFrame(data = totalcount_perpt)
+test_df2 = test_df2.rename(columns={0:'L_Mesial', 1:'L_Lateral', 2:'R_Mesial', 3:'R_Lateral',4:'L_OtherCortex', 5:'R_OtherCortex', 6:'Empty Label'})
+test_df2 = test_df2.drop(columns = 'Empty Label')
+spike_df_combine = pd.concat([test_df2, soz_df], axis = 1)
+
+test_df3 = pd.DataFrame(data = LLperpt)
+test_df3 = test_df3.rename(columns={0:'L_Mesial', 1:'L_Lateral', 2:'R_Mesial', 3:'R_Lateral',4:'L_OtherCortex', 5:'R_OtherCortex', 6:'Empty Label'})
+test_df3 = test_df3.drop(columns = 'Empty Label')
+LL_df_combine = pd.concat([test_df3, soz_df], axis = 1)
+
+for l in to_remove: #remove to_remove variables
+    amp_df_combine = amp_df_combine[amp_df_combine['region'] != l]
+    spike_df_combine = spike_df_combine[spike_df_combine['region'] != l]
+    LL_df_combine = LL_df_combine[LL_df_combine['region'] != l]
+
+#amp cleanup
+amp_df_drop1 = amp_df_combine
+amp_df_drop1['soz'] = amp_df_combine['lateralization'] + " - " + amp_df_combine['region'] 
+amp_df = amp_df_drop1.drop(columns = ['region','lateralization'])
+amp_df['soz'] = amp_df['soz'].apply(lambda x: "bilateral" if x in to_combine else x)
+
+#spike count cleanup
+spike_df_drop1 = spike_df_combine
+spike_df_drop1['soz'] = spike_df_combine['lateralization'] + " - " + spike_df_combine['region']
+spike_df = spike_df_drop1.drop(columns = ['region','lateralization'])
+spike_df['soz'] = spike_df['soz'].apply(lambda x: "bilateral" if x in to_combine else x)
+
+#LL cleanup
+LL_df_drop1 = LL_df_combine
+LL_df_drop1['soz'] = LL_df_combine['lateralization'] + " - " + LL_df_combine['region']
+LL_df = LL_df_drop1.drop(columns = ['region','lateralization'])
+LL_df['soz'] = LL_df['soz'].apply(lambda x: "bilateral" if x in to_combine else x)
+
+# %% fix the table
+df_amp = pd.DataFrame()
+df_count = pd.DataFrame()
+df_LL = pd.DataFrame()
+for label in labels:
+    #fix amplitude table
+    df = amp_df[[label, 'soz', 'pt']]
+    df = df.explode(label)
+    df['roi'] = label
+    df = df.rename(columns={label:'amp'})
+    df_amp = pd.concat([df_amp, df], axis = 0)
+
+    #fix spike count table
+    df = spike_df[[label, 'soz', 'pt']]
+    df = df.explode(label)
+    df['roi'] = label
+    df = df.rename(columns={label:'count'})
+    df_count = pd.concat([df_count, df], axis = 0)
+
+    #fix LL table
+    df = LL_df[[label, 'soz', 'pt']]
+    df = df.explode(label)
+    df['roi'] = label
+    df = df.rename(columns={label:'LL'})
+    df_LL = pd.concat([df_LL, df], axis = 0)
+
+# %% load the tables
+df_LL = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mixed_effect_tables/LL.csv', index_col = 0)
+df_amp = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mixed_effect_tables/amp.csv', index_col = 0)
+df_count = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mixed_effect_tables/count.csv', index_col = 0)

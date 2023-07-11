@@ -3,3 +3,6 @@ HUMAN/working_feat_extract_code/working features/intra_SOZ_v1/nonSOZ_all_chs_sta
 HUMAN/working_feat_extract_code/working features/intra_SOZ_v1/nonSOZ_average_waveform_DF.csv
 HUMAN/working_feat_extract_code/working features/intra_SOZ_v1/SOZ_all_chs_stacked_DF.csv
 HUMAN/working_feat_extract_code/working features/intra_SOZ_v1/SOZ_average_waveform_DF.csv
+HUMAN/working_feat_extract_code/working features/mixed_effect_tables/amp.csv
+HUMAN/working_feat_extract_code/working features/mixed_effect_tables/count.csv
+HUMAN/working_feat_extract_code/working features/mixed_effect_tables/LL.csv
