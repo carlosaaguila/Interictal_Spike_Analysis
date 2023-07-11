@@ -238,7 +238,7 @@ plt.ylabel('Spiking Brain Region')
 plt.title('Amplitude across all Patients')
 plt.yticks(rotation = 0)
 #fig.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/distribution/amp_persoz3", bbox_inches = 'tight')
-fig.savefig('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/NEW/feature maps/amplitude_persoz', bbox_inches = 'tight')
+#fig.savefig('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/NEW/feature maps/amplitude_persoz', bbox_inches = 'tight')
 
 #%% LL
 test_df = pd.DataFrame(data = LLperpt_mean)
@@ -265,7 +265,7 @@ plt.ylabel('Spiking Brain Region')
 plt.title('Linelength across all Patients')
 plt.yticks(rotation = 0)
 #fig2.savefig("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/distribution/ll_persoz_croppedwindow3", bbox_inches = 'tight')
-fig2.savefig('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/NEW/feature maps/linelength_persoz', bbox_inches = 'tight')
+#fig2.savefig('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/NEW/feature maps/linelength_persoz', bbox_inches = 'tight')
 
 
 #%% spikecount NO emptylabels
@@ -297,7 +297,7 @@ plt.xlabel('Clinically Defined SOZ')
 plt.ylabel('Spiking Brain Region')
 plt.title('Spike Count Percentage per SOZ across all Patients')
 plt.yticks(rotation = 0)
-fig4.savefig('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/NEW/feature maps/countperc_persoz', bbox_inches = 'tight')
+#fig4.savefig('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/NEW/feature maps/countperc_persoz', bbox_inches = 'tight')
 
 # %% exmaple of how to plot paired plots w/ different colors for a single feature
 
