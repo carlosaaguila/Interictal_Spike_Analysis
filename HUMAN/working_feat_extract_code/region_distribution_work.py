@@ -580,3 +580,89 @@ for label in labels:
 df_LL = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mixed_effect_tables/LL.csv', index_col = 0)
 df_amp = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mixed_effect_tables/amp.csv', index_col = 0)
 df_count = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mixed_effect_tables/count.csv', index_col = 0)
+
+df_amp = df_amp.dropna().reset_index(drop = True)
+df_count = df_count.dropna().reset_index(drop = True)
+df_LL = df_LL.dropna().reset_index(drop = True)
+
+import numpy as np
+import pandas as pd
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
+import scipy.stats as stats
+
+#%% Run LMER
+md = smf.mixedlm("amp ~ C(soz) + C(roi) + C(soz):C(roi)", df_amp, groups="pt", vc_formula = {"soz":"0+C(soz)", "roi":"0+C(roi)"})
+mdf = md.fit(method=["lbfgs"])
+print(mdf.summary())
+
+#%% Run LMER
+md_count = smf.mixedlm("count ~ soz + roi", df_count, groups=df_count["pt"])
+mdf_count = md_count.fit(method=["lbfgs"])
+print(mdf_count.summary())
+
+#%% Run LMER
+md_LL = smf.mixedlm("LL ~ soz + roi", df_LL, groups=df_LL["pt"], re_formula = "~roi+soz")
+mdf_LL = md_LL.fit(method=["lbfgs"])
+print(mdf_LL.summary())
+
+
+#%% Normalcy test for a model
+model = mdf #input model you want to evaluate
+
+#  QQ plot
+fig = plt.figure(figsize = (16, 9))
+ax = fig.add_subplot(111)
+
+sm.qqplot(model.resid, dist = stats.norm, line = 's', ax = ax)
+
+ax.set_title("Q-Q Plot")
+plt.show()
+
+# kernal density estimate plot (check for normalcy)
+fig = plt.figure(figsize = (16, 9))
+
+ax = sns.distplot(mdf.resid, hist = False, kde_kws = {"shade" : True, "lw": 1}, fit = stats.norm)
+
+ax.set_title("KDE Plot of Model Residuals (Blue) and Normal Distribution (Black)")
+ax.set_xlabel("Residuals")
+plt.show()
+
+#shapiro_wilk test
+print('shapiro_wilk test')
+labels = ["Statistic", "p-value"]
+norm_res = stats.shapiro(model.resid)
+for key, val in dict(zip(labels, norm_res)).items():
+    print(key, val)
+
+#if test is significant, the assumption of nomality for the residuals is violated
+#transofrm variables, remove outliers, use non-parametric approach, rely on central limit theorem
+
+# %% clean up the tables to remove bilateral and rename SOZ
+
+df_amp_v2 = df_amp[df_amp['soz'] != 'bilateral']
+df_count_v2 = df_count[df_count['soz'] != 'bilateral']
+df_LL_v2 = df_LL[df_LL['soz'] != 'bilateral']
+
+dict_soz = {'right - temporal neocortical':'R_Lateral', 'right - mesial temporal':'R_Mesial', 'left - temporal neocortical':'L_Lateral', 'left - mesial temporal':'L_Mesial','right - other cortex':'R_OtherCortex', 'left - other cortex':'L_OtherCortex'}
+
+df_amp_v2clean = pd.DataFrame()
+for soz, roi in dict_soz.items():
+    subdf = df_amp_v2.loc[df_amp_v2['soz'] == soz]
+    subdf = subdf.replace(to_replace = dict_soz)
+    #change elements in soz to 1 or 0 if they match elements in roi
+    subdf['soz2'] = subdf['soz'] == subdf['roi']
+    subdf['soz2'] = subdf['soz2'].astype(int) #convert to int
+    df_amp_v2clean = pd.concat([df_amp_v2clean, subdf], axis = 0)
+
+#%% boxplot
+boxplot = df_amp_v2clean.boxplot(["amp"], by = ["soz2", "roi"],
+                     figsize = (20, 13),
+                     showmeans = True,
+                     notch = True,
+                     showfliers = True)
+
+boxplot.set_xlabel("Categories")
+boxplot.set_ylabel("Amplitude")
+plt.show()
+# %% plot the actual mixedLM
