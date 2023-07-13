@@ -591,21 +591,65 @@ import statsmodels.api as sm
 import statsmodels.formula.api as smf
 import scipy.stats as stats
 
-#%% Run LMER
-md = smf.mixedlm("amp ~ C(soz) + C(roi) + C(soz):C(roi)", df_amp, groups="pt", vc_formula = {"soz":"0+C(soz)", "roi":"0+C(roi)"})
-mdf = md.fit(method=["lbfgs"])
+# %% clean up the tables to remove bilateral and rename SOZ
+
+df_amp_v2 = df_amp[df_amp['soz'] != 'bilateral']
+df_count_v2 = df_count[df_count['soz'] != 'bilateral']
+df_LL_v2 = df_LL[df_LL['soz'] != 'bilateral']
+
+dict_soz = {'right - temporal neocortical':'R_Lateral', 'right - mesial temporal':'R_Mesial', 'left - temporal neocortical':'L_Lateral', 'left - mesial temporal':'L_Mesial','right - other cortex':'R_OtherCortex', 'left - other cortex':'L_OtherCortex'}
+
+df_amp_v2clean = pd.DataFrame()
+for soz, roi in dict_soz.items():
+    subdf = df_amp_v2.loc[df_amp_v2['soz'] == soz]
+    subdf = subdf.replace(to_replace = dict_soz)
+    #change elements in soz to 1 or 0 if they match elements in roi
+    subdf['soz2'] = subdf['soz'] == subdf['roi']
+    subdf['soz2'] = subdf['soz2'].astype(int) #convert to int
+    df_amp_v2clean = pd.concat([df_amp_v2clean, subdf], axis = 0)
+
+
+#%% Run random intercepts LMER on Amplitude DF
+# w/ interaction term 
+md = smf.mixedlm("amp ~ C(soz) + C(roi) + C(soz):C(roi)", df_amp, groups="pt")
+mdf = md.fit()
 print(mdf.summary())
 
-#%% Run LMER
-md_count = smf.mixedlm("count ~ soz + roi", df_count, groups=df_count["pt"])
-mdf_count = md_count.fit(method=["lbfgs"])
-print(mdf_count.summary())
+# w/out interaction term 
+md2 = smf.mixedlm("amp ~ C(soz) + C(roi)", df_amp, groups="pt")
+mdf2 = md2.fit()
+print(mdf2.summary())
 
-#%% Run LMER
-md_LL = smf.mixedlm("LL ~ soz + roi", df_LL, groups=df_LL["pt"], re_formula = "~roi+soz")
-mdf_LL = md_LL.fit(method=["lbfgs"])
-print(mdf_LL.summary())
+#%% RUN random intercepts LMER on Amplitude DF v2
+# w/ interaction term
+md3 = smf.mixedlm("amp ~ C(soz2) + C(roi) + C(soz2):C(roi)", df_amp_v2clean, groups="pt")
+mdf3 = md3.fit()
+print(mdf3.summary())
 
+# w/out interaction term
+md4 = smf.mixedlm("amp ~ C(soz2) + C(roi)", df_amp_v2clean, groups="pt")
+mdf4 = md4.fit()
+print(mdf4.summary())
+
+
+#%% random intercepts+ SLOPE LMER on AMP DF
+
+# w/ interaction term
+md = smf.mixedlm("amp ~ C(soz2) + C(roi)", df_amp_v2clean, groups="pt", vc_formula = {"soz2":"C(soz2)", "roi":"C(roi)"})
+mdf = md.fit()
+print(mdf.summary())
+"""
+md = smf.mixedlm("amp ~ C(soz2) + C(roi)", df_amp_v2clean, groups="pt", re_formula = '~(C(soz2)+C(roi))')
+mdf = md.fit()
+print(mdf.summary())
+"""
+# w/out interaction term
+
+#%% random intercepts + SLOPE LMER on amp df v2
+
+# w/ interaction term
+
+# w/out interaction term
 
 #%% Normalcy test for a model
 model = mdf #input model you want to evaluate
@@ -638,25 +682,9 @@ for key, val in dict(zip(labels, norm_res)).items():
 #if test is significant, the assumption of nomality for the residuals is violated
 #transofrm variables, remove outliers, use non-parametric approach, rely on central limit theorem
 
-# %% clean up the tables to remove bilateral and rename SOZ
-
-df_amp_v2 = df_amp[df_amp['soz'] != 'bilateral']
-df_count_v2 = df_count[df_count['soz'] != 'bilateral']
-df_LL_v2 = df_LL[df_LL['soz'] != 'bilateral']
-
-dict_soz = {'right - temporal neocortical':'R_Lateral', 'right - mesial temporal':'R_Mesial', 'left - temporal neocortical':'L_Lateral', 'left - mesial temporal':'L_Mesial','right - other cortex':'R_OtherCortex', 'left - other cortex':'L_OtherCortex'}
-
-df_amp_v2clean = pd.DataFrame()
-for soz, roi in dict_soz.items():
-    subdf = df_amp_v2.loc[df_amp_v2['soz'] == soz]
-    subdf = subdf.replace(to_replace = dict_soz)
-    #change elements in soz to 1 or 0 if they match elements in roi
-    subdf['soz2'] = subdf['soz'] == subdf['roi']
-    subdf['soz2'] = subdf['soz2'].astype(int) #convert to int
-    df_amp_v2clean = pd.concat([df_amp_v2clean, subdf], axis = 0)
-
 #%% boxplot
-boxplot = df_amp_v2clean.boxplot(["amp"], by = ["soz2", "roi"],
+#sort df_amp_v2clean by soz2 and roi
+boxplot = df_amp_v2clean.boxplot(["amp"], by = ["roi", "soz2"],
                      figsize = (20, 13),
                      showmeans = True,
                      notch = True,
@@ -665,4 +693,9 @@ boxplot = df_amp_v2clean.boxplot(["amp"], by = ["soz2", "roi"],
 boxplot.set_xlabel("Categories")
 boxplot.set_ylabel("Amplitude")
 plt.show()
+
+#%% scatter plot + regression lines
+
+scatter = df_amp_v2clean.scatter(["amp"], by = ["roi", "soz2"],
+                     figsize = (20, 13))
 # %% plot the actual mixedLM
