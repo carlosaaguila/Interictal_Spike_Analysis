@@ -66,8 +66,15 @@ for soz, roi in dict_soz.items():
     #change elements in soz to 1 or 0 if they match elements in roi
     subdf['soz2'] = subdf['soz'] == subdf['roi']
     subdf['soz2'] = subdf['soz2'].astype(int) #convert to int
+    subdf['soz2'] = subdf['soz2'].astype('category')
     df_amp_v2clean = pd.concat([df_amp_v2clean, subdf], axis = 0)
 
+#drop soz and rename soz 2
+df_amp_v2clean = df_amp_v2clean.drop(columns = ['soz'])
+df_amp_v2clean = df_amp_v2clean.rename(columns = {'soz2':'soz'})
+
+#find the average amp for each pt for each roi
+df_amp_v3 = df_amp_v2clean.groupby(['pt','roi','soz']).mean().reset_index().dropna()
 
 #%% Run random intercepts LMER on Amplitude DF
 # w/ interaction term 
@@ -82,34 +89,34 @@ print(mdf2.summary())
 
 #%% RUN random intercepts LMER on Amplitude DF v2
 # w/ interaction term
-md3 = smf.mixedlm("amp ~ C(soz2) + C(roi) + C(soz2):C(roi)", df_amp_v2clean, groups="pt")
+md3 = smf.mixedlm("amp ~ C(soz) + C(roi) + C(soz):C(roi)", df_amp_v2clean, groups="pt")
 mdf3 = md3.fit()
 print(mdf3.summary())
 
 # w/out interaction term
-md4 = smf.mixedlm("amp ~ C(soz2) + C(roi)", df_amp_v2clean, groups="pt")
+md4 = smf.mixedlm("amp ~ C(soz) + C(roi)", df_amp_v2clean, groups="pt")
 mdf4 = md4.fit()
 print(mdf4.summary())
 
+md5 = smf.mixedlm("amp ~ C(soz) + C(roi)", df_amp_v3, groups="pt")
+mdf5 = md5.fit()
+print(mdf5.summary())
 
-#%% random intercepts+ SLOPE LMER on AMP DF
-
-# w/ interaction term
-md = smf.mixedlm("amp ~ C(soz2) + C(roi)", df_amp_v2clean, groups="pt", vc_formula = {"soz2":"C(soz2)", "roi":"C(roi)"})
-mdf = md.fit()
-print(mdf.summary())
-"""
-md = smf.mixedlm("amp ~ C(soz2) + C(roi)", df_amp_v2clean, groups="pt", re_formula = '~(C(soz2)+C(roi))')
-mdf = md.fit()
-print(mdf.summary())
-"""
-# w/out interaction term
-
-#%% random intercepts + SLOPE LMER on amp df v2
+#%% random intercepts + SLOPE LMER on AMP DF v2
 
 # w/ interaction term
+md_si1 = smf.mixedlm("amp ~ C(soz) + C(roi)", df_amp_v2clean, groups="pt", vc_formula = {"soz":"0+C(soz)", "roi":"0+C(roi)"})
+mdf_si1 = md_si1.fit()
+print(mdf_si1.summary())
 
-# w/out interaction term
+
+md_si2 = smf.mixedlm("amp ~ C(soz) + C(roi)", df_amp_v2clean, groups="pt", re_formula = '~(C(soz)+C(roi))')
+mdf_si2 = md_si2.fit()
+print(mdf_si2.summary())
+
+md_si3 = smf.mixedlm("amp ~ C(soz) + C(roi)", df_amp_v2clean, groups="pt", re_formula = '~(1+C(soz)+C(roi))')
+mdf_si3 = md_si3.fit()
+print(mdf_si3.summary())
 
 #%% Normalcy test for a model
 model = mdf #input model you want to evaluate
