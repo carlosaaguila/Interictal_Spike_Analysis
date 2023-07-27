@@ -53,8 +53,9 @@ def mean_amplitude_freq(X, fs, lF, uF):
     return avgValue
 
 # number of crossings (zero) - not in
-def ZX(x):
-    x_demean = x - np.mean(x)
+def ZX(x, demean_flag = False):
+    if demean_flag:
+        x_demean = x - np.mean(x)
     num_crossings = 0
     for i in range(1, len(x)):
         fromAbove = False
