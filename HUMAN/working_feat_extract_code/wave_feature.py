@@ -36,6 +36,7 @@ SOZ_spikes = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analy
 # find a series of minima and maxima for a spike
 #gives indices
 
+"""
 randomlist = random.sample(range(1, 8000), 20)
 
 for idx in randomlist:
@@ -60,11 +61,9 @@ maxima2 = np.argwhere(myspike[maxima] > 0.9 * myspike[750+amplitude]) #find the 
 # then we plot the max maximas
 plt.plot(myspike)
 plt.plot(maxima[maxima2], myspike[maxima[maxima2]], 'o')
-
+"""
 # %% function to find a feature
-
-randispike = 4907 #2786#1090#900 #478 #2906#5204#7302#1094#4907
-myspike = SOZ_spikes.iloc[randispike].to_numpy()
+myspike = SOZ_all_chs_stacked_DF_cleaned.iloc[160].to_numpy() #using a different dataframe
 
 def morphology_feats_v1(myspike):
     """
@@ -84,144 +83,279 @@ def morphology_feats_v1(myspike):
     myspike = myspike - np.mean(myspike)
 
     #find the peak closest to the spike detection (this will be our main reference point)
+
     allmaxima = sig.argrelextrema(myspike, np.greater)[0] #find all the maximas
     allminima = sig.argrelextrema(myspike, np.less)[0] #find all the minimas
 
-    midpoint = len(myspike)//2 #midpoint of spike
-    maxima_idx_from_mid = allmaxima - midpoint #find the index of the maxima from the middle of the spike
-    minima_idx_from_mid = allminima - midpoint #find the index of the minima from the middle of the spike
+    stndev = np.std(myspike)
+    peaks_pos = peaks_pos = sig.find_peaks(myspike[1000-50:1000+50], height = stndev)[0]
+    peaks_neg = sig.find_peaks(-1 * myspike[1000-50:1000+50], height = stndev)[0]
+    peaks_pos = peaks_pos +  950
+    peaks_neg = peaks_neg + 950
+    combined_peaks = [peaks_pos, peaks_neg]
+    combined_peaks = [x for x in combined_peaks for x in x]
 
-    maxima = [max for max in maxima_idx_from_mid if (max > -100) & (max < 100)]
-    minima = [min for min in minima_idx_from_mid if (min > -100) & (min < 100)]
-    potentialpeak_max = np.argmin(np.abs(maxima))
-    potentialpeak_min = np.argmin(np.abs(minima))
-    closest_max = maxima[potentialpeak_max]
-    closest_min = minima[potentialpeak_min]
+    for peaks in combined_peaks:
+        if (myspike[peaks] > myspike[peaks-3]) & (myspike[peaks] < myspike[peaks+3]):
+            combined_peaks.remove(peaks)
+        if (myspike[peaks] < myspike[peaks-3]) & (myspike[peaks] > myspike[peaks+3]):
+            combined_peaks.remove(peaks)
+    
+    if not combined_peaks:
+        peak = None
+        left_point = None
+        right_point = None
+        slow_end = None
+        slow_max = None
 
-    if np.abs(closest_max) > np.abs(closest_min):
-        peak = closest_min+midpoint
-    if np.abs(closest_min) > np.abs(closest_max):
-        peak = closest_max+midpoint
-    if np.abs(closest_min) == np.abs(closest_max):
-        if myspike[closest_min+midpoint] > myspike[closest_max+midpoint]:
-            peak = closest_min+midpoint
+    else:
+        if np.size(combined_peaks) > 1:
+            peak_from_mid = [x - 1000 for x in combined_peaks]
+            peak_idx = np.argmin(np.abs(peak_from_mid))
+            peak = combined_peaks[peak_idx]
         else:
+            peak_idx = np.argmax(np.abs(myspike[combined_peaks]))
+            peak = combined_peaks[peak_idx]
+
+        '''
+        potentialpeak_max = np.argmin(np.abs(maxima))
+        potentialpeak_min = np.argmin(np.abs(minima))
+        closest_max = maxima[potentialpeak_max]
+        closest_min = minima[potentialpeak_min]
+        if np.abs(closest_max) > np.abs(closest_min):
+            peak = closest_min+midpoint
+        if np.abs(closest_min) > np.abs(closest_max):
             peak = closest_max+midpoint
+        if np.abs(closest_min) == np.abs(closest_max):
+            if myspike[closest_min+midpoint] > myspike[closest_max+midpoint]:
+                peak = closest_min+midpoint
+            else:
+                peak = closest_max+midpoint
+        '''
 
-    #find the rise and fall amplitudes
-    #from peak we will navigate to either baseline or the next minima/maxima
-    #here we will trim down the potential left/right peaks/troughs to the 5 closest to the peak
-    if (myspike[peak + 3] > myspike[peak]) & (myspike[peak - 3] > myspike[peak]): #negative peak
-        left_points_trim = allmaxima[allmaxima < peak][-3::]
-        right_points_trim = allmaxima[allmaxima > peak][0:3]
-    if (myspike[peak + 3] < myspike[peak]) & (myspike[peak - 3] < myspike[peak]): #positive peak
-        left_points_trim = allminima[allminima < peak][-3::]
-        right_points_trim = allminima[allminima > peak][0:3]
+        #find the left and right points
 
-    left_points_trim2 = []
-    right_points_trim2 = []
-    for i, (left, right) in enumerate(zip(left_points_trim, right_points_trim)):
+        #from peak we will navigate to either baseline or the next minima/maxima
+        #here we will trim down the potential left/right peaks/troughs to the 5 closest to the peak
         if (myspike[peak + 3] > myspike[peak]) & (myspike[peak - 3] > myspike[peak]): #negative peak
-            if myspike[left] > 0.25 * myspike[peak]:
-                left_points_trim2.append(left)
-            if myspike[right] > 0.25 * myspike[peak]:
-                right_points_trim2.append(right)
+            left_points_trim = allmaxima[allmaxima < peak][-3::]
+            right_points_trim = allmaxima[allmaxima > peak][0:3]
         if (myspike[peak + 3] < myspike[peak]) & (myspike[peak - 3] < myspike[peak]): #positive peak
-            if myspike[left] < 0.25 * myspike[peak]:
-                left_points_trim2.append(left)
-            if myspike[right] < 0.25 * myspike[peak]:
-                right_points_trim2.append(right)
+            left_points_trim = allminima[allminima < peak][-3::]
+            right_points_trim = allminima[allminima > peak][0:3]
 
-    if not left_points_trim2:
-        left_points_trim2 = left_points_trim
-    if not right_points_trim2:
-        right_points_trim2 = right_points_trim
+        left_points_trim2 = []
+        right_points_trim2 = []
+        for i, (left, right) in enumerate(zip(left_points_trim, right_points_trim)):
+            if (myspike[peak + 3] > myspike[peak]) & (myspike[peak - 3] > myspike[peak]): #negative peak
+                if myspike[left] > 0.5 * myspike[peak]:
+                    left_points_trim2.append(left)
+                if myspike[right] > 0.5 * myspike[peak]:
+                    right_points_trim2.append(right)
+            if (myspike[peak + 3] < myspike[peak]) & (myspike[peak - 3] < myspike[peak]): #positive peak
+                if myspike[left] < 0.5 * myspike[peak]:
+                    left_points_trim2.append(left)
+                if myspike[right] < 0.5 * myspike[peak]:
+                    right_points_trim2.append(right)
 
-    # find the closest spike with the greatest amplitude difference? try to balance this?
-    left_point = []
-    right_point = []
-    if (myspike[peak + 3] > myspike[peak]) & (myspike[peak - 3] > myspike[peak]): #negative peak
-        dist_from_peak_left = (left_points_trim2 - peak)
-        dist_from_peak_right = (right_points_trim2 - peak)
-        #restrict what we are looking at by looking at the cloesest to the peak (50 samples from peak)
-        left_points_trim2 = [x+peak for x in dist_from_peak_left if (x <= 50) & (x >= -50)]
-        right_points_trim2 = [x+peak for x in dist_from_peak_right if (x <= 50) & (x >= -50)]
-        #backup if it doesn't find any (e.g. wide spike)
         if not left_points_trim2:
-            left_points_trim2 = [x + peak for x in dist_from_peak_left if (x <= 75) & (x >= -75)]
+            left_points_trim2 = [x for x in left_points_trim]
         if not right_points_trim2:
-            right_points_trim2 = [x + peak for x in dist_from_peak_right if (x <= 75) & (x >= -75)]
-        value_leftpoints = myspike[left_points_trim2]
-        value_rightpoints = myspike[right_points_trim2]
-        left_value_oi = np.argmax(value_leftpoints)
-        right_value_oi = np.argmax(value_rightpoints)
-        left_point = left_points_trim2[left_value_oi]
-        right_point = right_points_trim2[right_value_oi]
+            right_points_trim2 = [x for x in right_points_trim]
 
-    if (myspike[peak + 3] < myspike[peak]) & (myspike[peak - 3] < myspike[peak]): #positive peak
-        dist_from_peak_left = (left_points_trim2 - peak)
-        dist_from_peak_right = (right_points_trim2 - peak)
-        #restrict what we are looking at by looking at the cloesest to the peak (50 samples from peak)
-        left_points_trim2 = [x+peak for x in dist_from_peak_left if (x <= 50) & (x >= -50)]
-        right_points_trim2 = [x+peak for x in dist_from_peak_right if (x <= 50) & (x >= -50)] 
-        #backup if it doesn't find any (e.g. wide spike)
-        if not left_points_trim2:
-            left_points_trim2 = [x + peak for x in dist_from_peak_left if (x <= 75) & (x >= -75)]
-        if not right_points_trim2:
-            right_points_trim2 = [x + peak for x in dist_from_peak_right if (x <= 75) & (x >= -75)]
-        value_leftpoints = myspike[left_points_trim2]
-        value_rightpoints = myspike[right_points_trim2]
-        left_value_oi = np.argmin(value_leftpoints)
-        right_value_oi = np.argmin(value_rightpoints)
-        left_point = left_points_trim2[left_value_oi]
-        right_point = right_points_trim2[right_value_oi]
+        # find the closest spike with the greatest amplitude difference? try to balance this?
+        left_point = []
+        right_point = []
+        if (myspike[peak + 3] > myspike[peak]) & (myspike[peak - 3] > myspike[peak]): #negative peak
+            dist_from_peak_left = (left_points_trim2 - peak)
+            dist_from_peak_right = (right_points_trim2 - peak)
+            #restrict what we are looking at by looking at the cloesest to the peak (50 samples from peak)
+            left_points_trim2 = [x+peak for x in dist_from_peak_left if (x <= 50) & (x >= -50)]
+            right_points_trim2 = [x+peak for x in dist_from_peak_right if (x <= 50) & (x >= -50)]
 
-    #now we will look for the start and end of the aftergoing slow wave.
-    #for positive peaks
-    if (myspike[peak + 3] < myspike[peak]) & (myspike[peak - 3] < myspike[peak]): #positive peak
-        right_of_right_peaks = [x for x in allmaxima if x > right_point][0:10]
-        right_of_right_troughs = [x for x in allminima if x > right_point][0:10]
-        slow_start = right_point
+            #backup if it doesn't find any (e.g. wide spike)
+            if not left_points_trim2:
+                left_points_trim2 = [x + peak for x in dist_from_peak_left if (x <= 100) & (x >= -100)]
+                if not left_points_trim2:
+                    left_points_trim2 = [x for x in left_points_trim]
+            if not right_points_trim2:
+                right_points_trim2 = [x + peak for x in dist_from_peak_right if (x <= 100) & (x >= -100)]
+                if not right_points_trim2:
+                    right_points_trim2 = [x for x in right_points_trim]
 
-        slow_end = []
-        for peaks, troughs in zip(right_of_right_peaks, right_of_right_troughs):
-            if (((myspike[troughs] < 0) | (myspike[troughs] < myspike[right_point])) & (troughs - right_point >= 50)):
-                slow_end = troughs 
-                break
+            if not left_points_trim2:
+                left_point = None
+                right_point = None
+                
+            if not right_points_trim2:
+                right_point = None
+                left_point = None
 
-    #for negative peaks
-    if (myspike[peak + 3] > myspike[peak]) & (myspike[peak - 3] > myspike[peak]): #negative peak
-        right_of_right_peaks = [x for x in allmaxima if x > right_point][0:10]
-        right_of_right_troughs = [x for x in allminima if x > right_point][0:10]
-        slow_start = right_point
+            value_leftpoints = myspike[left_points_trim2]
+            value_rightpoints = myspike[right_points_trim2]
+            left_value_oi = np.argmax(value_leftpoints)
+            right_value_oi = np.argmax(value_rightpoints)
+            left_point = left_points_trim2[left_value_oi]
+            right_point = right_points_trim2[right_value_oi]
 
-        slow_end = []
-        for peaks, troughs in zip(right_of_right_peaks, right_of_right_troughs):
-            if (((myspike[peaks] > 0) | (myspike[peaks] > myspike[right_point])) & (peaks - right_point >= 50)):
-                slow_end = peaks
-                break
+        if (myspike[peak + 3] < myspike[peak]) & (myspike[peak - 3] < myspike[peak]): #positive peak
+            dist_from_peak_left = (left_points_trim2 - peak)
+            dist_from_peak_right = (right_points_trim2 - peak)
+            #restrict what we are looking at by looking at the cloesest to the peak (50 samples from peak)
+            left_points_trim2 = [x+peak for x in dist_from_peak_left if (x <= 50) & (x >= -50)]
+            right_points_trim2 = [x+peak for x in dist_from_peak_right if (x <= 50) & (x >= -50)]
 
-    """
-    In a scenario like in spike 4907 - the slow wave is not well defined yet it gives a shallow slow_end. There isn't necessarily a good deefined slow wave in this case, but we get something.
-    Potential solution - could be to check that a point has crossed the right_point (thus you get maybe a counter?) 
-    if the counter is set to 1, then you can start adding in values. then if it doesn't grab, then theres either no slow wave or theres another criteria?
-    """
-    return peak, left_point, right_point, slow_end, right_of_right_peaks, right_of_right_troughs #, slow_start, slow_end
+            #backup if it doesn't find any (e.g. wide spike)
+            if not left_points_trim2:
+                left_points_trim2 = [x + peak for x in dist_from_peak_left if (x <= 100) & (x >= -100)]
+                if not left_points_trim2:
+                    left_points_trim2 = [x for x in left_points_trim]
+            if not right_points_trim2:
+                right_points_trim2 = [x + peak for x in dist_from_peak_right if (x <= 100) & (x >= -100)]
+                if not right_points_trim2:
+                    right_points_trim2 = [x for x in right_points_trim]
 
- #rise_amp, fall_amp, rise_slope, fall_slope, slow_width, slow_height
+            if not left_points_trim2:
+                left_point = None
+                right_point = None
+                
+            if not right_points_trim2:
+                right_point = None
+                left_point = None
+                
+            else: 
+                value_leftpoints = myspike[left_points_trim2]
+                value_rightpoints = myspike[right_points_trim2]
+                left_value_oi = np.argmin(value_leftpoints)
+                right_value_oi = np.argmin(value_rightpoints)
+                left_point = left_points_trim2[left_value_oi]
+                right_point = right_points_trim2[right_value_oi]
 
-peak, left_point, right_point, slow_end, right_of_right_peaks, right_of_right_troughs = morphology_feats_v1(myspike)
 
-#%%
+        #now we will look for the start and end of the aftergoing slow wave.
+        #for positive peaks
+        counter = 0
+        if (myspike[peak + 3] < myspike[peak]) & (myspike[peak - 3] < myspike[peak]): #positive peak
+            right_of_right_peaks = [x for x in allmaxima if x > right_point]
+            right_of_right_troughs = [x for x in allminima if x > right_point]
+            slow_start = right_point
 
+            slow_end = []
+            for peaks, troughs in zip(right_of_right_peaks, right_of_right_troughs):
+                if ZX(myspike[right_point:peaks]) >= 1:
+                    counter += 1
+                if (counter >= 1) | (np.abs(myspike[right_point]) >= 100):
+                    if (((myspike[troughs] < 0) | (myspike[troughs] < myspike[right_point])) & (troughs - right_point >= 50)):
+                        slow_end = troughs 
+                        break
+
+        #for negative peaks
+        if (myspike[peak + 3] > myspike[peak]) & (myspike[peak - 3] > myspike[peak]): #negative peak
+            right_of_right_peaks = [x for x in allmaxima if x > right_point]
+            right_of_right_troughs = [x for x in allminima if x > right_point]
+            slow_start = right_point
+
+            slow_end = []
+            for peaks, troughs in zip(right_of_right_peaks, right_of_right_troughs):
+                if ZX(myspike[right_point:peaks]) >= 1:
+                    counter += 1
+                if (counter >= 1) | (np.abs(myspike[right_point]) >= 100):
+                    if (((myspike[peaks] > 0) | (myspike[peaks] > myspike[right_point])) & (peaks - right_point >= 50)):
+                        slow_end = peaks
+                        break
+        
+        #find slow wave peak
+        if slow_end:
+            #added the positive/negative bias to get the right peak of slow wave, but it seems that it doesn't work well for all spikes
+            #using spike 86 as an example it doesn't work well so get back to it.
+            """
+            if (myspike[peak + 3] < myspike[peak]) & (myspike[peak - 3] < myspike[peak]): #positive peak
+                slow_len = slow_end - right_point
+                local_maxes_idx = sig.argrelextrema(myspike[right_point + int(slow_len * 0.3):slow_end - int(slow_len * 0.3)], np.greater)[0]
+                it = np.argmax(np.abs(myspike[right_point + int(slow_len * 0.3) + local_maxes_idx]))
+                slow_max = local_maxes_idx[it] + right_point
+
+            if (myspike[peak + 3] > myspike[peak]) & (myspike[peak - 3] > myspike[peak]): #negative peak
+                slow_len = slow_end - right_point
+                local_mins_idx = sig.argrelextrema(myspike[right_point+ int(slow_len * 0.3):slow_end- int(slow_len * 0.3)], np.less)[0]
+                it = np.argmax(np.abs(myspike[right_point + int(slow_len * 0.3) + local_mins_idx]))
+                slow_max = local_mins_idx[it] + right_point
+
+            if not slow_end:
+                local_maxes_idx = sig.argrelextrema(myspike[right_point:slow_end], np.greater)[0]
+                local_mins_idx = sig.argrelextrema(myspike[right_point:slow_end], np.less)[0]
+                combined = np.concatenate((local_maxes_idx, local_mins_idx))
+                it = np.argmax(np.abs(myspike[right_point + combined]))
+                slow_max = combined[it] + right_point
+            """
+
+            #find the vertical distance between the lowest point in the slowwave and the highest
+            slow_max_idx = np.argmax(myspike[right_point:slow_end]) + right_point
+            slow_min_idx = np.argmin(myspike[right_point:slow_end]) + right_point
+            slow_max = myspike[slow_max_idx] - myspike[slow_min_idx]
+        
+
+        if not slow_end:
+            slow_end = None
+            slow_max = None
+
+        """
+        In a scenario like in spike 4907 - the slow wave is not well defined yet it gives a shallow slow_end. There isn't necessarily a good deefined slow wave in this case, but we get something.
+        Potential solution - could be to check that a point has crossed the right_point (thus you get maybe a counter?) 
+        if the counter is set to 1, then you can start adding in values. then if it doesn't grab, then theres either no slow wave or theres another criteria?
+        """
+    return peak, left_point, right_point, slow_end, slow_max#, slow_max_idx, slow_min_idx
+
+peak, left_point, right_point, slow_end, slow_max = morphology_feats_v1(myspike)
+
+#%% code to plot single spike
 plt.plot(myspike)
-plt.plot(peak+1, myspike[peak+1],'x')
+plt.plot(peak, myspike[peak],'x')
 plt.plot(left_point, myspike[left_point], 'o')
 plt.plot(right_point, myspike[right_point], 'o')
 plt.plot(slow_end, myspike[slow_end], 'o', color = 'k')
-plt.plot(right_of_right_peaks, myspike[right_of_right_peaks], 'o', color = 'r', alpha = 0.3, label = 'peaks')
-plt.plot(right_of_right_troughs, myspike[right_of_right_troughs], 'o', color = 'b', alpha = 0.3, label = 'troughs')
-plt.xlim(600,1700)
-plt.legend()
+plt.xlim(700, 1500)
 
+#%% create feats dataframe USING interSOZ_analysis.py (load cleaned data from that file)
+#SOZ
+SOZ_feats = pd.DataFrame(columns = ['peak', 'left point', 'right point', 'slow end', 'slow max'])
+for idx in range(len(SOZ_all_chs_stacked_DF_cleaned)):
+    myspike = SOZ_all_chs_stacked_DF_cleaned.iloc[idx].to_numpy()
+    peak, left_point, right_point, slow_end, slow_max = morphology_feats_v1(myspike)
+    SOZ_feats.loc[idx] = [peak, left_point, right_point, slow_end, slow_max]
+
+#%% create feats dataframe USING interSOZ_analysis.py (load cleaned data from that file)
+#NON SOZ
+SOZ_feats_nonSOZ = pd.DataFrame(columns = ['peak', 'left point', 'right point', 'slow end', 'slow max'])
+for idx in range(len(nonSOZ_all_chs_stacked_DF_cleaned)):
+    myspike = nonSOZ_all_chs_stacked_DF_cleaned.iloc[idx].to_numpy()
+    peak, left_point, right_point, slow_end, slow_max = morphology_feats_v1(myspike)
+    SOZ_feats_nonSOZ.loc[idx] = [peak, left_point, right_point, slow_end, slow_max]
+
+# %% check on my random spikes
+randitest_spikes = [2786, 1090, 900, 478, 2906, 5204, 7302, 1094, 4907]
+for randi in randitest_spikes:
+    myspike = SOZ_spikes.iloc[randi].to_numpy()
+    peak, left_point, right_point, slow_end, slow_max = morphology_feats_v1(myspike)
+    plt.figure(figsize=(7,7))
+    plt.plot(myspike)
+    plt.plot(peak, myspike[peak],'x')
+    plt.plot(left_point, myspike[left_point], 'o')
+    plt.plot(right_point, myspike[right_point], 'o')
+    plt.plot(slow_end, myspike[slow_end], 'o', color = 'k')
+    plt.xlim(700, 1500)
+
+# %%
+#run 10 random points from 0 to 10000 and see if it works
+randi = np.random.randint(0, 10000, 10)
+for randi in randi:
+    myspike = SOZ_spikes.iloc[randi].to_numpy()
+    peak, left_point, right_point, slow_end, slow_max = morphology_feats_v1(myspike)
+    plt.figure(figsize=(7,7))
+    plt.plot(myspike)
+    plt.plot(peak, myspike[peak],'x')
+    plt.plot(left_point, myspike[left_point], 'o')
+    plt.plot(right_point, myspike[right_point], 'o')
+    plt.plot(slow_end, myspike[slow_end], 'o', color = 'k')
+    plt.xlim(700, 1500)
 # %%
