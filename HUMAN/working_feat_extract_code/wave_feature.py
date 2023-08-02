@@ -63,7 +63,7 @@ plt.plot(myspike)
 plt.plot(maxima[maxima2], myspike[maxima[maxima2]], 'o')
 """
 # %% function to find a feature
-myspike = SOZ_all_chs_stacked_DF_cleaned.iloc[160].to_numpy() #using a different dataframe
+myspike = SOZ_all_chs_stacked_DF_cleaned.iloc[195].to_numpy() #using a different dataframe
 
 def morphology_feats_v1(myspike):
     """
@@ -304,9 +304,45 @@ def morphology_feats_v1(myspike):
         Potential solution - could be to check that a point has crossed the right_point (thus you get maybe a counter?) 
         if the counter is set to 1, then you can start adding in values. then if it doesn't grab, then theres either no slow wave or theres another criteria?
         """
-    return peak, left_point, right_point, slow_end, slow_max#, slow_max_idx, slow_min_idx
+    if not peak:
+        rise_amp = None
+        decay_amp = None
+        slow_width = None
+        slow_amp = None
+        rise_slope = None
+        decay_slope = None
+        average_amp = None
+        linelen = None
+    
+    elif not slow_end:
+        rise_amp = np.abs(myspike[peak] - myspike[left_point])
+        decay_amp = np.abs(myspike[peak] - myspike[right_point])
+        slow_width = None
+        slow_amp = None
+        rise_slope = (myspike[peak] - myspike[left_point]) / (peak - left_point)
+        decay_slope = (myspike[right_point] - myspike[peak]) / (right_point - peak)
+        average_amp = rise_amp + decay_amp / 2
+        linelen = None
+    
+    else:
+        rise_amp = np.abs(myspike[peak] - myspike[left_point])
+        decay_amp = np.abs(myspike[peak] - myspike[right_point])
+        slow_width = slow_end - right_point
+        slow_amp = slow_max
+        rise_slope = (myspike[peak] - myspike[left_point]) / (peak - left_point)
+        decay_slope = (myspike[right_point] - myspike[peak]) / (right_point - peak)
+        average_amp = rise_amp + decay_amp / 2
+        linelen = LL(myspike[left_point:slow_end])
+
+    return peak, left_point, right_point, slow_end, slow_max
+
+#rise_amp, decay_amp, slow_width, slow_amp, rise_slope, decay_slope, average_amp, linelen - actual feat extraction
+
+#peak, left_point, right_point, slow_end, slow_max - indices on spike for visulization
 
 peak, left_point, right_point, slow_end, slow_max = morphology_feats_v1(myspike)
+
+#rise_amp, decay_amp, slow_width, slow_amp, rise_slope, decay_slope, average_amp, linelen = morphology_feats_v1(myspike)
 
 #%% code to plot single spike
 plt.plot(myspike)
@@ -318,20 +354,26 @@ plt.xlim(700, 1500)
 
 #%% create feats dataframe USING interSOZ_analysis.py (load cleaned data from that file)
 #SOZ
-SOZ_feats = pd.DataFrame(columns = ['peak', 'left point', 'right point', 'slow end', 'slow max'])
+SOZ_feats = pd.DataFrame(columns = ['rise_amp', 'decay_amp', 'slow_width', 'slow_amp', 'rise_slope', 'decay_slope', 'average_amp', 'linelen'])
 for idx in range(len(SOZ_all_chs_stacked_DF_cleaned)):
     myspike = SOZ_all_chs_stacked_DF_cleaned.iloc[idx].to_numpy()
-    peak, left_point, right_point, slow_end, slow_max = morphology_feats_v1(myspike)
-    SOZ_feats.loc[idx] = [peak, left_point, right_point, slow_end, slow_max]
+    rise_amp, decay_amp, slow_width, slow_amp, rise_slope, decay_slope, average_amp, linelen = morphology_feats_v1(myspike)
+    SOZ_feats.loc[idx] = [rise_amp, decay_amp, slow_width, slow_amp, rise_slope, decay_slope, average_amp, linelen]
 
 #%% create feats dataframe USING interSOZ_analysis.py (load cleaned data from that file)
 #NON SOZ
-SOZ_feats_nonSOZ = pd.DataFrame(columns = ['peak', 'left point', 'right point', 'slow end', 'slow max'])
+nonSOZ_feats = pd.DataFrame(columns = ['rise_amp', 'decay_amp', 'slow_width', 'slow_amp', 'rise_slope', 'decay_slope', 'average_amp', 'linelen'])
 for idx in range(len(nonSOZ_all_chs_stacked_DF_cleaned)):
     myspike = nonSOZ_all_chs_stacked_DF_cleaned.iloc[idx].to_numpy()
-    peak, left_point, right_point, slow_end, slow_max = morphology_feats_v1(myspike)
-    SOZ_feats_nonSOZ.loc[idx] = [peak, left_point, right_point, slow_end, slow_max]
+    rise_amp, decay_amp, slow_width, slow_amp, rise_slope, decay_slope, average_amp, linelen = morphology_feats_v1(myspike)
+    nonSOZ_feats.loc[idx] = [rise_amp, decay_amp, slow_width, slow_amp, rise_slope, decay_slope, average_amp, linelen]
 
+#%%
+SOZ_feats['id'] = soz_w_label['id'].reset_index(drop=True)
+nonSOZ_feats['id'] = nonsoz_w_label['id'].reset_index(drop=True)
+
+SOZ_feats = SOZ_feats.dropna()
+nonSOZ_feats = nonSOZ_feats.dropna()
 # %% check on my random spikes
 randitest_spikes = [2786, 1090, 900, 478, 2906, 5204, 7302, 1094, 4907]
 for randi in randitest_spikes:
@@ -339,11 +381,13 @@ for randi in randitest_spikes:
     peak, left_point, right_point, slow_end, slow_max = morphology_feats_v1(myspike)
     plt.figure(figsize=(7,7))
     plt.plot(myspike)
-    plt.plot(peak, myspike[peak],'x')
-    plt.plot(left_point, myspike[left_point], 'o')
-    plt.plot(right_point, myspike[right_point], 'o')
-    plt.plot(slow_end, myspike[slow_end], 'o', color = 'k')
+    plt.plot(peak, myspike[peak],'x', label = 'peak')
+    plt.plot(left_point, myspike[left_point], 'o', label = 'left point')
+    plt.plot(right_point, myspike[right_point], 'o', label = 'right point')
+    plt.plot(slow_end, myspike[slow_end], 'o', color = 'k', label = 'slow end')
     plt.xlim(700, 1500)
+    plt.legend()
+
 
 # %%
 #run 10 random points from 0 to 10000 and see if it works
@@ -353,9 +397,10 @@ for randi in randi:
     peak, left_point, right_point, slow_end, slow_max = morphology_feats_v1(myspike)
     plt.figure(figsize=(7,7))
     plt.plot(myspike)
-    plt.plot(peak, myspike[peak],'x')
-    plt.plot(left_point, myspike[left_point], 'o')
-    plt.plot(right_point, myspike[right_point], 'o')
-    plt.plot(slow_end, myspike[slow_end], 'o', color = 'k')
+    plt.plot(peak, myspike[peak],'x', label = 'peak')
+    plt.plot(left_point, myspike[left_point], 'o', label = 'left_point')
+    plt.plot(right_point, myspike[right_point], 'o', label='right_point')
+    plt.plot(slow_end, myspike[slow_end], 'o', color = 'k', label = 'slow_end')
     plt.xlim(700, 1500)
+    plt.legend()
 # %%
