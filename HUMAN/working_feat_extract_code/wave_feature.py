@@ -65,6 +65,7 @@ plt.plot(maxima[maxima2], myspike[maxima[maxima2]], 'o')
 # %% function to find a feature
 myspike = SOZ_all_chs_stacked_DF_cleaned.iloc[195].to_numpy() #using a different dataframe
 
+#%% function to find a feature
 def morphology_feats_v1(myspike):
     """
     function to find the morphological features of a spike
@@ -334,13 +335,13 @@ def morphology_feats_v1(myspike):
         average_amp = rise_amp + decay_amp / 2
         linelen = LL(myspike[left_point:slow_end])
 
-    return peak, left_point, right_point, slow_end, slow_max
+    return rise_amp, decay_amp, slow_width, slow_amp, rise_slope, decay_slope, average_amp, linelen
 
 #rise_amp, decay_amp, slow_width, slow_amp, rise_slope, decay_slope, average_amp, linelen - actual feat extraction
 
 #peak, left_point, right_point, slow_end, slow_max - indices on spike for visulization
 
-peak, left_point, right_point, slow_end, slow_max = morphology_feats_v1(myspike)
+#peak, left_point, right_point, slow_end, slow_max = morphology_feats_v1(myspike)
 
 #rise_amp, decay_amp, slow_width, slow_amp, rise_slope, decay_slope, average_amp, linelen = morphology_feats_v1(myspike)
 

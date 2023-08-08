@@ -16,7 +16,6 @@ code_path = os.path.dirname('/mnt/leif/littlab/users/aguilac/Interictal_Spike_An
 sys.path.append(code_path)
 from ied_fx_v3 import *
 
-
 #Setup ptnames and directory
 data_directory = ['/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2', '/mnt/leif/littlab/data/Human_Data']
 pt = pd.read_csv('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/pkl_list.csv') #pkl list is our list of the transferred data (mat73 -> pickle)
@@ -126,11 +125,115 @@ def spike_amplitude_perregion(values, chs, select_oi):
 
             perroi.append(spikefeat)
             perroi_mean.append(np.nanmean(spikefeat))
+
         perpt.append(perroi)
         perpt_mean.append(perroi_mean)  
 
 
     return perpt, perpt_mean
+
+def morphology_perregion(values, chs, select_oi, list_num):
+    print('listnum {}'.format(list_num))
+    perpt_riseamp = []
+    perpt_decayamp = []
+    perpt_slowwidth = []
+    perpt_slowamp = []
+    perpt_riseslope = []
+    perpt_decayslope = []
+    perpt_averageamp = []
+    perpt_linelen = []
+
+    for i, pt in enumerate(values):
+        print('new pt {}'.format(i))
+        perroi_riseamp= []
+        perroi_decayamp = []
+        perroi_slowwidth = []
+        perroi_slowamp = []
+        perroi_riseslope = []
+        perroi_decayslope = []
+        perroi_averageamp = []
+        perroi_linelen = []
+
+        for j, roi in enumerate(pt):
+            print('roi {}'.format(j))
+            feat_rise_amp = []
+            feat_decay_amp = []
+            feat_slow_width = []
+            feat_slow_amp = []
+            feat_rise_slope = []
+            feat_decay_slope = []
+            feat_average_amp = []
+            feat_linelen = []
+
+            if not roi:
+                perroi_riseamp.append([np.nan])
+                perroi_decayamp.append([np.nan])
+                perroi_slowwidth.append([np.nan])
+                perroi_slowamp.append([np.nan])
+                perroi_riseslope.append([np.nan])
+                perroi_decayslope.append([np.nan])
+                perroi_averageamp.append([np.nan])
+                perroi_linelen.append([np.nan])
+                continue
+
+            for l, xs in enumerate(roi):
+                if (list_num >= 4): #debugmode
+                    print('spike {}'.format(l))
+
+                val_want = np.transpose(xs)
+                val_want = val_want[chs[i][j][select_oi[i][j][l]]-1]
+
+                #remove the spikes that are not working (its not alot)
+                if (list_num == 0) & (i == 0) & (j == 6) & (l == 80):
+                    continue
+                elif (list_num == 0) & (i == 4) & (j == 1) & (l == 23):
+                    continue
+                elif (list_num == 1) & (i == 9) & (j == 5) & (l == 12):
+                    continue
+                elif (list_num == 1) & (i == 9) & (j == 6) & (l == 254):
+                    continue
+                elif (list_num == 3) & (i == 0) & (j == 6) & (l == 123):
+                    continue
+                elif (list_num == 3) & (i == 0) & (j == 6) & (l == 526):
+                    continue
+                elif (list_num == 4) & (i == 7) & (j == 5) & (l == 83):
+                    continue
+                elif (list_num == 4) & (i == 7) & (j == 5) & (l == 341):
+                    continue
+                elif (list_num == 5) & (i == 9) & (j == 5) & (l == 25):
+                    continue
+                else:
+                    rise_amp, decay_amp, slow_width, slow_amp, rise_slope, decay_slope, average_amp, linelen = morphology_feats_v1(val_want)
+
+                feat_rise_amp.append(rise_amp)
+                feat_decay_amp.append(decay_amp)
+                feat_slow_width.append(slow_width)
+                feat_slow_amp.append(slow_amp)
+                feat_rise_slope.append(rise_slope)
+                feat_decay_slope.append(decay_slope)
+                feat_average_amp.append(average_amp)
+                feat_linelen.append(linelen)
+
+            perroi_riseamp.append(feat_rise_amp)
+            perroi_decayamp.append(feat_decay_amp)
+            perroi_slowwidth.append(feat_slow_width)
+            perroi_slowamp.append(feat_slow_amp)
+            perroi_riseslope.append(feat_rise_slope)
+            perroi_decayslope.append(feat_decay_slope)
+            perroi_averageamp.append(feat_average_amp)
+            perroi_linelen.append(feat_linelen)
+
+        perpt_riseamp.append(perroi_riseamp)
+        perpt_decayamp.append(perroi_decayamp)
+        perpt_slowwidth.append(perroi_slowwidth)
+        perpt_slowamp.append(perroi_slowamp)
+        perpt_riseslope.append(perroi_riseslope)
+        perpt_decayslope.append(perroi_decayslope)
+        perpt_averageamp.append(perroi_averageamp)
+        perpt_linelen.append(perroi_linelen)
+
+
+    return perpt_riseamp, perpt_decayamp, perpt_slowwidth, perpt_slowamp, perpt_riseslope, perpt_decayslope, perpt_averageamp, perpt_linelen
 
 def spike_LL_perregion(values, chs, select_oi): #could be generalized to multiple features easily. 
     """
@@ -171,17 +274,19 @@ def divide_chunks(l, n):
 
 def feat_extract(lists_ptnames):
     clinic_soz_all = []
-    Aperpt_mean_all = []
-    totalcount_perpt_all = []
-    LLperpt_mean_all = []
-    Aperpt_all = []
-    LLperpt_all = []
+    list_num = 0  
+    riseamp_perpt_all = []
+    decayamp_perpt_all = []
+    slowwidth_perpt_all = []
+    slowamp_perpt_all = []
+    riseslope_perpt_all = []
+    decayslope_perpt_all = []
+    averageamp_perpt_all = []
+    linelen_perpt_all = []
 
     for list in lists_ptnames:
         #clear at the start to reduce memory load
         values = []
-        idxch = []
-        infer_spike_soz = []
         print('cleared + new pt list')
 
         #values
@@ -189,31 +294,39 @@ def feat_extract(lists_ptnames):
         clinic_soz_all.append(clinic_soz)
 
         #features
-        Aperpt, Aperpt_mean = spike_amplitude_perregion(values, chs, select_oi)
-        count_perpt, total_count_perpt = spike_count_perregion(select_oi)
-        LLperpt, LLperpt_mean = spike_LL_perregion(values, chs, select_oi)
+        perpt_riseamp, perpt_decayamp, perpt_slowwidth, perpt_slowamp, perpt_riseslope, perpt_decayslope, perpt_averageamp, perpt_linelen = morphology_perregion(values, chs, select_oi, list_num)
 
-        #Aperpt_mean_all.append(Aperpt_mean)
-        totalcount_perpt_all.append(count_perpt)
-        #LLperpt_mean_all.append(LLperpt_mean)
-        Aperpt_all.append(Aperpt)
-        LLperpt_all.append(LLperpt)
-    
-    LLperpt = [x for x in LLperpt_all for x in x]
-    Aperpt = [x for x in Aperpt_all for x in x]
-    #Aperpt_mean = [x for x in Aperpt_mean_all for x in x]
-    #LLperpt_mean = [x for x in LLperpt_mean_all for x in x]
-    totalcount_perpt = [x for x in totalcount_perpt_all for x in x]
+        riseamp_perpt_all.append(perpt_riseamp)
+        decayamp_perpt_all.append(perpt_decayamp)
+        slowwidth_perpt_all.append(perpt_slowwidth)
+        slowamp_perpt_all.append(perpt_slowamp)
+        riseslope_perpt_all.append(perpt_riseslope)
+        decayslope_perpt_all.append(perpt_decayslope)
+        averageamp_perpt_all.append(perpt_averageamp)
+        linelen_perpt_all.append(perpt_linelen)
+
+        list_num +=1
+
     clinic_soz = [x for x in clinic_soz_all for x in x]
+    riseamp_perpt = [x for x in riseamp_perpt_all for x in x]
+    decayamp_perpt = [x for x in decayamp_perpt_all for x in x]
+    slowwidth_perpt = [x for x in slowwidth_perpt_all for x in x]
+    slowamp_perpt = [x for x in slowamp_perpt_all for x in x]
+    riseslope_perpt = [x for x in riseslope_perpt_all for x in x]
+    decayslope_perpt = [x for x in decayslope_perpt_all for x in x]
+    averageamp_perpt = [x for x in averageamp_perpt_all for x in x]
+    linelen_perpt = [x for x in linelen_perpt_all for x in x]
 
-    return clinic_soz, Aperpt, LLperpt, totalcount_perpt #Aperpt_mean, LLperpt_mean, totalcount_perpt, clinic_soz, Aperpt, LLperpt
+    return clinic_soz, riseamp_perpt, decayamp_perpt, slowwidth_perpt, slowamp_perpt, riseslope_perpt, decayslope_perpt, averageamp_perpt, linelen_perpt
 
 # run biglist_roi >> gives you all the values/roi, idxch/roi, the inferred spike soz (based off electrodes), and the SOZ determined by the clinician. 
 #%% call em. 
 n=15
 lists_ptnames = (divide_chunks(ptnames, n))
 #Aperpt_mean, LLperpt_mean, totalcount_perpt, clinic_soz, Aperpt, LLperpt = feat_extract(lists_ptnames[0:2])#, roilist, data_directory)
-clinic_soz, Aperpt, LLperpt, totalcount_perpt = feat_extract(lists_ptnames)
+#clinic_soz, Aperpt, LLperpt, totalcount_perpt = feat_extract(lists_ptnames)
+clinic_soz, riseamp_perpt, decayamp_perpt, slowwidth_perpt, slowamp_perpt, riseslope_perpt, decayslope_perpt, averageamp_perpt, linelen_perpt = feat_extract(lists_ptnames)
+
 
 #%%
 #CLASS LIST COMBINATION
@@ -500,7 +613,21 @@ def append_nan(list_of_lists):
     return list_of_lists
 
 
-for pt in Aperpt:
+for pt in riseamp_perpt:
+    pt = append_nan(pt)
+for pt in decayamp_perpt:
+    pt = append_nan(pt)
+for pt in slowwidth_perpt:
+    pt = append_nan(pt)
+for pt in slowamp_perpt:
+    pt = append_nan(pt)
+for pt in riseslope_perpt:
+    pt = append_nan(pt)
+for pt in decayslope_perpt:
+    pt = append_nan(pt)
+for pt in averageamp_perpt:
+    pt = append_nan(pt)
+for pt in linelen_perpt:
     pt = append_nan(pt)
 
 # %% Make a large dataframe for mixed effects model
@@ -508,41 +635,102 @@ for pt in Aperpt:
 to_combine = ['bilateral - diffuse', 'bilateral - mesial temporal', 'bilateral - multifocal' , 'bilateral - temporal multifocal','diffuse - diffuse', 'left - diffuse' ,'left - multifocal', 'right - multifocal']
 to_remove = ['temporal', 'frontal']
 
-test_df = pd.DataFrame(data = Aperpt)
+test_df = pd.DataFrame(data = riseamp_perpt)
 soz_df  = pd.DataFrame(data = clinic_soz)
 test_df = test_df.rename(columns={0:'L_Mesial', 1:'L_Lateral', 2:'R_Mesial', 3:'R_Lateral',4:'L_OtherCortex', 5:'R_OtherCortex', 6:'Empty Label'})
 test_df = test_df.drop(columns = 'Empty Label')
 labels = test_df.columns
 soz_df = soz_df.rename(columns = {0:'region', 1:'lateralization', 2:'pt'})
-amp_df_combine =  pd.concat([test_df, soz_df], axis = 1)
+riseamp_df_combine =  pd.concat([test_df, soz_df], axis = 1)
 
-
-test_df2 = pd.DataFrame(data = totalcount_perpt)
+test_df2 = pd.DataFrame(data = decayamp_perpt)
 test_df2 = test_df2.rename(columns={0:'L_Mesial', 1:'L_Lateral', 2:'R_Mesial', 3:'R_Lateral',4:'L_OtherCortex', 5:'R_OtherCortex', 6:'Empty Label'})
 test_df2 = test_df2.drop(columns = 'Empty Label')
-spike_df_combine = pd.concat([test_df2, soz_df], axis = 1)
+decayamp_df_combine = pd.concat([test_df2, soz_df], axis = 1)
 
-test_df3 = pd.DataFrame(data = LLperpt)
+test_df3 = pd.DataFrame(data = slowwidth_perpt)
 test_df3 = test_df3.rename(columns={0:'L_Mesial', 1:'L_Lateral', 2:'R_Mesial', 3:'R_Lateral',4:'L_OtherCortex', 5:'R_OtherCortex', 6:'Empty Label'})
 test_df3 = test_df3.drop(columns = 'Empty Label')
-LL_df_combine = pd.concat([test_df3, soz_df], axis = 1)
+slowwidth_df_combine = pd.concat([test_df3, soz_df], axis = 1)
+
+test_df4 = pd.DataFrame(data = slowamp_perpt)
+test_df4 = test_df4.rename(columns={0:'L_Mesial', 1:'L_Lateral', 2:'R_Mesial', 3:'R_Lateral',4:'L_OtherCortex', 5:'R_OtherCortex', 6:'Empty Label'})
+test_df4 = test_df4.drop(columns = 'Empty Label')
+slowamp_df_combine = pd.concat([test_df4, soz_df], axis = 1)
+
+test_df5 = pd.DataFrame(data = riseslope_perpt)
+test_df5 = test_df5.rename(columns={0:'L_Mesial', 1:'L_Lateral', 2:'R_Mesial', 3:'R_Lateral',4:'L_OtherCortex', 5:'R_OtherCortex', 6:'Empty Label'})
+test_df5 = test_df5.drop(columns = 'Empty Label')
+riseslope_df_combine = pd.concat([test_df5, soz_df], axis = 1)
+
+test_df6 = pd.DataFrame(data = decayslope_perpt)
+test_df6 = test_df6.rename(columns={0:'L_Mesial', 1:'L_Lateral', 2:'R_Mesial', 3:'R_Lateral',4:'L_OtherCortex', 5:'R_OtherCortex', 6:'Empty Label'})
+test_df6 = test_df6.drop(columns = 'Empty Label')
+decayslope_df_combine = pd.concat([test_df6, soz_df], axis = 1)
+
+test_df7 = pd.DataFrame(data = averageamp_perpt)
+test_df7 = test_df7.rename(columns={0:'L_Mesial', 1:'L_Lateral', 2:'R_Mesial', 3:'R_Lateral',4:'L_OtherCortex', 5:'R_OtherCortex', 6:'Empty Label'})
+test_df7 = test_df7.drop(columns = 'Empty Label')
+averageamp_df_combine = pd.concat([test_df7, soz_df], axis = 1)
+
+test_df8 = pd.DataFrame(data = linelen_perpt)
+test_df8 = test_df8.rename(columns={0:'L_Mesial', 1:'L_Lateral', 2:'R_Mesial', 3:'R_Lateral',4:'L_OtherCortex', 5:'R_OtherCortex', 6:'Empty Label'})
+test_df8 = test_df8.drop(columns = 'Empty Label')
+LL_df_combine = pd.concat([test_df8, soz_df], axis = 1)
+
+
 
 for l in to_remove: #remove to_remove variables
-    amp_df_combine = amp_df_combine[amp_df_combine['region'] != l]
-    spike_df_combine = spike_df_combine[spike_df_combine['region'] != l]
+    riseamp_df_combine = riseamp_df_combine[riseamp_df_combine['region'] != l]
+    decayamp_df_combine = decayamp_df_combine[decayamp_df_combine['region'] != l]
+    slowwidth_df_combine = slowwidth_df_combine[slowwidth_df_combine['region'] != l]
+    slowamp_df_combine = slowamp_df_combine[slowamp_df_combine['region'] != l]
+    riseslope_df_combine = riseslope_df_combine[riseslope_df_combine['region'] != l]
+    decayslope_df_combine = decayslope_df_combine[decayslope_df_combine['region'] != l]
+    averageamp_df_combine = averageamp_df_combine[averageamp_df_combine['region'] != l]
     LL_df_combine = LL_df_combine[LL_df_combine['region'] != l]
 
-#amp cleanup
-amp_df_drop1 = amp_df_combine
-amp_df_drop1['soz'] = amp_df_combine['lateralization'] + " - " + amp_df_combine['region'] 
-amp_df = amp_df_drop1.drop(columns = ['region','lateralization'])
-amp_df['soz'] = amp_df['soz'].apply(lambda x: "bilateral" if x in to_combine else x)
+#riseamp cleanup
+riseamp_df_drop1 = riseamp_df_combine
+riseamp_df_drop1['soz'] = riseamp_df_combine['lateralization'] + " - " + riseamp_df_combine['region']
+riseamp_df = riseamp_df_drop1.drop(columns = ['region','lateralization'])
+riseamp_df['soz'] = riseamp_df['soz'].apply(lambda x: "bilateral" if x in to_combine else x)
 
-#spike count cleanup
-spike_df_drop1 = spike_df_combine
-spike_df_drop1['soz'] = spike_df_combine['lateralization'] + " - " + spike_df_combine['region']
-spike_df = spike_df_drop1.drop(columns = ['region','lateralization'])
-spike_df['soz'] = spike_df['soz'].apply(lambda x: "bilateral" if x in to_combine else x)
+#decayamp cleanup
+decayamp_df_drop1 = decayamp_df_combine
+decayamp_df_drop1['soz'] = decayamp_df_combine['lateralization'] + " - " + decayamp_df_combine['region']
+decayamp_df = decayamp_df_drop1.drop(columns = ['region','lateralization'])
+decayamp_df['soz'] = decayamp_df['soz'].apply(lambda x: "bilateral" if x in to_combine else x)
+
+#slowwidth cleanup
+slowwidth_df_drop1 = slowwidth_df_combine
+slowwidth_df_drop1['soz'] = slowwidth_df_combine['lateralization'] + " - " + slowwidth_df_combine['region']
+slowwidth_df = slowwidth_df_drop1.drop(columns = ['region','lateralization'])
+slowwidth_df['soz'] = slowwidth_df['soz'].apply(lambda x: "bilateral" if x in to_combine else x)
+
+#slowamp cleanup
+slowamp_df_drop1 = slowamp_df_combine
+slowamp_df_drop1['soz'] = slowamp_df_combine['lateralization'] + " - " + slowamp_df_combine['region']
+slowamp_df = slowamp_df_drop1.drop(columns = ['region','lateralization'])
+slowamp_df['soz'] = slowamp_df['soz'].apply(lambda x: "bilateral" if x in to_combine else x)
+
+#riseslope cleanup
+riseslope_df_drop1 = riseslope_df_combine
+riseslope_df_drop1['soz'] = riseslope_df_combine['lateralization'] + " - " + riseslope_df_combine['region']
+riseslope_df = riseslope_df_drop1.drop(columns = ['region','lateralization'])
+riseslope_df['soz'] = riseslope_df['soz'].apply(lambda x: "bilateral" if x in to_combine else x)
+
+#decayslope cleanup
+decayslope_df_drop1 = decayslope_df_combine
+decayslope_df_drop1['soz'] = decayslope_df_combine['lateralization'] + " - " + decayslope_df_combine['region']
+decayslope_df = decayslope_df_drop1.drop(columns = ['region','lateralization'])
+decayslope_df['soz'] = decayslope_df['soz'].apply(lambda x: "bilateral" if x in to_combine else x)
+
+#averageamp cleanup
+averageamp_df_drop1 = averageamp_df_combine
+averageamp_df_drop1['soz'] = averageamp_df_combine['lateralization'] + " - " + averageamp_df_combine['region']
+averageamp_df = averageamp_df_drop1.drop(columns = ['region','lateralization'])
+averageamp_df['soz'] = averageamp_df['soz'].apply(lambda x: "bilateral" if x in to_combine else x)
 
 #LL cleanup
 LL_df_drop1 = LL_df_combine
@@ -551,7 +739,74 @@ LL_df = LL_df_drop1.drop(columns = ['region','lateralization'])
 LL_df['soz'] = LL_df['soz'].apply(lambda x: "bilateral" if x in to_combine else x)
 
 # %% fix the table
-df_amp = pd.DataFrame()
+df_riseamp = pd.DataFrame()
+df_decayamp = pd.DataFrame()
+df_slowwidth = pd.DataFrame()
+df_slowamp = pd.DataFrame()
+df_riseslope = pd.DataFrame()
+df_decayslope = pd.DataFrame()
+df_averageamp = pd.DataFrame()
+df_LL = pd.DataFrame()
+for label in labels:
+    #fix riseamp table
+    df = riseamp_df[[label, 'soz', 'pt']]
+    df = df.explode(label)
+    df['roi'] = label
+    df = df.rename(columns={label:'amp'})
+    df_riseamp = pd.concat([df_riseamp, df], axis = 0)
+
+    #fix decayamp table
+    df = decayamp_df[[label, 'soz', 'pt']]
+    df = df.explode(label)
+    df['roi'] = label
+    df = df.rename(columns={label:'amp'})
+    df_decayamp = pd.concat([df_decayamp, df], axis = 0)
+
+    #fix slowwidth table
+    df = slowwidth_df[[label, 'soz', 'pt']]
+    df = df.explode(label)
+    df['roi'] = label
+    df = df.rename(columns={label:'width'})
+    df_slowwidth = pd.concat([df_slowwidth, df], axis = 0)
+
+    #fix slowamp table
+    df = slowamp_df[[label, 'soz', 'pt']]
+    df = df.explode(label)
+    df['roi'] = label
+    df = df.rename(columns={label:'amp'})
+    df_slowamp = pd.concat([df_slowamp, df], axis = 0)
+
+    #fix riseslope table
+    df = riseslope_df[[label, 'soz', 'pt']]
+    df = df.explode(label)
+    df['roi'] = label
+    df = df.rename(columns={label:'slope'})
+    df_riseslope = pd.concat([df_riseslope, df], axis = 0)
+
+    #fix decayslope table
+    df = decayslope_df[[label, 'soz', 'pt']]
+    df = df.explode(label)
+    df['roi'] = label
+    df = df.rename(columns={label:'slope'})
+    df_decayslope = pd.concat([df_decayslope, df], axis = 0)
+
+    #fix averageamp table
+    df = averageamp_df[[label, 'soz', 'pt']]
+    df = df.explode(label)
+    df['roi'] = label
+    df = df.rename(columns={label:'amp'})
+    df_averageamp = pd.concat([df_averageamp, df], axis = 0)
+    
+    #fix LL table
+    df = LL_df[[label, 'soz', 'pt']]
+    df = df.explode(label)
+    df['roi'] = label
+    df = df.rename(columns={label:'LL'})
+    df_LL = pd.concat([df_LL, df], axis = 0)
+
+
+#%%
+"""
 df_count = pd.DataFrame()
 df_LL = pd.DataFrame()
 for label in labels:
@@ -575,3 +830,4 @@ for label in labels:
     df['roi'] = label
     df = df.rename(columns={label:'LL'})
     df_LL = pd.concat([df_LL, df], axis = 0)
+    """
