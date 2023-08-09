@@ -632,7 +632,7 @@ for pt in linelen_perpt:
 
 # %% Make a large dataframe for mixed effects model
 #CLASS LIST COMBINATION
-to_combine = ['bilateral - diffuse', 'bilateral - mesial temporal', 'bilateral - multifocal' , 'bilateral - temporal multifocal','diffuse - diffuse', 'left - diffuse' ,'left - multifocal', 'right - multifocal']
+to_combine = ['bilateral - diffuse', 'bilateral - multifocal','diffuse - diffuse', 'left - diffuse' ,'left - multifocal', 'right - multifocal']
 to_remove = ['temporal', 'frontal']
 
 test_df = pd.DataFrame(data = riseamp_perpt)
@@ -831,3 +831,48 @@ for label in labels:
     df = df.rename(columns={label:'LL'})
     df_LL = pd.concat([df_LL, df], axis = 0)
     """
+
+#%%
+#drop NA's on all features
+df_riseamp = df_riseamp.dropna()
+df_decayamp = df_decayamp.dropna()
+df_slowwidth = df_slowwidth.dropna()
+df_slowamp = df_slowamp.dropna()
+df_riseslope = df_riseslope.dropna()
+df_decayslope = df_decayslope.dropna()
+df_averageamp = df_averageamp.dropna()
+df_LL = df_LL.dropna()
+
+#%% save the tables
+
+df_riseamp.to_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mixed_effect_tablesv2/riseamp_v2.csv", index = False)
+df_decayamp.to_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mixed_effect_tablesv2/decayamp_v2.csv", index = False)
+df_slowwidth.to_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mixed_effect_tablesv2/slowwidth_v2.csv", index = False)
+df_slowamp.to_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mixed_effect_tablesv2/slowamp_v2.csv", index = False)
+df_riseslope.to_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mixed_effect_tablesv2/riseslope_v2.csv", index = False)
+df_decayslope.to_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mixed_effect_tablesv2/decayslope_v2.csv", index = False)
+df_averageamp.to_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mixed_effect_tablesv2/averageamp_v2.csv", index = False)
+df_LL.to_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mixed_effect_tablesv2/LL_v2.csv", index = False)
+
+# %% load all tables w/ new features
+
+# load the tables V1
+df_riseamp = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/riseamp.csv")
+df_decayamp = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/decayamp.csv")
+df_slowwidth = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/slowwidth.csv")
+df_slowamp = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/slowamp.csv")
+df_riseslope = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/riseslope.csv")
+df_decayslope = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/decayslope.csv")
+df_averageamp = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/averageamp.csv")
+df_LL = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/LL.csv")
+
+#load the saved tables V2
+
+df_riseamp_v2 = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/riseamp_v2.csv")
+df_decayamp_v2 = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/decayamp_v2.csv")
+df_slowwidth_v2 = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/slowwidth_v2.csv")
+df_slowamp_v2 = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/slowamp_v2.csv")
+df_riseslope_v2 = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/riseslope_v2.csv")
+df_decayslope_v2 = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/decayslope_v2.csv")
+df_averageamp_v2 = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/averageamp_v2.csv")
+df_LL_v2 = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/LL_v2.csv")
