@@ -857,22 +857,6 @@ df_LL.to_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/wo
 # %% load all tables w/ new features
 
 # load the tables V1
-df_riseamp = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/riseamp.csv")
-df_decayamp = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/decayamp.csv")
-df_slowwidth = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/slowwidth.csv")
-df_slowamp = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/slowamp.csv")
-df_riseslope = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/riseslope.csv")
-df_decayslope = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/decayslope.csv")
-df_averageamp = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/averageamp.csv")
-df_LL = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/LL.csv")
+
 
 #load the saved tables V2
-
-df_riseamp_v2 = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/riseamp_v2.csv")
-df_decayamp_v2 = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/decayamp_v2.csv")
-df_slowwidth_v2 = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/slowwidth_v2.csv")
-df_slowamp_v2 = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/slowamp_v2.csv")
-df_riseslope_v2 = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/riseslope_v2.csv")
-df_decayslope_v2 = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/decayslope_v2.csv")
-df_averageamp_v2 = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/averageamp_v2.csv")
-df_LL_v2 = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/LL_v2.csv")
