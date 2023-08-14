@@ -188,13 +188,13 @@ def morphology_perregion(values, chs, select_oi, list_num):
                 continue
 
             for l, xs in enumerate(roi):
-                if (list_num >= 4): #debugmode
-                    print('spike {}'.format(l))
+                print('spike {}'.format(l))
 
                 val_want = np.transpose(xs)
                 val_want = val_want[chs[i][j][select_oi[i][j][l]]-1]
 
                 #remove the spikes that are not working (its not alot)
+                """
                 if (list_num == 0) & (i == 0) & (j == 6) & (l == 80):
                     continue
                 elif (list_num == 0) & (i == 4) & (j == 1) & (l == 23):
@@ -214,7 +214,11 @@ def morphology_perregion(values, chs, select_oi, list_num):
                 elif (list_num == 5) & (i == 9) & (j == 5) & (l == 25):
                     continue
                 else:
+                """
+                try:
                     rise_amp, decay_amp, slow_width, slow_amp, rise_slope, decay_slope, average_amp, linelen = morphology_feats_v1(val_want)
+                except:
+                    print('error on spike {} in pt {} in roi {}'.format(l, i, j))
 
                 feat_rise_amp.append(rise_amp)
                 feat_decay_amp.append(decay_amp)
