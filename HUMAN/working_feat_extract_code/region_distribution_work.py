@@ -15,6 +15,7 @@ import sys, os
 code_path = os.path.dirname('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/functions/')
 sys.path.append(code_path)
 from ied_fx_v3 import *
+from morphology_pipeline import *
 
 #Setup ptnames and directory
 data_directory = ['/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2', '/mnt/leif/littlab/data/Human_Data']
@@ -22,7 +23,6 @@ pt = pd.read_csv('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/ma
 pt = pt['pt'].to_list()
 blacklist = ['HUP101' ,'HUP112','HUP115','HUP124','HUP144','HUP147','HUP149','HUP155','HUP176','HUP193','HUP194','HUP195','HUP198','HUP208','HUP212','HUP216','HUP217','HUP064','HUP071','HUP072','HUP073','HUP085','HUP094']
 ptnames = [i for i in pt if i not in blacklist] #use only the best EEG signals (>75% visually validated)
-
 
 #establish ROI's
 roiL_mesial = [' left entorhinal ', ' left parahippocampal ' , ' left hippocampus ', ' left amygdala ', ' left perirhinal ']
@@ -35,6 +35,17 @@ R_OC = [' right inferior parietal ', ' right postcentral ', ' right superior par
 
 roilist = [roiL_mesial, roiL_lateral, roiR_mesial, roiR_lateral, L_OC, R_OC, emptylabel]
 
+#%% get ROI's from akash's list:
+mni_dkt = pd.read_excel('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/dkt_mni_v2.xlsx', sheet_name = 'Sheet1')
+mni_dkt = mni_dkt[['Label 0: background', 'name']].dropna().reset_index(drop = True).rename(columns = {"Label 0: background":"DKT", "name":"MNI"})
+mni_dkt["DKT"] = mni_dkt['DKT'].apply(lambda x: x.split(':')[-1] + ' ')
+mni_labels = np.unique(mni_dkt['MNI'].to_numpy())
+#get the DKT labels for each MNI labels
+dkt_labels = []
+for i in mni_labels:
+    subdf = mni_dkt.loc[mni_dkt['MNI'] == i]
+    dkt_labels.append(subdf['DKT'].to_list())
+#pass dkt_labels as roilist if you want 40 ROIs, that correspond to the names in the mni_labels
 
 #%%
 # functions to use:
@@ -272,7 +283,7 @@ def divide_chunks(l, n):
         biglist.append(list)
     return biglist
 
-def feat_extract(lists_ptnames):
+def feat_extract(lists_ptnames, roilist):
     clinic_soz_all = []
     list_num = 0  
     riseamp_perpt_all = []
@@ -325,9 +336,8 @@ n=15
 lists_ptnames = (divide_chunks(ptnames, n))
 #Aperpt_mean, LLperpt_mean, totalcount_perpt, clinic_soz, Aperpt, LLperpt = feat_extract(lists_ptnames[0:2])#, roilist, data_directory)
 #clinic_soz, Aperpt, LLperpt, totalcount_perpt = feat_extract(lists_ptnames)
-clinic_soz, riseamp_perpt, decayamp_perpt, slowwidth_perpt, slowamp_perpt, riseslope_perpt, decayslope_perpt, averageamp_perpt, linelen_perpt = feat_extract(lists_ptnames)
-
-
+clinic_soz, riseamp_perpt, decayamp_perpt, slowwidth_perpt, slowamp_perpt, riseslope_perpt, decayslope_perpt, averageamp_perpt, linelen_perpt = feat_extract(lists_ptnames, dkt_labels)
+"""
 #%%
 #CLASS LIST COMBINATION
 to_combine = ['bilateral - diffuse', 'bilateral - mesial temporal', 'bilateral - multifocal' , 'bilateral - temporal multifocal','diffuse - diffuse', 'left - diffuse' ,'left - multifocal', 'right - multifocal']
@@ -421,7 +431,7 @@ plt.yticks(rotation = 0)
 
 # %% exmaple of how to plot paired plots w/ different colors for a single feature
 
-ll_df_combine
+#ll_df_combine
 
 #left
 left_pts_LL = ll_df_combine[ll_df_combine['lateralization'] == 'left'] 
@@ -630,6 +640,10 @@ for pt in averageamp_perpt:
 for pt in linelen_perpt:
     pt = append_nan(pt)
 
+"""
+################################################################################################################################################################################
+################################################################################################################################################################################
+################################################################################################################################################################################
 # %% Make a large dataframe for mixed effects model
 #CLASS LIST COMBINATION
 to_combine = ['bilateral - diffuse', 'bilateral - multifocal','diffuse - diffuse', 'left - diffuse' ,'left - multifocal', 'right - multifocal']
@@ -637,44 +651,44 @@ to_remove = ['temporal', 'frontal']
 
 test_df = pd.DataFrame(data = riseamp_perpt)
 soz_df  = pd.DataFrame(data = clinic_soz)
-test_df = test_df.rename(columns={0:'L_Mesial', 1:'L_Lateral', 2:'R_Mesial', 3:'R_Lateral',4:'L_OtherCortex', 5:'R_OtherCortex', 6:'Empty Label'})
+test_df = test_df.set_axis(mni_labels, axis = 1)
 test_df = test_df.drop(columns = 'Empty Label')
 labels = test_df.columns
 soz_df = soz_df.rename(columns = {0:'region', 1:'lateralization', 2:'pt'})
 riseamp_df_combine =  pd.concat([test_df, soz_df], axis = 1)
 
 test_df2 = pd.DataFrame(data = decayamp_perpt)
-test_df2 = test_df2.rename(columns={0:'L_Mesial', 1:'L_Lateral', 2:'R_Mesial', 3:'R_Lateral',4:'L_OtherCortex', 5:'R_OtherCortex', 6:'Empty Label'})
+test_df = test_df.set_axis(mni_labels, axis = 1)
 test_df2 = test_df2.drop(columns = 'Empty Label')
 decayamp_df_combine = pd.concat([test_df2, soz_df], axis = 1)
 
 test_df3 = pd.DataFrame(data = slowwidth_perpt)
-test_df3 = test_df3.rename(columns={0:'L_Mesial', 1:'L_Lateral', 2:'R_Mesial', 3:'R_Lateral',4:'L_OtherCortex', 5:'R_OtherCortex', 6:'Empty Label'})
+test_df = test_df.set_axis(mni_labels, axis = 1)
 test_df3 = test_df3.drop(columns = 'Empty Label')
 slowwidth_df_combine = pd.concat([test_df3, soz_df], axis = 1)
 
 test_df4 = pd.DataFrame(data = slowamp_perpt)
-test_df4 = test_df4.rename(columns={0:'L_Mesial', 1:'L_Lateral', 2:'R_Mesial', 3:'R_Lateral',4:'L_OtherCortex', 5:'R_OtherCortex', 6:'Empty Label'})
+test_df = test_df.set_axis(mni_labels, axis = 1)
 test_df4 = test_df4.drop(columns = 'Empty Label')
 slowamp_df_combine = pd.concat([test_df4, soz_df], axis = 1)
 
 test_df5 = pd.DataFrame(data = riseslope_perpt)
-test_df5 = test_df5.rename(columns={0:'L_Mesial', 1:'L_Lateral', 2:'R_Mesial', 3:'R_Lateral',4:'L_OtherCortex', 5:'R_OtherCortex', 6:'Empty Label'})
+test_df = test_df.set_axis(mni_labels, axis = 1)
 test_df5 = test_df5.drop(columns = 'Empty Label')
 riseslope_df_combine = pd.concat([test_df5, soz_df], axis = 1)
 
 test_df6 = pd.DataFrame(data = decayslope_perpt)
-test_df6 = test_df6.rename(columns={0:'L_Mesial', 1:'L_Lateral', 2:'R_Mesial', 3:'R_Lateral',4:'L_OtherCortex', 5:'R_OtherCortex', 6:'Empty Label'})
+test_df = test_df.set_axis(mni_labels, axis = 1)
 test_df6 = test_df6.drop(columns = 'Empty Label')
 decayslope_df_combine = pd.concat([test_df6, soz_df], axis = 1)
 
 test_df7 = pd.DataFrame(data = averageamp_perpt)
-test_df7 = test_df7.rename(columns={0:'L_Mesial', 1:'L_Lateral', 2:'R_Mesial', 3:'R_Lateral',4:'L_OtherCortex', 5:'R_OtherCortex', 6:'Empty Label'})
+test_df = test_df.set_axis(mni_labels, axis = 1)
 test_df7 = test_df7.drop(columns = 'Empty Label')
 averageamp_df_combine = pd.concat([test_df7, soz_df], axis = 1)
 
 test_df8 = pd.DataFrame(data = linelen_perpt)
-test_df8 = test_df8.rename(columns={0:'L_Mesial', 1:'L_Lateral', 2:'R_Mesial', 3:'R_Lateral',4:'L_OtherCortex', 5:'R_OtherCortex', 6:'Empty Label'})
+test_df = test_df.set_axis(mni_labels, axis = 1)
 test_df8 = test_df8.drop(columns = 'Empty Label')
 LL_df_combine = pd.concat([test_df8, soz_df], axis = 1)
 
@@ -747,6 +761,7 @@ df_riseslope = pd.DataFrame()
 df_decayslope = pd.DataFrame()
 df_averageamp = pd.DataFrame()
 df_LL = pd.DataFrame()
+
 for label in labels:
     #fix riseamp table
     df = riseamp_df[[label, 'soz', 'pt']]
@@ -830,7 +845,7 @@ for label in labels:
     df['roi'] = label
     df = df.rename(columns={label:'LL'})
     df_LL = pd.concat([df_LL, df], axis = 0)
-    """
+"""
 
 #%%
 #drop NA's on all features
@@ -845,18 +860,11 @@ df_LL = df_LL.dropna()
 
 #%% save the tables
 
-df_riseamp.to_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mixed_effect_tablesv2/riseamp_v2.csv", index = False)
-df_decayamp.to_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mixed_effect_tablesv2/decayamp_v2.csv", index = False)
-df_slowwidth.to_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mixed_effect_tablesv2/slowwidth_v2.csv", index = False)
-df_slowamp.to_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mixed_effect_tablesv2/slowamp_v2.csv", index = False)
-df_riseslope.to_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mixed_effect_tablesv2/riseslope_v2.csv", index = False)
-df_decayslope.to_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mixed_effect_tablesv2/decayslope_v2.csv", index = False)
-df_averageamp.to_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mixed_effect_tablesv2/averageamp_v2.csv", index = False)
-df_LL.to_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mixed_effect_tablesv2/LL_v2.csv", index = False)
-
-# %% load all tables w/ new features
-
-# load the tables V1
-
-
-#load the saved tables V2
+df_riseamp.to_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mni_atlas_LM_tables/riseamp.csv", index = False)
+df_decayamp.to_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mni_atlas_LM_tables/decayamp.csv", index = False)
+df_slowwidth.to_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mni_atlas_LM_tables/slowwidth.csv", index = False)
+df_slowamp.to_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mni_atlas_LM_tables/slowamp.csv", index = False)
+df_riseslope.to_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mni_atlas_LM_tables/riseslope.csv", index = False)
+df_decayslope.to_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mni_atlas_LM_tables/decayslope.csv", index = False)
+df_averageamp.to_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mni_atlas_LM_tables/averageamp.csv", index = False)
+df_LL.to_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mni_atlas_LM_tables/LL.csv", index = False)

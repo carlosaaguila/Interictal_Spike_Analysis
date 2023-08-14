@@ -35,6 +35,17 @@ L_OC = [' left inferior parietal ', ' left postcentral ', ' left superior pariet
 R_OC = [' right inferior parietal ', ' right postcentral ', ' right superior parietal ', ' right precentral ', ' right rostral middle frontal ', ' right pars triangularis ', ' right supramarginal ', ' right insula ', ' right caudal middle frontal ', ' right posterior cingulate ', ' right lateral orbitofrontal ', ' right lateral occipital ', ' right cuneus ']
 roilist = [roiL_mesial, roiL_lateral, roiR_mesial, roiR_lateral, L_OC, R_OC, emptylabel]
 
+#%% get ROI's from akash's list:
+mni_dkt = pd.read_excel('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/dkt_mni_v2.xlsx', sheet_name = 'Sheet1')
+mni_dkt = mni_dkt[['Label 0: background', 'name']].dropna().reset_index(drop = True).rename(columns = {"Label 0: background":"DKT", "name":"MNI"})
+mni_dkt["DKT"] = mni_dkt['DKT'].apply(lambda x: x.split(':')[-1] + ' ')
+mni_labels = np.unique(mni_dkt['MNI'].to_numpy())
+#get the DKT labels for each MNI labels
+dkt_labels = []
+for i in mni_labels:
+    subdf = mni_dkt.loc[mni_dkt['MNI'] == i]
+    dkt_labels.append(subdf['DKT'].to_list())
+#pass dkt_labels as roilist if you want 40 ROIs, that correspond to the names in the mni_labels
 
 #%% 
 def value_basis_interSOZ(ptname, data_directory):

@@ -1,4 +1,4 @@
-#%%
+
 #set up environment
 import pickle
 import pickle as pkl
@@ -19,52 +19,7 @@ code_path = os.path.dirname('/mnt/leif/littlab/users/aguilac/Interictal_Spike_An
 sys.path.append(code_path)
 from ied_fx_v3 import *
 
-#%% 
-#Setup ptnames and directory
-data_directory = ['/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2', '/mnt/leif/littlab/data/Human_Data']
-pt = pd.read_csv('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/pkl_list.csv') #pkl list is our list of the transferred data (mat73 -> pickle)
-pt = pt['pt'].to_list()
-blacklist = ['HUP101' ,'HUP112','HUP115','HUP124','HUP144','HUP147','HUP149','HUP155','HUP176','HUP193','HUP194','HUP195','HUP198','HUP208','HUP212','HUP216','HUP217','HUP064','HUP071','HUP072','HUP073','HUP085','HUP094']
-ptnames = [i for i in pt if i not in blacklist] #use only the best EEG signals (>75% visually validated)
 
-#%%
-#all the spikes in the SOZ
-SOZ_spikes = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v1/SOZ_all_chs_stacked_DF.csv')
-
-# %% 
-# find a series of minima and maxima for a spike
-#gives indices
-
-"""
-randomlist = random.sample(range(1, 8000), 20)
-
-for idx in randomlist:
-    myspike = SOZ_spikes.iloc[idx].to_numpy()
-    print(idx)
-    print(np.mean(myspike))
-    myspike = myspike - np.mean(myspike)
-    fig = plt.figure(figsize=(5,4))
-    plt.plot(myspike[700:1300])
-    plt.plot(300, myspike[1000], 'o')
-
-#%%
-maxima = sig.argrelextrema(myspike, np.greater)[0]
-#find the 
-minima = sig.argrelextrema(myspike, np.less)[0]
-
-amplitude = np.argmax((myspike[750:1250])) #get the maximum amplitude of the spike
-
-maxima2 = np.argwhere(myspike[maxima] > 0.9 * myspike[750+amplitude]) #find the maxima that are greater than 1.5 times the mean of the maximas
-
-#%% plots the spike
-# then we plot the max maximas
-plt.plot(myspike)
-plt.plot(maxima[maxima2], myspike[maxima[maxima2]], 'o')
-"""
-# %% function to find a feature
-myspike = SOZ_all_chs_stacked_DF_cleaned.iloc[195].to_numpy() #using a different dataframe
-
-#%% function to find a feature
 def morphology_feats_v1(myspike):
     """
     function to find the morphological features of a spike
@@ -335,72 +290,3 @@ def morphology_feats_v1(myspike):
         linelen = LL(myspike[left_point:slow_end])
 
     return rise_amp, decay_amp, slow_width, slow_amp, rise_slope, decay_slope, average_amp, linelen
-
-#rise_amp, decay_amp, slow_width, slow_amp, rise_slope, decay_slope, average_amp, linelen - actual feat extraction
-
-#peak, left_point, right_point, slow_end, slow_max - indices on spike for visulization
-
-#peak, left_point, right_point, slow_end, slow_max = morphology_feats_v1(myspike)
-
-#rise_amp, decay_amp, slow_width, slow_amp, rise_slope, decay_slope, average_amp, linelen = morphology_feats_v1(myspike)
-
-#%% code to plot single spike
-plt.plot(myspike)
-plt.plot(peak, myspike[peak],'x')
-plt.plot(left_point, myspike[left_point], 'o')
-plt.plot(right_point, myspike[right_point], 'o')
-plt.plot(slow_end, myspike[slow_end], 'o', color = 'k')
-plt.xlim(700, 1500)
-
-#%% create feats dataframe USING interSOZ_analysis.py (load cleaned data from that file)
-#SOZ
-SOZ_feats = pd.DataFrame(columns = ['rise_amp', 'decay_amp', 'slow_width', 'slow_amp', 'rise_slope', 'decay_slope', 'average_amp', 'linelen'])
-for idx in range(len(SOZ_all_chs_stacked_DF_cleaned)):
-    myspike = SOZ_all_chs_stacked_DF_cleaned.iloc[idx].to_numpy()
-    rise_amp, decay_amp, slow_width, slow_amp, rise_slope, decay_slope, average_amp, linelen = morphology_feats_v1(myspike)
-    SOZ_feats.loc[idx] = [rise_amp, decay_amp, slow_width, slow_amp, rise_slope, decay_slope, average_amp, linelen]
-
-#%% create feats dataframe USING interSOZ_analysis.py (load cleaned data from that file)
-#NON SOZ
-nonSOZ_feats = pd.DataFrame(columns = ['rise_amp', 'decay_amp', 'slow_width', 'slow_amp', 'rise_slope', 'decay_slope', 'average_amp', 'linelen'])
-for idx in range(len(nonSOZ_all_chs_stacked_DF_cleaned)):
-    myspike = nonSOZ_all_chs_stacked_DF_cleaned.iloc[idx].to_numpy()
-    rise_amp, decay_amp, slow_width, slow_amp, rise_slope, decay_slope, average_amp, linelen = morphology_feats_v1(myspike)
-    nonSOZ_feats.loc[idx] = [rise_amp, decay_amp, slow_width, slow_amp, rise_slope, decay_slope, average_amp, linelen]
-
-#%%
-SOZ_feats['id'] = soz_w_label['id'].reset_index(drop=True)
-nonSOZ_feats['id'] = nonsoz_w_label['id'].reset_index(drop=True)
-
-SOZ_feats = SOZ_feats.dropna()
-nonSOZ_feats = nonSOZ_feats.dropna()
-# %% check on my random spikes
-randitest_spikes = [2786, 1090, 900, 478, 2906, 5204, 7302, 1094, 4907]
-for randi in randitest_spikes:
-    myspike = SOZ_spikes.iloc[randi].to_numpy()
-    peak, left_point, right_point, slow_end, slow_max = morphology_feats_v1(myspike)
-    plt.figure(figsize=(7,7))
-    plt.plot(myspike)
-    plt.plot(peak, myspike[peak],'x', label = 'peak')
-    plt.plot(left_point, myspike[left_point], 'o', label = 'left point')
-    plt.plot(right_point, myspike[right_point], 'o', label = 'right point')
-    plt.plot(slow_end, myspike[slow_end], 'o', color = 'k', label = 'slow end')
-    plt.xlim(700, 1500)
-    plt.legend()
-
-
-# %%
-#run 10 random points from 0 to 10000 and see if it works
-randi = np.random.randint(0, 10000, 10)
-for randi in randi:
-    myspike = SOZ_spikes.iloc[randi].to_numpy()
-    peak, left_point, right_point, slow_end, slow_max = morphology_feats_v1(myspike)
-    plt.figure(figsize=(7,7))
-    plt.plot(myspike)
-    plt.plot(peak, myspike[peak],'x', label = 'peak')
-    plt.plot(left_point, myspike[left_point], 'o', label = 'left_point')
-    plt.plot(right_point, myspike[right_point], 'o', label='right_point')
-    plt.plot(slow_end, myspike[slow_end], 'o', color = 'k', label = 'slow_end')
-    plt.xlim(700, 1500)
-    plt.legend()
-# %%
