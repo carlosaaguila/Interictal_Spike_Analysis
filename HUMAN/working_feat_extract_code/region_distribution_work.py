@@ -341,8 +341,10 @@ lists_ptnames = (divide_chunks(ptnames, n))
 #Aperpt_mean, LLperpt_mean, totalcount_perpt, clinic_soz, Aperpt, LLperpt = feat_extract(lists_ptnames[0:2])#, roilist, data_directory)
 #clinic_soz, Aperpt, LLperpt, totalcount_perpt = feat_extract(lists_ptnames)
 clinic_soz, riseamp_perpt, decayamp_perpt, slowwidth_perpt, slowamp_perpt, riseslope_perpt, decayslope_perpt, averageamp_perpt, linelen_perpt = feat_extract(lists_ptnames, dkt_labels)
-"""
+
 #%%
+"""
+
 #CLASS LIST COMBINATION
 to_combine = ['bilateral - diffuse', 'bilateral - mesial temporal', 'bilateral - multifocal' , 'bilateral - temporal multifocal','diffuse - diffuse', 'left - diffuse' ,'left - multifocal', 'right - multifocal']
 to_remove = ['temporal', 'frontal']
@@ -615,6 +617,11 @@ def checker(ptname):
     print(count_roi)
 
     return count_roi, brain_df, spike, basis_results
+"""
+
+################################################################################################################################################################################
+################################################################################################################################################################################
+################################################################################################################################################################################
 
 # %%
 
@@ -644,10 +651,6 @@ for pt in averageamp_perpt:
 for pt in linelen_perpt:
     pt = append_nan(pt)
 
-"""
-################################################################################################################################################################################
-################################################################################################################################################################################
-################################################################################################################################################################################
 # %% Make a large dataframe for mixed effects model
 #CLASS LIST COMBINATION
 to_combine = ['bilateral - diffuse', 'bilateral - multifocal','diffuse - diffuse', 'left - diffuse' ,'left - multifocal', 'right - multifocal']
@@ -656,44 +659,44 @@ to_remove = ['temporal', 'frontal']
 test_df = pd.DataFrame(data = riseamp_perpt)
 soz_df  = pd.DataFrame(data = clinic_soz)
 test_df = test_df.set_axis(mni_labels, axis = 1)
-test_df = test_df.drop(columns = 'Empty Label')
+#test_df = test_df.drop(columns = 'Empty Label')
 labels = test_df.columns
 soz_df = soz_df.rename(columns = {0:'region', 1:'lateralization', 2:'pt'})
 riseamp_df_combine =  pd.concat([test_df, soz_df], axis = 1)
 
 test_df2 = pd.DataFrame(data = decayamp_perpt)
-test_df = test_df.set_axis(mni_labels, axis = 1)
-test_df2 = test_df2.drop(columns = 'Empty Label')
+test_df2 = test_df2.set_axis(mni_labels, axis = 1)
+#test_df2 = test_df2.drop(columns = 'Empty Label')
 decayamp_df_combine = pd.concat([test_df2, soz_df], axis = 1)
 
 test_df3 = pd.DataFrame(data = slowwidth_perpt)
-test_df = test_df.set_axis(mni_labels, axis = 1)
-test_df3 = test_df3.drop(columns = 'Empty Label')
+test_df3 = test_df3.set_axis(mni_labels, axis = 1)
+#test_df3 = test_df3.drop(columns = 'Empty Label')
 slowwidth_df_combine = pd.concat([test_df3, soz_df], axis = 1)
 
 test_df4 = pd.DataFrame(data = slowamp_perpt)
-test_df = test_df.set_axis(mni_labels, axis = 1)
-test_df4 = test_df4.drop(columns = 'Empty Label')
+test_df4 = test_df4.set_axis(mni_labels, axis = 1)
+#test_df4 = test_df4.drop(columns = 'Empty Label')
 slowamp_df_combine = pd.concat([test_df4, soz_df], axis = 1)
 
 test_df5 = pd.DataFrame(data = riseslope_perpt)
-test_df = test_df.set_axis(mni_labels, axis = 1)
-test_df5 = test_df5.drop(columns = 'Empty Label')
+test_df5 = test_df5.set_axis(mni_labels, axis = 1)
+#test_df5 = test_df5.drop(columns = 'Empty Label')
 riseslope_df_combine = pd.concat([test_df5, soz_df], axis = 1)
 
 test_df6 = pd.DataFrame(data = decayslope_perpt)
-test_df = test_df.set_axis(mni_labels, axis = 1)
-test_df6 = test_df6.drop(columns = 'Empty Label')
+test_df6 = test_df6.set_axis(mni_labels, axis = 1)
+#test_df6 = test_df6.drop(columns = 'Empty Label')
 decayslope_df_combine = pd.concat([test_df6, soz_df], axis = 1)
 
 test_df7 = pd.DataFrame(data = averageamp_perpt)
-test_df = test_df.set_axis(mni_labels, axis = 1)
-test_df7 = test_df7.drop(columns = 'Empty Label')
+test_df7 = test_df7.set_axis(mni_labels, axis = 1)
+#test_df7 = test_df7.drop(columns = 'Empty Label')
 averageamp_df_combine = pd.concat([test_df7, soz_df], axis = 1)
 
 test_df8 = pd.DataFrame(data = linelen_perpt)
-test_df = test_df.set_axis(mni_labels, axis = 1)
-test_df8 = test_df8.drop(columns = 'Empty Label')
+test_df8 = test_df8.set_axis(mni_labels, axis = 1)
+#test_df8 = test_df8.drop(columns = 'Empty Label')
 LL_df_combine = pd.concat([test_df8, soz_df], axis = 1)
 
 
@@ -872,3 +875,5 @@ df_riseslope.to_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/H
 df_decayslope.to_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mni_atlas_LM_tables/decayslope.csv", index = False)
 df_averageamp.to_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mni_atlas_LM_tables/averageamp.csv", index = False)
 df_LL.to_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mni_atlas_LM_tables/LL.csv", index = False)
+
+# %%

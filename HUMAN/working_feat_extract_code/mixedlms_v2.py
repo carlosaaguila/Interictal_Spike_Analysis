@@ -51,7 +51,7 @@ for i in mni_labels:
 
 # %% load all tables w/ new features
 
-# load the tables V1
+# load the tables V1 - basic combination of all bilaterals
 df_riseamp = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mixed_effect_tablesv2/riseamp.csv")
 df_decayamp = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mixed_effect_tablesv2/decayamp.csv")
 df_slowwidth = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mixed_effect_tablesv2/slowwidth.csv")
@@ -61,7 +61,7 @@ df_decayslope = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_An
 df_averageamp = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mixed_effect_tablesv2/averageamp.csv")
 df_LL = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mixed_effect_tablesv2/LL.csv")
 
-#load the saved tables V2
+#load the saved tables V2 - seperated the bilateral tags into bilateral, bilateral MT (mesialtemp), or bilateral T (temporal)
 df_riseamp_v2 = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mixed_effect_tablesv2/riseamp_v2.csv")
 df_decayamp_v2 = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mixed_effect_tablesv2/decayamp_v2.csv")
 df_slowwidth_v2 = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mixed_effect_tablesv2/slowwidth_v2.csv")
@@ -71,9 +71,17 @@ df_decayslope_v2 = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike
 df_averageamp_v2 = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mixed_effect_tablesv2/averageamp_v2.csv")
 df_LL_v2 = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mixed_effect_tablesv2/LL_v2.csv")
 
+#load the mni parcellation tables:
+df_riseamp_mni = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mni_atlas_LM_tables/riseamp.csv")
+df_decayamp_mni = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mni_atlas_LM_tables/decayamp.csv")
+df_slowwidth_mni = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mni_atlas_LM_tables/slowwidth.csv")
+df_slowamp_mni = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mni_atlas_LM_tables/slowamp.csv")
+df_riseslope_mni = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mni_atlas_LM_tables/riseslope.csv")
+df_decayslope_mni = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mni_atlas_LM_tables/decayslope.csv")
+df_averageamp_mni = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mni_atlas_LM_tables/averageamp.csv")
+df_LL_mni = pd.read_csv("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/mni_atlas_LM_tables/LL.csv")
 
 # %% clean up the tables to remove bilateral and rename SOZ
-
 #remove bilateral tags
 df_riseamp_v2_clean = df_riseamp_v2[df_riseamp_v2['soz'] != 'bilateral']
 df_decayamp_v2_clean = df_decayamp_v2[df_decayamp_v2['soz'] != 'bilateral']
@@ -92,7 +100,7 @@ dict_soz = {'bilateral - mesial temporal':'R_Mesial', 'bilateral - mesial tempor
              'right - other cortex':'R_OtherCortex', 'left - other cortex':'L_OtherCortex'}
 
 #match SOZ to ROI using 1/0 to denote ROI is in the SOZ or not
-def convertTF(feature_matrix):
+def convertTF(feature_matrix, dict_soz):
     """
     Function to add 1/0 to match SOZ to ROI
     """
@@ -109,14 +117,14 @@ def convertTF(feature_matrix):
 
     return df_riseamp_v3_clean
 
-df_riseamp_v3_clean = convertTF(df_riseamp_v2_clean)
-df_decayamp_v3_clean = convertTF(df_decayamp_v2_clean)
-df_slowwidth_v3_clean = convertTF(df_slowwidth_v2_clean)
-df_slowamp_v3_clean = convertTF(df_slowamp_v2_clean)
-df_riseslope_v3_clean = convertTF(df_riseslope_v2_clean)
-df_decayslope_v3_clean = convertTF(df_decayslope_v2_clean)
-df_averageamp_v3_clean = convertTF(df_averageamp_v2_clean)
-df_LL_v3_clean = convertTF(df_LL_v2_clean)
+df_riseamp_v3_clean = convertTF(df_riseamp_v2_clean, dict_soz)
+df_decayamp_v3_clean = convertTF(df_decayamp_v2_clean, dict_soz)
+df_slowwidth_v3_clean = convertTF(df_slowwidth_v2_clean, dict_soz)
+df_slowamp_v3_clean = convertTF(df_slowamp_v2_clean, dict_soz)
+df_riseslope_v3_clean = convertTF(df_riseslope_v2_clean, dict_soz)
+df_decayslope_v3_clean = convertTF(df_decayslope_v2_clean, dict_soz)
+df_averageamp_v3_clean = convertTF(df_averageamp_v2_clean, dict_soz)
+df_LL_v3_clean = convertTF(df_LL_v2_clean, dict_soz)
 
     #decayamp v2 table
 
@@ -145,7 +153,6 @@ df_averageamp_v3_clean = df_averageamp_v3_clean.rename(columns = {'soz2':'soz'})
 df_LL_v3_clean = df_LL_v3_clean.drop(columns = ['soz'])
 df_LL_v3_clean = df_LL_v3_clean.rename(columns = {'soz2':'soz'})
 
-
 #%%find the average feature for each pt for each roi
 
 #riseamp
@@ -158,6 +165,60 @@ df_decayslope_avg_clean = df_decayslope_v3_clean.groupby(['pt','roi','soz']).med
 df_averageamp_avg_clean = df_averageamp_v3_clean.groupby(['pt','roi','soz']).median().reset_index().dropna()
 df_LL_avg_clean = df_LL_v3_clean.groupby(['pt','roi','soz']).median().reset_index().dropna()
 
+#%% Reepat the same process for the MNI datasets:
+#remove bilaterals:
+df_riseamp_mni_clean = df_riseamp_mni[df_riseamp_mni['soz'] != 'bilateral']
+df_decayamp_mni_clean = df_decayamp_mni[df_decayamp_mni['soz'] != 'bilateral']
+df_slowwidth_mni_clean = df_slowwidth_mni[df_slowwidth_mni['soz'] != 'bilateral']
+df_slowamp_mni_clean = df_slowamp_mni[df_slowamp_mni['soz'] != 'bilateral']
+df_riseslope_mni_clean = df_riseslope_mni[df_riseslope_mni['soz'] != 'bilateral']
+df_decayslope_mni_clean = df_decayslope_mni[df_decayslope_mni['soz'] != 'bilateral']
+df_averageamp_mni_clean = df_averageamp_mni[df_averageamp_mni['soz'] != 'bilateral']
+df_LL_mni_clean = df_LL_mni[df_LL_mni['soz'] != 'bilateral']
+
+#dictionary containing the SOZ and their corresponding ROI
+dict_soz2 = {'bilateral - mesial temporal':'Amyg_Hipp_L', 'bilateral - mesial temporal':'Amyg_Hipp_R',
+             'bilateral - mesial temporal':'ParaHippocampal_R', 'bilateral - mesial temporal':'ParaHippocampal_L',
+             'left - mesial temporal':'Amyg_Hipp_L', 'left - mesial temporal':'ParaHippocampal_L',
+             'right - mesial temporal':'Amyg_Hipp_R', 'right - mesial temporal':'ParaHippocampal_R',
+             'bilateral - temporal neocortical':'Temporal_Inf_L', 'bilateral - temporal neocortical':'Temporal_Inf_R',
+             'bilateral - temporal neocortical':'Temporal_Mid_L', 'bilateral - temporal neocortical':'Temporal_Mid_R',
+             'bilateral - temporal neocortical':'Temporal_Sup_L', 'bilateral - temporal neocortical':'Temporal_Sup_R',
+             'bilateral - temporal neocortical':'Fusiform_L', 'bilateral - temporal neocortical':'Fusiform_R', 
+             'left - temporal neocortical':'Temporal_Inf_L', 'left - temporal neocortical':'Temporal_Mid_L', 
+             'left - temporal neocortical':'Temporal_Sup_L', 'left - temporal neocortical':'Fusiform_L',
+             'right - temporal neocortical':'Temporal_Inf_R', 'right - temporal neocortical':'Temporal_Mid_R', 
+             'right - temporal neocortical':'Temporal_Sup_R', 'right - temporal neocortical':'Fusiform_R',
+             'left - other cortex':'Cingulum_L', 'left - other cortex':'FMO_Rect_L', 'left - other cortex':'Frontal_Mid_All_L', 
+             'left - other cortex':'Frontal_Sup_All_L', 'left - other cortex':'Frontal_inf_All_L', 'left - other cortex':'Insula_L', 
+             'left - other cortex':'Occipital_Lat_L', 'left - other cortex':'Occipital_Med_L', 'left - other cortex':'Parietal_Sup_Inf_L', 
+             'left - other cortex':'Postcentral_L', 'left - other cortex':'Precentral_L', 'left - other cortex':'Precuneus_PCL_L', 
+             'left - other cortex':'SupraMarginal_Angular_L', 'left - other cortex':'thalam_limbic_L',
+             'right - other cortex':'Cingulum_R', 'right - other cortex':'FMO_Rect_R', 'right - other cortex':'Frontal_Mid_All_R', 
+             'right - other cortex':'Frontal_Sup_All_R', 'right - other cortex':'Frontal_inf_All_R', 
+             'right - other cortex':'Insula_R', 'right - other cortex':'Occipital_Lat_R', 'right - other cortex':'Occipital_Med_R', 
+             'right - other cortex':'Parietal_Sup_Inf_R', 'right - other cortex':'Postcentral_R', 'right - other cortex':'Precentral_R', 
+             'right - other cortex':'Precuneus_PCL_R', 'right - other cortex':'SupraMarginal_Angular_R', 'right - other cortex':'thalam_limbic_R'
+             }
+
+df_riseamp_mni_convert = convertTF(df_riseamp_mni_clean, dict_soz2).drop(columns = ['soz']).rename(columns = {'soz2':'soz'})
+df_decayamp_mni_convert = convertTF(df_decayamp_mni_clean, dict_soz2).drop(columns = ['soz']).rename(columns = {'soz2':'soz'})
+df_slowwidth_mni_convert = convertTF(df_slowwidth_mni_clean, dict_soz2).drop(columns = ['soz']).rename(columns = {'soz2':'soz'})
+df_slowamp_mni_convert = convertTF(df_slowamp_mni_clean, dict_soz2).drop(columns = ['soz']).rename(columns = {'soz2':'soz'})
+df_riseslope_mni_convert = convertTF(df_riseslope_mni_clean, dict_soz2).drop(columns = ['soz']).rename(columns = {'soz2':'soz'})
+df_decayslope_mni_convert = convertTF(df_decayslope_mni_clean, dict_soz2).drop(columns = ['soz']).rename(columns = {'soz2':'soz'})
+df_averageamp_mni_convert = convertTF(df_averageamp_mni_clean, dict_soz2).drop(columns = ['soz']).rename(columns = {'soz2':'soz'})
+df_LL_mni_convert = convertTF(df_LL_mni_clean, dict_soz2).drop(columns = ['soz']).rename(columns = {'soz2':'soz'})
+
+#get the average
+df_riseamp_mni_avg= df_riseamp_mni_convert.groupby(['pt','roi','soz']).median().reset_index().dropna()
+df_decayamp_mni_avg = df_decayamp_mni_convert.groupby(['pt','roi','soz']).median().reset_index().dropna()
+df_slowwidth_mni_avg = df_slowwidth_mni_convert.groupby(['pt','roi','soz']).median().reset_index().dropna()
+df_slowamp_mni_avg = df_slowamp_mni_convert.groupby(['pt','roi','soz']).median().reset_index().dropna()
+df_riseslope_mni_avg = df_riseslope_mni_convert.groupby(['pt','roi','soz']).median().reset_index().dropna()
+df_decayslope_mni_avg = df_decayslope_mni_convert.groupby(['pt','roi','soz']).median().reset_index().dropna()
+df_averageamp_mni_avg = df_averageamp_mni_convert.groupby(['pt','roi','soz']).median().reset_index().dropna()
+df_LL_mni_avg = df_LL_mni_convert.groupby(['pt','roi','soz']).median().reset_index().dropna()
 
 #%% put dataframes into lists for for loops (mixed LMS)
 feature_avg_list = [df_riseamp_avg_clean, df_decayamp_avg_clean, df_slowwidth_avg_clean, df_slowamp_avg_clean, df_riseslope_avg_clean, df_decayslope_avg_clean, df_averageamp_avg_clean, df_LL_avg_clean]
