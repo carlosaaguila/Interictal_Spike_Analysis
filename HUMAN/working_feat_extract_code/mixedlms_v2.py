@@ -223,9 +223,39 @@ df_LL_mni_avg = df_LL_mni_convert.groupby(['pt','roi','soz']).median().reset_ind
 #%% put dataframes into lists for for loops (mixed LMS)
 feature_avg_list = [df_riseamp_avg_clean, df_decayamp_avg_clean, df_slowwidth_avg_clean, df_slowamp_avg_clean, df_riseslope_avg_clean, df_decayslope_avg_clean, df_averageamp_avg_clean, df_LL_avg_clean]
 feature_list = [df_riseamp_v3_clean, df_decayamp_v3_clean, df_slowwidth_v3_clean, df_slowamp_v3_clean, df_riseslope_v3_clean, df_decayslope_v3_clean, df_averageamp_v3_clean, df_LL_v3_clean]
+mni_list = [df_riseamp_mni_convert, df_decayamp_mni_convert, df_slowwidth_mni_convert, df_slowamp_mni_convert, df_riseslope_mni_convert, df_decayslope_mni_convert, df_averageamp_mni_convert, df_LL_mni_convert]
+mni_avg_list = [df_riseamp_mni_avg, df_decayamp_mni_avg, df_slowwidth_mni_avg, df_slowamp_mni_avg, df_riseslope_mni_avg, df_decayslope_mni_avg, df_averageamp_mni_avg, df_LL_mni_avg]
 feature = ['amp', 'amp', 'width', 'amp', 'slope', 'slope', 'amp', 'LL']
 titles = ['Rise Amp', 'Decay Amp', 'Slow Width', 'Slow Amp', 'Rise Slope', 'Decay Slope', 'Average Amp', 'LL']
 
+#%% Forest Plots function
+def forest_plots(model, title):
+    params = model.params
+    conf = model.conf_int()
+    conf['Odds Ratio'] = params
+    conf.columns = ['2.5%', '97.5%', 'Odds Ratio']# convert log odds to ORs
+    odds = pd.DataFrame((conf))# check if pvalues are significant
+    odds['pvalues'] = model.pvalues
+    odds['significant?'] = ['significant' if pval <= 0.05 else 'not significant' for pval in model.pvalues]
+
+    fig, ax = plt.subplots(nrows=1, sharex=True, sharey=True, figsize=(10, 10), dpi=150)
+    for idx, row in odds.iloc[::-1].iterrows():
+        ci = [[row['Odds Ratio'] - row[::-1]['2.5%']], [row['97.5%'] - row['Odds Ratio']]]
+        if row['significant?'] == 'significant':
+            plt.errorbar(x=[row['Odds Ratio']], y=[row.name], xerr=ci,
+                ecolor='tab:red', capsize=3, linestyle='None', linewidth=1, marker="o", 
+                        markersize=5, mfc="tab:red", mec="tab:red")
+        else:
+            plt.errorbar(x=[row['Odds Ratio']], y=[row.name], xerr=ci,
+                ecolor='tab:gray', capsize=3, linestyle='None', linewidth=1, marker="o", 
+                        markersize=5, mfc="tab:gray", mec="tab:gray")
+        plt.axvline(x=1, linewidth=0.8, linestyle='--', color='black')
+    plt.tick_params(axis='both', which='major', labelsize=8)
+    plt.xlabel('Odds Ratio and 95% Confidence Interval', fontsize=8)
+    plt.tight_layout()
+    plt.title('Forest Plot of {}'.format(title), fontsize=10)
+    plt.show()
+    return odds, fig
 #%% mixed LM - average feature
 for i, (feat, list) in enumerate(zip(feature, feature_avg_list)):
     md = smf.mixedlm("{} ~ C(soz) + C(roi) + C(soz):C(roi)".format(feat), list, groups="pt")
@@ -261,11 +291,23 @@ for i,(feat, list) in enumerate(zip(feature, feature_list)):
     print('====================================================================================================')
 
 
-# %% try to flip the feature and soz
-for i, (feat, list) in enumerate(zip(feature, feature_avg_list)):
-    md = smf.mixedlm("C(soz) ~ {}".format(feat), list, groups="pt")
+# %% mixed LM  - MNI atlas table (convert tables)
+for i, (feat, list) in enumerate(zip(feature, mni_avg_list)):
+    print(titles[i])
+    md = smf.mixedlm("{} ~ C(soz) + C(roi)".format(feat), list, groups="pt")
     mdf = md.fit()
     print("{} --- MIXED LM RESULTS".format(titles[i]))
     print(mdf.summary())
     print(mdf.pvalues)
+    odds, fig = forest_plots(mdf, titles[i])
+
+# %% 2-WAY ANOVA MODEL - MNI atlas table
+
+for i,(feat, list) in enumerate(zip(feature, mni_list)):
+    model = ols('{} ~ C(soz) + C(roi)'.format(feat), data=list).fit()
+    result = sm.stats.anova_lm(model, type=2)
+    print("{} --- 2-WAY ANOVA RESULTS".format(titles[i]))
+    print(result)
+    print('====================================================================================================')
+
 # %%
