@@ -32,8 +32,35 @@ pt_name = 'HUP210'
 spike, atlas, _,_ = load_ptall(pt_name, data_directory)
 
 #%% find spikes that are related to the atlas
+
+#simple function to plot the a spike sequence
+def simple_eeg_plot(values, chLabels, redChannels):
+    offset = 0
+
+    plt.figure(figsize=(50, 50))
+    for ich in range(values.shape[1]):
+        eeg = values.iloc[:, ich].to_numpy()
+        if np.any(~np.isnan(eeg)):
+            if chLabels[ich] in redChannels:
+                color = 'r'
+            else:
+                color = 'k'
+            plt.plot(eeg - offset, color)
+            plt.text(len(eeg) + 0.05, -offset + np.nanmedian(eeg), chLabels[ich])
+            last_min = np.nanmin(eeg)
+
+        if ich < values.shape[1] - 1:
+            next_eeg = values.iloc[:, ich + 1].to_numpy()
+            if np.any(~np.isnan(next_eeg)) and not np.isnan(last_min):
+                offset = offset - (last_min - np.nanmax(next_eeg))
+
+    plt.show()
+
 #clean labels
 def decompose_labels(chLabel, name):
+    """
+    clean the channel labels, one at a time.
+    """
     clean_label = []
     elec = []
     number = []
@@ -88,23 +115,13 @@ def decompose_labels(chLabel, name):
 
     clean_label = label_str
 
-    # Get the non-numerical portion
-    label_num_idx = re.search(r'\d', label_str)
-    label_non_num = label_str[:label_num_idx.start()]
-    elec = label_non_num
-
-    # Get numerical portion
-    label_num = re.search(r'\d+', label_str[label_num_idx.start():])
-    label_num = int(label_num.group()) if label_num else float('nan')
-    number = label_num
-
     if 'Fp1' in label_str.lower():
         clean_label = 'Fp1'
 
     if 'Fp2' in label_str.lower():
         clean_label = 'Fp2'
 
-    return clean_label#, elec, number
+    return clean_label
 
 #clean the labels in the spike dataframe
 lead_spikes_pt1['channel_label'] = lead_spikes_pt1['channel_label'].apply(lambda x: decompose_labels(x, pt_name))
@@ -138,7 +155,15 @@ ieeg_data, fs = get_iEEG_data(
             all_channel_labels,
         )
 fs = int(fs)
+
+#%% plot the spike sequence
+#plot the spike sequence
+red_chs = lead_spikes_pt1[lead_spikes_pt1['sequence_index'] == 5]['channel_label'].to_list()
+clean_labels = [decompose_labels(x, pt_name) for x in all_channel_labels]
+simple_eeg_plot(ieeg_data, clean_labels, red_chs)
+
 #%% reference
+"""
 channel_labels_to_download = all_channel_labels[electrode_selection(all_channel_labels)]
 
 duration_usec = dataset.get_time_series_details(channel_labels_to_download[0]).duration
@@ -246,4 +271,4 @@ for interval in range(total_intervals):
 
 
 #%% link the spikes to the atlas
-
+"""
