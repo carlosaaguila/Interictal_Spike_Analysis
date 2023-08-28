@@ -37,7 +37,7 @@ spike, atlas, _,_ = load_ptall(pt_name, data_directory)
 def simple_eeg_plot(values, chLabels, redChannels):
     offset = 0
 
-    plt.figure(figsize=(50, 50))
+    plt.figure(figsize=(25, 25))
     for ich in range(values.shape[1]):
         eeg = values.iloc[:, ich].to_numpy()
         if np.any(~np.isnan(eeg)):
@@ -54,7 +54,32 @@ def simple_eeg_plot(values, chLabels, redChannels):
             if np.any(~np.isnan(next_eeg)) and not np.isnan(last_min):
                 offset = offset - (last_min - np.nanmax(next_eeg))
 
+    #pass an plt.xlim that focuses around the center of the spike
+    plt.xlim((len(eeg)/2) - 1000, (len(eeg)/2) + 1000)
     plt.show()
+
+#create function called simple_eeg_plot_red that only plots the channels in redChannels, and skips the others
+def simple_eeg_plot_red(values, chLabels, redChannels):
+    offset = 0
+
+    plt.figure(figsize=(10,10))
+    for ich in range(values.shape[1]):
+        eeg = values.iloc[:, ich].to_numpy()
+        if np.any(~np.isnan(eeg)):
+            if chLabels[ich] in redChannels:
+                color = 'r'
+            else:
+                continue
+            plt.plot(eeg - offset, color)
+            plt.text(len(eeg) + 0.05, -offset + np.nanmedian(eeg), chLabels[ich])
+            last_min = np.nanmin(eeg)
+
+        if ich < values.shape[1] - 1:
+            next_eeg = values.iloc[:, ich + 1].to_numpy()
+            if np.any(~np.isnan(next_eeg)) and not np.isnan(last_min):
+                offset = offset - (last_min - np.nanmax(next_eeg))
+    plt.show()
+
 
 #clean labels
 def decompose_labels(chLabel, name):
@@ -123,8 +148,31 @@ def decompose_labels(chLabel, name):
 
     return clean_label
 
+#a function that will drop any sequence_index that doesn't have over 6 unique channels
+def drop_seq(df):
+    """
+    drop any sequence_index that doesn't have over 5 unique channels
+    """
+    #find the unique sequence_index
+    unique_seq = df['sequence_index'].unique()
+    #create a list to store the sequence_index that have over 6 unique channels
+    keep_seq = []
+    #loop through the unique sequence_index
+    for seq in unique_seq:
+        #find the number of unique channels in the sequence_index
+        num_unique = len(df[df['sequence_index'] == seq]['channel_label'].unique())
+        #if the number of unique channels is greater than 6, append the sequence_index to keep_seq
+        if num_unique > 6:
+            keep_seq.append(seq)
+    #return the dataframe with only the sequence_index that have over 6 unique channels
+    return df[df['sequence_index'].isin(keep_seq)]
+
+#%%
 #clean the labels in the spike dataframe
 lead_spikes_pt1['channel_label'] = lead_spikes_pt1['channel_label'].apply(lambda x: decompose_labels(x, pt_name))
+
+#drop any sequence_index that doesn't have over 6 unique channels
+lead_spikes_pt1 = drop_seq(lead_spikes_pt1)
 
 #%% check to see how many clean spikes that are true in is_leader, are in the atlas
 #find the spikes that are true in is_leader
@@ -146,129 +194,26 @@ with open("/mnt/leif/littlab/users/aguilac/tools/agu_ieeglogin.bin", "r") as f:
 dataset = session.open_dataset('HUP210_phaseII')
 all_channel_labels = np.array(dataset.get_channel_labels())
 
+#get the channel_index from lead_spikes_leaders for a random sequence_index
+#change the sequence_index == X for a different peak_index
+X = 14;
+seq_start = lead_spikes_leaders[lead_spikes_leaders['sequence_index'] == X]['peak_index'].to_list()[0]
+
 ieeg_data, fs = get_iEEG_data(
             "aguilac",
             "/mnt/leif/littlab/users/aguilac/tools/agu_ieeglogin.bin",
             "HUP210_phaseII",
-            (70886208/1024 * 1e6) - (4 * 1e6),
-            (70886208/1024 * 1e6) + (4 * 1e6),
+            (seq_start/1024 * 1e6) - (4 * 1e6),
+            (seq_start/1024 * 1e6) + (4 * 1e6),
             all_channel_labels,
         )
 fs = int(fs)
 
 #%% plot the spike sequence
-#plot the spike sequence
-red_chs = lead_spikes_pt1[lead_spikes_pt1['sequence_index'] == 5]['channel_label'].to_list()
+
+red_chs = lead_spikes_pt1[lead_spikes_pt1['sequence_index'] == X]['channel_label'].to_list()
 clean_labels = [decompose_labels(x, pt_name) for x in all_channel_labels]
 simple_eeg_plot(ieeg_data, clean_labels, red_chs)
+simple_eeg_plot_red(ieeg_data, clean_labels, red_chs)
 
-#%% reference
-"""
-channel_labels_to_download = all_channel_labels[electrode_selection(all_channel_labels)]
-
-duration_usec = dataset.get_time_series_details(channel_labels_to_download[0]).duration
-duration_hours = int(duration_usec / 1000000 / 60 / 60)
-enlarged_duration_hours = duration_hours + 24
-
-print(f"Opening {dataset_name} with duration {duration_hours} hours")
-
-# Calculate the total number of 2-minute intervals in the enlarged duration
-total_intervals = enlarged_duration_hours * 30  # 60min/hour / 2min = 30
-
-synchrony_broadband_vector_to_save = np.full(total_intervals, np.nan)
-synchrony_60_100_vector_to_save = np.full(total_intervals, np.nan)
-synchrony_100_125_vector_to_save = np.full(total_intervals, np.nan)
-
-# Loop through each 2-minute interval
-for interval in range(total_intervals):
-    print(f"Getting iEEG data for interval {interval} out of {total_intervals}")
-    duration_usec = 1.2e8  # 2 minutes
-    start_time_usec = interval * 2 * 60 * 1e6  # 2 minutes in microseconds
-    stop_time_usec = start_time_usec + duration_usec
-
-    try:
-        ieeg_data, fs = get_iEEG_data(
-            "dma",
-            "dma_ieeglogin.bin",
-            dataset_name,
-            start_time_usec,
-            stop_time_usec,
-            channel_labels_to_download,
-        )
-        fs = int(fs)
-    except Exception as e:
-        # handle the exception
-        print(f"Error: {e}")
-        break
-
-    # Drop rows that has any nan
-    ieeg_data = ieeg_data.dropna(axis=0, how="any")
-    if ieeg_data.empty:
-        print("Empty dataframe after dropping nan, skip...")
-        continue
-
-    good_channels_res = detect_bad_channels_optimized(ieeg_data.to_numpy(), fs)
-    good_channel_indicies = good_channels_res[0]
-    good_channel_labels = channel_labels_to_download[good_channel_indicies]
-    ieeg_data = ieeg_data[good_channel_labels].to_numpy()
-
-    # Check if ieeg_data is empty after dropping bad channels
-    if ieeg_data.size == 0:
-        print("Empty dataframe after dropping bad channels, skip...")
-        continue
-
-    ieeg_data = common_average_montage(ieeg_data)
-
-    # Apply the filters directly on the DataFrame
-    ieeg_data = notch_filter(ieeg_data, 59, 61, fs)
-
-    ##############################
-    # Calculate synchrony (broadband)
-    ##############################
-    _, R = calculate_synchrony(ieeg_data.T)
-    synchrony_broadband_vector_to_save[interval] = R
-
-    ##############################
-    # Calculate synchrony (60-100Hz)
-    ##############################
-    ieeg_data_60_100 = bandpass_filter(ieeg_data, 60, 100, fs)
-    _, R = calculate_synchrony(ieeg_data_60_100.T)
-    synchrony_60_100_vector_to_save[interval] = R
-
-    ##############################
-    # Calculate synchrony (100-125Hz)
-    ##############################
-    try:
-        ieeg_data_100_125 = bandpass_filter(ieeg_data, 100, 125, fs)
-        _, R = calculate_synchrony(ieeg_data_100_125.T)
-        synchrony_100_125_vector_to_save[interval] = R
-    except Exception as e:
-        print(f"Error: {e}")
-
-    print(f"Finished calculating synchrony for interval {interval}")
-
-    ##############################
-    # Detect spikes
-    ##############################
-    ieeg_data_for_spikes = bandpass_filter(ieeg_data, 1, 70, fs)
-
-    spike_output = spike_detector(
-        data=ieeg_data_for_spikes,
-        fs=fs,
-        labels=good_channel_labels,
-    )
-    if len(spike_output) == 0:
-        print("No spikes detected, skip saving...")
-        continue
-    else:
-        print(f"Detected {len(spike_output)} spikes")
-
-
-#%% find the variance across
-#looks like for HUP201, there is 101k spikes that are "leaders"
-#a lot of leaders are in the SOZ. The split is 73k/27k for SOZ/NSOZ. 
-#
-
-
-#%% link the spikes to the atlas
-"""
+# %%
