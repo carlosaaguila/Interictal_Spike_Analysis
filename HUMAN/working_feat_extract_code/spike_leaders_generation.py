@@ -53,9 +53,7 @@ def simple_eeg_plot(values, chLabels, redChannels):
             next_eeg = values.iloc[:, ich + 1].to_numpy()
             if np.any(~np.isnan(next_eeg)) and not np.isnan(last_min):
                 offset = offset - (last_min - np.nanmax(next_eeg))
-
     #pass an plt.xlim that focuses around the center of the spike
-    plt.xlim((len(eeg)/2) - 1000, (len(eeg)/2) + 1000)
     plt.show()
 
 #create function called simple_eeg_plot_red that only plots the channels in redChannels, and skips the others
@@ -80,6 +78,34 @@ def simple_eeg_plot_red(values, chLabels, redChannels):
                 offset = offset - (last_min - np.nanmax(next_eeg))
     plt.show()
 
+#function to plot just the lead spike
+def simple_eeg_plot_lead(values, chLabels, redChannels):
+    offset = 0
+    count = 0
+    plt.figure(figsize=(10,10))
+    for ich in range(values.shape[1]):
+        eeg = values.iloc[:, ich].to_numpy()
+        if np.any(~np.isnan(eeg)):
+            if chLabels[ich] in redChannels:
+                color = 'r'
+                count = count+1
+            else:
+                continue
+            plt.plot(eeg - offset, color)
+            plt.text(len(eeg) + 0.05, -offset + np.nanmedian(eeg), chLabels[ich])
+            #plt.text((len(eeg)/2) + 1000.05, -offset + np.nanmedian(eeg), chLabels[ich])
+            last_min = np.nanmin(eeg)
+
+        if ich < values.shape[1] - 1:
+            next_eeg = values.iloc[:, ich + 1].to_numpy()
+            if np.any(~np.isnan(next_eeg)) and not np.isnan(last_min):
+                offset = offset - (last_min - np.nanmax(next_eeg))
+
+    if count > 0:
+        print('no valid lead channel')
+
+    #plt.xlim(((len(eeg)/2) - 1000, (len(eeg)/2) + 1000))
+    plt.show()
 
 #clean labels
 def decompose_labels(chLabel, name):
@@ -172,11 +198,11 @@ def drop_seq(df):
 lead_spikes_pt1['channel_label'] = lead_spikes_pt1['channel_label'].apply(lambda x: decompose_labels(x, pt_name))
 
 #drop any sequence_index that doesn't have over 6 unique channels
-lead_spikes_pt1 = drop_seq(lead_spikes_pt1)
+lead_spikes_drop = drop_seq(lead_spikes_pt1)
 
 #%% check to see how many clean spikes that are true in is_leader, are in the atlas
 #find the spikes that are true in is_leader
-lead_spikes_leaders = lead_spikes_pt1[lead_spikes_pt1['is_leader'] == True]
+lead_spikes_leaders = lead_spikes_drop[lead_spikes_drop['is_leader'] == True]
 #find the spikes that are in the atlas
 in_atlas = lead_spikes_leaders[lead_spikes_leaders['channel_label'].isin(atlas['key_0'])]
 #find the spikes that are not in the atlas
@@ -196,24 +222,71 @@ all_channel_labels = np.array(dataset.get_channel_labels())
 
 #get the channel_index from lead_spikes_leaders for a random sequence_index
 #change the sequence_index == X for a different peak_index
-X = 14;
-seq_start = lead_spikes_leaders[lead_spikes_leaders['sequence_index'] == X]['peak_index'].to_list()[0]
+X = 14
+seq_start = lead_spikes_pt1[lead_spikes_pt1['sequence_index'] == X]['peak_index'].to_list()[0]
+ch_labels = all_channel_labels[electrode_selection(all_channel_labels)]
 
 ieeg_data, fs = get_iEEG_data(
             "aguilac",
             "/mnt/leif/littlab/users/aguilac/tools/agu_ieeglogin.bin",
             "HUP210_phaseII",
-            (seq_start/1024 * 1e6) - (4 * 1e6),
-            (seq_start/1024 * 1e6) + (4 * 1e6),
-            all_channel_labels,
+            (seq_start/1024 * 1e6) - (3 * 1e6),
+            (seq_start/1024 * 1e6) + (3 * 1e6),
+            ch_labels,
         )
+
 fs = int(fs)
 
-#%% plot the spike sequence
+#%% 
+# Apply CAR Montage
+CAR_data = common_average_montage(ieeg_data.to_numpy())
+clean_labels = [decompose_labels(x, pt_name) for x in ieeg_data.columns]
+#apply bandpass filter
+CAR_data_filt = butter_bp_filter(CAR_data, 1, 70, fs, order=4)
+CAR_data = pd.DataFrame(CAR_data_filt, columns = clean_labels)
 
-red_chs = lead_spikes_pt1[lead_spikes_pt1['sequence_index'] == X]['channel_label'].to_list()
-clean_labels = [decompose_labels(x, pt_name) for x in all_channel_labels]
+#Apply Bipolar Montage
+BIP_data, BIP_labels = automatic_bipolar_montage(ieeg_data.to_numpy(), ieeg_data.columns)
+BIP_clean_labels = [decompose_labels(x, pt_name) for x in BIP_labels]
+#apply bandpass filter
+BIP_data_filt = butter_bp_filter(BIP_data, 1, 70, fs, order=4)
+BIP_data = pd.DataFrame(BIP_data_filt, columns = BIP_clean_labels)
+
+
+#%% plot the spike sequence
+#RAW
+
+red_chs = lead_spikes_pt1[lead_spikes_pt1['sequence_index'] == X].sort_values(['peak_index'])['channel_label'].to_list()
+clean_labels = [decompose_labels(x, pt_name) for x in ch_labels]
 simple_eeg_plot(ieeg_data, clean_labels, red_chs)
 simple_eeg_plot_red(ieeg_data, clean_labels, red_chs)
 
+#plot just the leader spike
+lead = lead_spikes_pt1[lead_spikes_pt1['sequence_index'] == X][lead_spikes_pt1['is_leader'] == True].sort_values(['peak_index'])['channel_label'].to_list()
+simple_eeg_plot_lead(ieeg_data, clean_labels, lead)
+
+#%% plot the spike sequence
+#CAR
+
+red_chs = lead_spikes_pt1[lead_spikes_pt1['sequence_index'] == X].sort_values(['peak_index'])['channel_label'].to_list()
+clean_labels = [decompose_labels(x, pt_name) for x in ch_labels]
+simple_eeg_plot(CAR_data, clean_labels, red_chs)
+simple_eeg_plot_red(CAR_data, clean_labels, red_chs)
+
+#plot just the leader spike
+lead = lead_spikes_pt1[lead_spikes_pt1['sequence_index'] == X][lead_spikes_pt1['is_leader'] == True].sort_values(['peak_index'])['channel_label'].to_list()
+simple_eeg_plot_lead(CAR_data, clean_labels, lead)
+
+
+#%% plot the spike sequence
+#BIPOLAR
+
+red_chs = lead_spikes_pt1[lead_spikes_pt1['sequence_index'] == X].sort_values(['peak_index'])['channel_label'].to_list()
+clean_labels = [decompose_labels(x, pt_name) for x in ch_labels]
+simple_eeg_plot(BIP_data, clean_labels, red_chs)
+simple_eeg_plot_red(BIP_data, clean_labels, red_chs)
+
+#plot just the leader spike
+lead = lead_spikes_pt1[lead_spikes_pt1['sequence_index'] == X][lead_spikes_pt1['is_leader'] == True].sort_values(['peak_index'])['channel_label'].to_list()
+simple_eeg_plot_lead(BIP_data, clean_labels, lead)
 # %%
