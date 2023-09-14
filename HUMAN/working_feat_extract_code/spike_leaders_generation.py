@@ -222,7 +222,7 @@ all_channel_labels = np.array(dataset.get_channel_labels())
 
 #get the channel_index from lead_spikes_leaders for a random sequence_index
 #change the sequence_index == X for a different peak_index
-X = 14
+X = 14;
 seq_start = lead_spikes_pt1[lead_spikes_pt1['sequence_index'] == X]['peak_index'].to_list()[0]
 ch_labels = all_channel_labels[electrode_selection(all_channel_labels)]
 
@@ -230,14 +230,17 @@ ieeg_data, fs = get_iEEG_data(
             "aguilac",
             "/mnt/leif/littlab/users/aguilac/tools/agu_ieeglogin.bin",
             "HUP210_phaseII",
-            (seq_start/1024 * 1e6) - (3 * 1e6),
-            (seq_start/1024 * 1e6) + (3 * 1e6),
+            (seq_start/1024 * 1e6) - (5 * 1e6),
+            (seq_start/1024 * 1e6) + (5 * 1e6),
             ch_labels,
         )
 
 fs = int(fs)
 
 #%% 
+#reject bad channels
+channel_mask, details = detect_bad_channels_optimized(ieeg_data.to_numpy(), fs)
+
 # Apply CAR Montage
 CAR_data = common_average_montage(ieeg_data.to_numpy())
 clean_labels = [decompose_labels(x, pt_name) for x in ieeg_data.columns]

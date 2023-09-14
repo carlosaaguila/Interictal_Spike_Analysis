@@ -600,12 +600,14 @@ median_feats['color_LL'] = median_feats['color_LL'].apply(lambda x: True if x > 
 
 #%% 
 #create a paired plot of SOZ abs amp vs. nonSOZ abs amp
+plt.rcParams['font.family'] = 'Arial'
+plt.rcParams['font.size'] = 12
 fig, ax = plt.subplots(1,1, figsize = (7,7))
 ax.scatter(median_feats[median_feats['color_amp'] == 1]['SOZ abs amp'], median_feats[median_feats['color_amp'] == 1]['nonSOZ abs amp'], color = 'r', label = 'Patients w/ SOZ > ({})'.format(len(median_feats[median_feats['color_amp'] == 1])))
-ax.scatter(median_feats[median_feats['color_amp'] == 0]['SOZ abs amp'], median_feats[median_feats['color_amp'] == 0]['nonSOZ abs amp'], color = 'b', label = 'Patients w/ nonSOZ > ({})'.format(len(median_feats[median_feats['color_amp'] == 0])))
+ax.scatter(median_feats[median_feats['color_amp'] == 0]['SOZ abs amp'], median_feats[median_feats['color_amp'] == 0]['nonSOZ abs amp'], color = 'b', label = 'Patients w/ non-SOZ > ({})'.format(len(median_feats[median_feats['color_amp'] == 0])))
 ax.set_xlabel('SOZ abs amp')
-ax.set_ylabel('nonSOZ abs amp')
-ax.set_title('SOZ vs. nonSOZ abs amp')
+ax.set_ylabel('non-SOZ abs amp')
+ax.set_title('SOZ vs. non-SOZ abs amp')
 ax.plot(np.linspace(0,1200,100), np.linspace(0,1200,100), color = 'k', linestyle = '--')
 ax.set_xlim(0,1200)
 ax.set_ylim(0,1200)
@@ -648,12 +650,12 @@ for i, (SOZ, nonSOZ) in enumerate(zip(SOZ_columns, nonSOZ_columns)):
 #create paired plots
 title = ['Rise Amp', 'Decay Amp', 'Slow Width', 'Slow Amp', 'Rise Slope', 'Decay Slope', 'Avg Amp', 'LL']
 for i in range(len(newcolumns)):
-    fig, ax = plt.subplots(1,1, figsize = (7,7))
+    fig, ax = plt.subplots(1,1, figsize = (10,10))
     ax.scatter(median_feats[median_feats[newcolumns[i]] == 1][SOZ_columns[i]], median_feats[median_feats[newcolumns[i]] == 1][nonSOZ_columns[i]], color = 'r', label = "Patients w/ SOZ > ({})".format(len(median_feats[median_feats[newcolumns[i]] == 1])))
-    ax.scatter(median_feats[median_feats[newcolumns[i]] == 0][SOZ_columns[i]], median_feats[median_feats[newcolumns[i]] == 0][nonSOZ_columns[i]], color = 'b', label = "Patients w/ nonSOZ > ({})".format(len(median_feats[median_feats[newcolumns[i]] == 0])))
+    ax.scatter(median_feats[median_feats[newcolumns[i]] == 0][SOZ_columns[i]], median_feats[median_feats[newcolumns[i]] == 0][nonSOZ_columns[i]], color = 'b', label = "Patients w/ non-SOZ > ({})".format(len(median_feats[median_feats[newcolumns[i]] == 0])))
     ax.set_xlabel(SOZ_columns[i])
     ax.set_ylabel(nonSOZ_columns[i])
-    ax.set_title('SOZ vs. nonSOZ {}'.format(title[i]))
+    ax.set_title('SOZ vs. non-SOZ {}'.format(title[i]))
     lims = [
     np.min([ax.get_xlim(), ax.get_ylim()]),  # min of both axes
     np.max([ax.get_xlim(), ax.get_ylim()]),  # max of both axes
@@ -663,6 +665,29 @@ for i in range(len(newcolumns)):
     ax.set_xlim(lims)
     ax.set_ylim(lims)
     ax.legend()
+
+#%%
+
+i = 0
+fig, ax = plt.subplots(1,1, figsize = (9.85,10))
+ax.scatter(median_feats[median_feats[newcolumns[i]] == 1][SOZ_columns[i]], median_feats[median_feats[newcolumns[i]] == 1][nonSOZ_columns[i]], color = 'r', label = "Patients w/ SOZ > ({})".format(len(median_feats[median_feats[newcolumns[i]] == 1])))
+ax.scatter(median_feats[median_feats[newcolumns[i]] == 0][SOZ_columns[i]], median_feats[median_feats[newcolumns[i]] == 0][nonSOZ_columns[i]], color = 'b', label = "Patients w/ non-SOZ > ({})".format(len(median_feats[median_feats[newcolumns[i]] == 0])))
+ax.set_xlabel('SOZ Rise Amplitude ($\mu$V)')
+ax.set_ylabel('non-SOZ Rise Amplitude ($\mu$V)')
+ax.set_title('SOZ vs. non-SOZ Rise Amplitude')
+lims = [
+    np.min([ax.get_xlim(), ax.get_ylim()]),  # min of both axes
+    np.max([ax.get_xlim(), ax.get_ylim()]),  # max of both axes
+    ]
+ax.plot(lims, lims, 'k--', alpha=0.75, zorder=0)
+ax.set_aspect('equal')
+ax.set_xlim(lims)
+ax.set_ylim(lims)
+ax.yaxis.tick_right()
+ax.yaxis.set_label_position("right")
+ax.legend()
+
+fig.savefig('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/rise_amp_1output.png')
 
 # %% normalcy test
 for SOZfeat, nonSOZfeat in zip(SOZ_columns, nonSOZ_columns):
@@ -681,4 +706,53 @@ for SOZfeat, nonSOZfeat in zip(SOZ_columns, nonSOZ_columns):
     ttest = stats.ttest_rel(median_feats[SOZfeat], median_feats[nonSOZfeat])
     print(SOZfeat, nonSOZfeat)
     print(ttest)
+# %%
+feats_OI = ['SOZ rise amp','nonSOZ rise amp','SOZ decay amp','nonSOZ decay amp','SOZ slow width','nonSOZ slow width','SOZ slow amp','nonSOZ slow amp','SOZ rise slope','nonSOZ rise slope','SOZ decay slope','nonSOZ decay slope','SOZ LL','nonSOZ LL']
+
+median_feats['SOZ rise slope'] = median_feats['SOZ rise slope'].abs()
+median_feats['nonSOZ rise slope'] = median_feats['nonSOZ rise slope'].abs()
+median_feats['SOZ decay slope'] = median_feats['SOZ decay slope'].abs()
+median_feats['nonSOZ decay slope'] = median_feats['nonSOZ decay slope'].abs()
+#create a boxplot of all the features in median_feats, but seperate the SOZ and nonSOZ by color
+boxprops = dict(linestyle='-', linewidth=1.5, color='k')
+medianprops = dict(linestyle='-', linewidth=1.5, color='k')
+plt.rcParams['font.family'] = 'Arial'
+plt.rcParams['font.size'] = 12
+axes = median_feats.boxplot(column = feats_OI, figsize = (15,10), patch_artist = True, showfliers=False, notch = True, grid = False, boxprops = boxprops, medianprops = medianprops, whiskerprops=dict(linestyle='-', linewidth=1.5, color = 'k'))
+
+plt.yscale('log')
+
+import matplotlib
+
+colors = ['r','b','r','b','r','b','r','b','r','b','r','b','r','b']
+for i, color in enumerate(colors):
+    axes.findobj(matplotlib.patches.Patch)[i].set_facecolor(color)
+
+plt.xticks(ticks = [1.5,3.5,5.5,7.5,9.5,11.5,13.5], labels = ['Rise Amplitude', 'Falling Amplitude','Slow Width','Slow Amplitude','Rise Slope','Falling Slope','Line Length'])
+#add xticks to the top of the plot as well to mirror the x axis
+plt.tick_params(top = True)
+
+plt.plot([1, 1, 2, 2], [(10**4+10**3)/2, 10**4, 10**4, (10**4+10**3)/2], lw=1.5, c='k')
+plt.text((1+2)*.5, 10**4, "***", ha='center', va='bottom', color='k')
+
+plt.plot([3, 3, 4, 4], [(10**4+10**3)/2, 10**4, 10**4, (10**4+10**3)/2], lw=1.5, c='k')
+plt.text((4+3)*.5, 10**4, "***", ha='center', va='bottom', color='k')
+
+plt.plot([7, 7, 8, 8], [(10**4+10**3)/2, 10**4, 10**4, (10**4+10**3)/2], lw=1.5, c='k')
+plt.text((8+7)*.5, 10**4, "***", ha='center', va='bottom', color='k')
+
+plt.plot([13, 13, 14, 14], [(10**4+10**3)/2, 10**4, 10**4, (10**4+10**3)/2], lw=1.5, c='k')
+plt.text((13+14)*.5, 10**4, "***", ha='center', va='bottom', color='k')
+
+plt.title("Univariate Analysis of SOZ vs. non-SOZ Features Within Brain Regions")
+
+SOZ = mpatches.Patch(color='r', label='SOZ')
+nonSOZ = mpatches.Patch(color='b', label='non-SOZ')
+plt.legend(handles=[SOZ,nonSOZ])
+plt.ylabel('log(arbitrary units)')
+plt.show()
+
+
+
+
 # %%
