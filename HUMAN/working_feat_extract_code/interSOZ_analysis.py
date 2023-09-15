@@ -390,7 +390,7 @@ def run_interSOZ(ptnames, data_directory, load = True):
 
     return SOZ_all_chs_stacked_DF, nonSOZ_all_chs_stacked_DF, SOZ_average_waveform_DF, nonSOZ_average_waveform_DF, id_df
 # %%
-SOZ_all_chs_stacked_DF, nonSOZ_all_chs_stacked_DF, SOZ_average_waveform_DF, nonSOZ_average_waveform_DF, id_df = run_interSOZ(ptnames, data_directory, load = False)
+SOZ_all_chs_stacked_DF, nonSOZ_all_chs_stacked_DF, SOZ_average_waveform_DF, nonSOZ_average_waveform_DF, id_df = run_interSOZ(ptnames, data_directory, load = True)
 
 #%% function to fix id_df if it ever has to be remade
 def fix_id_df(id_df):
@@ -404,6 +404,8 @@ def fix_id_df(id_df):
     id_df['cumsum nonSOZ'] = id_df['# nonSOZ'].cumsum()
     return id_df
 
+#fix id_df
+id_df = fix_id_df(id_df)
 #%%
 #find patients to remove:
 id_df_cleaned = id_df[(id_df['# SOZ'] > 10) & (id_df['# nonSOZ'] > 10)]
@@ -754,5 +756,28 @@ plt.show()
 
 
 
+#%% ADD HUP IDS TO RID in master_elecs 
+master_elecs = pd.read_csv('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/master_elecs.csv')
+all_ids = pd.read_csv('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/all_ptids.csv', index_col=0)
 
+#merge master_elecs with all_ids to match r_id and rid
+master_elecs = master_elecs.merge(all_ids, how = 'left', left_on = 'rid', right_on = 'r_id')
+#drop columns hup_id, whichPts, r_id
+master_elecs = master_elecs.drop(columns = ['hup_id', 'whichPts', 'r_id'])
+master_elect = master_elecs[['ptname','rid','engel']].drop_duplicates()
 # %%
+#merge soz_w_label and nonsoz_w_label with master_elecs
+#trim soz_w_label to just the id's
+soz_idlist = soz_w_label[['id']]
+nonsoz_idlist = nonsoz_w_label[['id']]
+#merge soz_idlist and nonsoz_idlist with master_elecs
+soz_merge = soz_idlist.merge(master_elect, left_on = 'id', right_on = 'ptname', how = 'left')
+nonsoz_merge = nonsoz_idlist.merge(master_elect, left_on = 'id', right_on = 'ptname', how = 'left')
+# reset the index, to line up the new merged DF with the old DF
+soz_w_label = soz_w_label.reset_index().rename({'index':'old index'})
+nonsoz_w_label = nonsoz_w_label.reset_index().rename({'index':'old index'})
+# put new engel column into old DF
+soz_w_label['engel'] = soz_merge['engel']
+nonsoz_w_label['engel'] = nonsoz_merge['engel']
+# %%
+soz_w_label[['id','engel']].drop_duplicates().groupby('engel').count()
