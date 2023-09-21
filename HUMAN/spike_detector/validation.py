@@ -5,11 +5,38 @@ import numpy as np
 import pandas as pd
 from ieeg.auth import Session
 import matplotlib.pyplot as plt
+import re
+
 
 # Import custom functions
 from get_iEEG_data import *
 from spike_detector import *
 from iEEG_helper_functions import *
+
+#%% function to plot spike train
+def viz_spiketrain(ieeg_data, sequence, chlabels):
+    #function to plot the spike train given from yo
+    #check if ieeg_data is a dataframe
+    if not isinstance(ieeg_data, pd.DataFrame):    
+        ieeg_data = pd.DataFrame(ieeg_data)
+    
+    offset = 0
+    plt.figure(figsize=(10,10))
+    #find the first peak_index only in the sequence
+    first_peak_index = sequence['peak_index'].iloc[0]
+    #plot the first 500 samples before and 1000 samples after, for the channel_label in sequence
+    for i, ch in enumerate(sequence['channel_label']):
+        where = np.where(chlabels == ch)[0][0]
+        to_plot = ieeg_data.iloc[first_peak_index-250:first_peak_index+750, where]
+        plt.plot(to_plot - offset, 'k')
+        plt.text(first_peak_index+750+10, -offset + np.nanmedian(to_plot), chlabels[where])
+        plt.plot((sequence['peak_index'].iloc[i]), ieeg_data.iloc[(sequence['peak_index'].iloc[i]), where] - offset, marker = "o", color = 'r')
+        last_min = np.nanmin(to_plot)
+        if i < len(sequence['channel_label'])-1:
+            next_where = np.where(chlabels == sequence['channel_label'].iloc[i+1])[0][0]
+            next_plot = ieeg_data.iloc[first_peak_index-250:first_peak_index+750, next_where]
+            offset = offset - (last_min - np.nanmax(next_plot))
+        #offset = offset - (np.nanmin(to_plot) - np.nanmax(to_plot))
 
 #%% get data
 # Get the data
@@ -20,6 +47,7 @@ with open(password_bin_filepath, "r") as f:
 blocktime = [279792,279852] #in seconds #checks out 1 to 1
 blocktime = [92919,92979] #1 to 1
 blocktime = [181085,181145] # missing 4 spikes, leaders are right, duplicates in the same channels are dropped
+blocktime = [323111,323171]
 
 dataset_name = "HUP210_phaseII"
 
@@ -72,9 +100,19 @@ spike_output_df = pd.DataFrame(
 )
 spike_output_df["channel_label"] = channel_labels_mapped
 
-#%%
-spike_output_df.groupby('sequence_index').count()
-spike_output_df[spike_output_df['sequence_index'] == 0]
+#%% number of spikes detected
+print(actual_number_of_spikes)
 
+#%% the spike detector output cleaned
+display(spike_output_df)
 
-#%%
+#%% display how many spikes are in each sequence
+display(spike_output_df.groupby('sequence_index').count())
+
+#%% display the sequence
+yo = spike_output_df[spike_output_df['sequence_index'] == 1]
+display(yo)
+print(yo.shape)
+
+# %% Visualize the spike train, confirm that the LEAD spike is actually LEAD
+viz_spiketrain(ieeg_data, yo, good_channel_labels)
