@@ -627,6 +627,9 @@ ax.set_xlim(0,6500)
 ax.set_ylim(0,6500)
 ax.legend()
 
+#########################################
+#           all paired plots            #
+#########################################
 # %%
 SOZ_feats_new = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v1/SOZ_feats.csv', index_col = 0)
 nonSOZ_feats_new = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v1/nonSOZ_feats.csv', index_col = 0)
@@ -669,7 +672,7 @@ for i in range(len(newcolumns)):
     ax.legend()
 
 #%%
-
+#FIGURE FOR AES (SINGLE PRETTY PAIRED PLOT FOR RISE AMP)
 i = 0
 fig, ax = plt.subplots(1,1, figsize = (9.85,10))
 ax.scatter(median_feats[median_feats[newcolumns[i]] == 1][SOZ_columns[i]], median_feats[median_feats[newcolumns[i]] == 1][nonSOZ_columns[i]], color = 'r', label = "Patients w/ SOZ > ({})".format(len(median_feats[median_feats[newcolumns[i]] == 1])))
@@ -709,6 +712,8 @@ for SOZfeat, nonSOZfeat in zip(SOZ_columns, nonSOZ_columns):
     print(SOZfeat, nonSOZfeat)
     print(ttest)
 # %%
+#CREATE HUGE BOXPLOT WITH ALL FEATURES FOR AES
+
 feats_OI = ['SOZ rise amp','nonSOZ rise amp','SOZ decay amp','nonSOZ decay amp','SOZ slow width','nonSOZ slow width','SOZ slow amp','nonSOZ slow amp','SOZ rise slope','nonSOZ rise slope','SOZ decay slope','nonSOZ decay slope','SOZ LL','nonSOZ LL']
 
 median_feats['SOZ rise slope'] = median_feats['SOZ rise slope'].abs()
@@ -754,8 +759,6 @@ plt.legend(handles=[SOZ,nonSOZ])
 plt.ylabel('log(arbitrary units)')
 plt.show()
 
-
-
 #%% ADD HUP IDS TO RID in master_elecs 
 master_elecs = pd.read_csv('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/master_elecs.csv')
 all_ids = pd.read_csv('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/all_ptids.csv', index_col=0)
@@ -764,20 +767,70 @@ all_ids = pd.read_csv('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/resul
 master_elecs = master_elecs.merge(all_ids, how = 'left', left_on = 'rid', right_on = 'r_id')
 #drop columns hup_id, whichPts, r_id
 master_elecs = master_elecs.drop(columns = ['hup_id', 'whichPts', 'r_id'])
-master_elect = master_elecs[['ptname','rid','engel']].drop_duplicates()
+master_elect = master_elecs[['ptname','engel']].drop_duplicates()
+# %% 
+#merge master_elect with median_feats to attach the engel numbers
+median_feats = median_feats.reset_index()
+engel_w_median_feats = median_feats.merge(master_elect[['ptname','engel']], how = 'inner', left_on = 'id', right_on = 'ptname')
+
+# %% seperate into outcomes
+good_outcomes = engel_w_median_feats[engel_w_median_feats['engel'] == 1]
+bad_outcomes = engel_w_median_feats[(engel_w_median_feats['engel'] != 1)].dropna()
+
+#%% GOOD OUTCOMES PAIRED PLOTS
+title = ['Rise Amp', 'Decay Amp', 'Slow Width', 'Slow Amp', 'Rise Slope', 'Decay Slope', 'Avg Amp', 'LL']
+median_feats = good_outcomes
+for i in range(len(newcolumns)):
+    fig, ax = plt.subplots(1,1, figsize = (10,10))
+    #ax.scatter(median_feats[median_feats[newcolumns[i]] == 1][SOZ_columns[i]], median_feats[median_feats[newcolumns[i]] == 1][nonSOZ_columns[i]], color = 'r', label = "Patients w/ SOZ > ({})".format(len(median_feats[median_feats[newcolumns[i]] == 1])))
+    #ax.scatter(median_feats[median_feats[newcolumns[i]] == 0][SOZ_columns[i]], median_feats[median_feats[newcolumns[i]] == 0][nonSOZ_columns[i]], color = 'b', label = "Patients w/ non-SOZ > ({})".format(len(median_feats[median_feats[newcolumns[i]] == 0])))
+    #now plot the same thing but make the point an X if they are a bad outcome
+    ax.scatter(bad_outcomes[bad_outcomes[newcolumns[i]] == 1][SOZ_columns[i]], bad_outcomes[bad_outcomes[newcolumns[i]] == 1][nonSOZ_columns[i]], color = 'r', marker = 'x', label = "Patients w/ SOZ + B.O > ({})".format(len(bad_outcomes[bad_outcomes[newcolumns[i]] == 1]))) 
+    ax.scatter(bad_outcomes[bad_outcomes[newcolumns[i]] == 0][SOZ_columns[i]], bad_outcomes[bad_outcomes[newcolumns[i]] == 0][nonSOZ_columns[i]], color = 'b', marker = 'x', label = "Patients w/ non-SOZ + B.O > ({})".format(len(bad_outcomes[bad_outcomes[newcolumns[i]] == 0])))  
+    #now plot the same thing but make the point an O if they are a good outcome
+    ax.scatter(good_outcomes[good_outcomes[newcolumns[i]] == 1][SOZ_columns[i]], good_outcomes[good_outcomes[newcolumns[i]] == 1][nonSOZ_columns[i]], color = 'r', marker = 'o', facecolors = 'none', label = "Patients w/ SOZ + G.O > ({})".format(len(good_outcomes[good_outcomes[newcolumns[i]] == 1])))
+    ax.scatter(good_outcomes[good_outcomes[newcolumns[i]] == 0][SOZ_columns[i]], good_outcomes[good_outcomes[newcolumns[i]] == 0][nonSOZ_columns[i]], color = 'b', marker = 'o', facecolors = 'none', label = "Patients w/ non-SOZ + G.O > ({})".format(len(good_outcomes[good_outcomes[newcolumns[i]] == 0])))
+    ax.set_xlabel(SOZ_columns[i])
+    ax.set_ylabel(nonSOZ_columns[i])
+    ax.set_title('SOZ vs. non-SOZ {}'.format(title[i]))
+    lims = [
+    np.min([ax.get_xlim(), ax.get_ylim()]),  # min of both axes
+    np.max([ax.get_xlim(), ax.get_ylim()]),  # max of both axes
+    ]
+    ax.plot(lims, lims, 'k--', alpha=0.75, zorder=0)
+    ax.set_aspect('equal')
+    ax.set_xlim(lims)
+    ax.set_ylim(lims)
+    ax.legend()
+
+#%% run the shapiro, wilcoxon and paired t-test on the good and bad outcomes\
+################
+#GOOD OUTCOMES
+################
+
+for SOZfeat, nonSOZfeat in zip(SOZ_columns, nonSOZ_columns):
+    shapiro = stats.shapiro(good_outcomes[SOZfeat] - good_outcomes[nonSOZfeat])
+    wilcoxon = stats.wilcoxon(good_outcomes[SOZfeat], good_outcomes[nonSOZfeat])
+    ttest = stats.ttest_rel(good_outcomes[SOZfeat], good_outcomes[nonSOZfeat])
+    print(SOZfeat, nonSOZfeat)
+    print(shapiro)
+    print(wilcoxon)
+    print(ttest)
+    print('\n')
+#%% REPEAT
+
+################
+#BAD OUTCOMES
+################
+
+for SOZfeat, nonSOZfeat in zip(SOZ_columns, nonSOZ_columns):
+    shapiro = stats.shapiro(bad_outcomes[SOZfeat] - bad_outcomes[nonSOZfeat])
+    wilcoxon = stats.wilcoxon(bad_outcomes[SOZfeat], bad_outcomes[nonSOZfeat])
+    ttest = stats.ttest_rel(bad_outcomes[SOZfeat], bad_outcomes[nonSOZfeat])
+    print(SOZfeat, nonSOZfeat)
+    print(shapiro)
+    print(wilcoxon)
+    print(ttest)
+    print('\n')
+
 # %%
-#merge soz_w_label and nonsoz_w_label with master_elecs
-#trim soz_w_label to just the id's
-soz_idlist = soz_w_label[['id']]
-nonsoz_idlist = nonsoz_w_label[['id']]
-#merge soz_idlist and nonsoz_idlist with master_elecs
-soz_merge = soz_idlist.merge(master_elect, left_on = 'id', right_on = 'ptname', how = 'left')
-nonsoz_merge = nonsoz_idlist.merge(master_elect, left_on = 'id', right_on = 'ptname', how = 'left')
-# reset the index, to line up the new merged DF with the old DF
-soz_w_label = soz_w_label.reset_index().rename({'index':'old index'})
-nonsoz_w_label = nonsoz_w_label.reset_index().rename({'index':'old index'})
-# put new engel column into old DF
-soz_w_label['engel'] = soz_merge['engel']
-nonsoz_w_label['engel'] = nonsoz_merge['engel']
-# %%
-soz_w_label[['id','engel']].drop_duplicates().groupby('engel').count()
