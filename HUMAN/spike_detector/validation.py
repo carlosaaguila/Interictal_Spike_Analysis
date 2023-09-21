@@ -30,7 +30,7 @@ def viz_spiketrain(ieeg_data, sequence, chlabels):
         to_plot = ieeg_data.iloc[first_peak_index-250:first_peak_index+750, where]
         plt.plot(to_plot - offset, 'k')
         plt.text(first_peak_index+750+10, -offset + np.nanmedian(to_plot), chlabels[where])
-        plt.plot((sequence['peak_index'].iloc[i]), ieeg_data.iloc[(sequence['peak_index'].iloc[i]), where] - offset, marker = "o", color = 'r')
+        plt.plot((sequence['peak_index'].iloc[i]), ieeg_data.iloc[(sequence['peak_index'].iloc[i]), where] - offset, marker = "x", color = 'r')
         last_min = np.nanmin(to_plot)
         if i < len(sequence['channel_label'])-1:
             next_where = np.where(chlabels == sequence['channel_label'].iloc[i+1])[0][0]
@@ -47,7 +47,10 @@ with open(password_bin_filepath, "r") as f:
 blocktime = [279792,279852] #in seconds #checks out 1 to 1
 blocktime = [92919,92979] #1 to 1
 blocktime = [181085,181145] # missing 4 spikes, leaders are right, duplicates in the same channels are dropped
-blocktime = [323111,323171]
+blocktime = [323111,323171] # pretty good, missing 2-3 spikes, leaders are right, duplicates in the same channels are dropped
+blocktime = [425874,425934] #looks good, the counts are similar, but perhaps using PEAKS will define 
+                            #the order better especially in some cases like in sequence_index 7
+
 
 dataset_name = "HUP210_phaseII"
 
@@ -110,9 +113,12 @@ display(spike_output_df)
 display(spike_output_df.groupby('sequence_index').count())
 
 #%% display the sequence
-yo = spike_output_df[spike_output_df['sequence_index'] == 1]
+yo = spike_output_df[spike_output_df['sequence_index'] == 7]
 display(yo)
 print(yo.shape)
 
 # %% Visualize the spike train, confirm that the LEAD spike is actually LEAD
 viz_spiketrain(ieeg_data, yo, good_channel_labels)
+
+
+# %%
