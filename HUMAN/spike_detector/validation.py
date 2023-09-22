@@ -50,6 +50,7 @@ blocktime = [181085,181145] # missing 4 spikes, leaders are right, duplicates in
 blocktime = [323111,323171] # pretty good, missing 2-3 spikes, leaders are right, duplicates in the same channels are dropped
 blocktime = [425874,425934] #looks good, the counts are similar, but perhaps using PEAKS will define 
                             #the order better especially in some cases like in sequence_index 7
+blocktime = [582522, 582582] #1:1
 
 
 dataset_name = "HUP210_phaseII"
@@ -113,7 +114,7 @@ display(spike_output_df)
 display(spike_output_df.groupby('sequence_index').count())
 
 #%% display the sequence
-yo = spike_output_df[spike_output_df['sequence_index'] == 7]
+yo = spike_output_df[spike_output_df['sequence_index'] == 3]
 display(yo)
 print(yo.shape)
 
