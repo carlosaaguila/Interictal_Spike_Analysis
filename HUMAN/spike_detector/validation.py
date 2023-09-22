@@ -44,14 +44,7 @@ password_bin_filepath = "/mnt/leif/littlab/users/aguilac/tools/agu_ieeglogin.bin
 with open(password_bin_filepath, "r") as f:
     session = Session("aguilac", f.read())
 
-blocktime = [279792,279852] #in seconds #checks out 1 to 1
-blocktime = [92919,92979] #1 to 1
-blocktime = [181085,181145] # missing 4 spikes, leaders are right, duplicates in the same channels are dropped
-blocktime = [323111,323171] # pretty good, missing 2-3 spikes, leaders are right, duplicates in the same channels are dropped
-blocktime = [425874,425934] #looks good, the counts are similar, but perhaps using PEAKS will define 
-                            #the order better especially in some cases like in sequence_index 7
-blocktime = [582522, 582582] #1:1
-
+blocktime = [279100, 279160]
 
 dataset_name = "HUP210_phaseII"
 
@@ -120,6 +113,5 @@ print(yo.shape)
 
 # %% Visualize the spike train, confirm that the LEAD spike is actually LEAD
 viz_spiketrain(ieeg_data, yo, good_channel_labels)
-
 
 # %%
