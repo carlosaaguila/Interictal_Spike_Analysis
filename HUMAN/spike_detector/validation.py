@@ -44,17 +44,19 @@ password_bin_filepath = "/mnt/leif/littlab/users/aguilac/tools/agu_ieeglogin.bin
 with open(password_bin_filepath, "r") as f:
     session = Session("aguilac", f.read())
 
+#60 second window from file you want to downlaod
 blocktime = [279100, 279160]
 
 dataset_name = "HUP210_phaseII"
 
+#clean the labels and remove scalp ones
 dataset = session.open_dataset(dataset_name)
 all_channel_labels = np.array(dataset.get_channel_labels())
 channel_labels_to_download = all_channel_labels[
     electrode_selection(all_channel_labels)
 ]
 
-
+#pull data
 ieeg_data, fs = get_iEEG_data(
     "aguilac",
     password_bin_filepath,
@@ -73,11 +75,12 @@ good_channel_indicies = good_channels_res[0]
 good_channel_labels = channel_labels_to_download[good_channel_indicies]
 ieeg_data = ieeg_data[good_channel_labels].to_numpy()
 
+#CAR
 ieeg_data = common_average_montage(ieeg_data)
 
 # Apply the filters directly on the DataFrame
-ieeg_data = notch_filter(ieeg_data, 60, fs) #less than 1 microvolt difference
-ieeg_data = new_bandpass_filt(ieeg_data, 1, 70, fs, order = 4) #few differences here by a couple of microvolts
+ieeg_data = notch_filter(ieeg_data, 60, fs) 
+ieeg_data = new_bandpass_filt(ieeg_data, 1, 70, fs, order = 4) 
 
 # Detect spikes
 spike_output = spike_detector(
@@ -113,5 +116,3 @@ print(yo.shape)
 
 # %% Visualize the spike train, confirm that the LEAD spike is actually LEAD
 viz_spiketrain(ieeg_data, yo, good_channel_labels)
-
-# %%
