@@ -158,7 +158,7 @@ ax.set_yticks(ind+width/10)
 ax.set_yticklabels(col, minor=False)
 plt.title("Feature importance in RandomForest Classifier")
 plt.xlabel("Relative importance")
-plt.ylabel("ChatBot Feature") 
+plt.ylabel("Morphology Feature") 
 plt.figure(figsize=(5,5))
 fig.set_size_inches(6.5, 4.5, forward=True)
 plt.show()
@@ -183,7 +183,7 @@ svm_score_val = svm_model.score(x_val, y_val)
 print('Testing set accuracy:\t', svm_score_test)
 print('Validation set accuracy:\t', svm_score_val)
 
-#AUC curve
+################ AUC curve
 from sklearn.metrics import roc_curve
 from sklearn.metrics import RocCurveDisplay
 from sklearn.metrics import auc
@@ -191,10 +191,93 @@ from sklearn.metrics import auc
 RocCurveDisplay.from_predictions(y_test, y_pred_svm)
 plt.plot(np.linspace(0,1,100), np.linspace(0,1,100), '--', color='black')
 plt.grid()
-plt.title('FPR vs. TPR ROC Curve of RFC Testing Performance')
+plt.title('FPR vs. TPR ROC Curve of SVM Testing Performance')
 
 """
 Performance was not very good 
 AUC = 0.47
 """
+# %% Train Linear Regression Models
+
+########################
+#LOGISTIC REGRESSION CLASSIFIER
+########################
+
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import GridSearchCV
+
+LR = LogisticRegression()
+grid_values = {'penalty': ['l1', 'l2', 'elasticnet'],'C':[0.001,.009,0.01,.09,1,5,10,25]}
+grid_LR_acc = GridSearchCV(LR, param_grid = grid_values, scoring = 'recall')
+grid_LR_acc.fit(x_train, y_train)
+
+#Predict values based on new parameters
+y_pred_LR = grid_LR_acc.predict(x_test)
+
+#Logisitic Regression scores for test and validation sets and store value as 'LR_score_test' and 'LR_score_val' 
+LR_score_test = grid_LR_acc.score(x_test, y_test)
+LR_score_val = grid_LR_acc.score(x_val, y_val)
+print('Testing set accuracy:\t', LR_score_test)
+print('Validation set accuracy:\t', LR_score_val)
+
+################ AUC curve
+from sklearn.metrics import roc_curve
+from sklearn.metrics import RocCurveDisplay
+from sklearn.metrics import auc
+
+RocCurveDisplay.from_predictions(y_test, y_pred_LR)
+plt.plot(np.linspace(0,1,100), np.linspace(0,1,100), '--', color='black')
+plt.grid()
+plt.title('FPR vs. TPR ROC Curve of LR Testing Performance')
+
+################ Confusion Matrix
+from sklearn.metrics import confusion_matrix as C_M
+import seaborn as sns
+
+rfc_confusion = C_M(y_test, y_pred_LR)
+rfc_conf_mat_df = pd.DataFrame(rfc_confusion)
+plt.figure(figsize=(6,4))
+sns.heatmap(rfc_conf_mat_df, cmap='GnBu', annot=True, fmt = "g")
+plt.title("Confusion Matrix for Logistic Reg. test set predictions")
+plt.xlabel("Predicted Label")
+plt.ylabel("True Label")
+plt.show()
+
+"""
+Random Forest Classifier R-squared score for    test set:	         0.6379378197560016
+Random Forest Classifier R-squared score for    validation set:	     0.6194411648957103
+"""
+
+############### Precision, Recall, F1 Score
+from sklearn.metrics import precision_recall_fscore_support
+
+prec, rec, f1, _ = precision_recall_fscore_support(y_test, y_pred_LR, average='binary')
+print('Precision: ', prec)
+print('Recall: ', rec)
+print('F1 Score: ', f1)
+
+############### Feature Importances
+
+# Set names for columns (word number)
+col = x_test.columns
+
+# Define vector for feature importances
+y = rfc.feature_importances_
+
+# Plot the feature importances 
+fig, ax = plt.subplots() 
+width = 0.4 # the width of the bars 
+ind = np.arange(len(y)) # the x locations for the groups
+ax.barh(ind, y, width, color="green")
+ax.set_yticks(ind+width/10)
+ax.set_yticklabels(col, minor=False)
+plt.title("Feature importance in Logistic Regression")
+plt.xlabel("Relative importance")
+plt.ylabel("Morphology Feature") 
+plt.figure(figsize=(5,5))
+fig.set_size_inches(6.5, 4.5, forward=True)
+plt.show()
+
+
+
 # %%
