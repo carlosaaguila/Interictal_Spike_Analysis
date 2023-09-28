@@ -1,0 +1,66 @@
+#keep only the filenames ending in D01 and D02 for hup_id = HUP099
+filenames_w_ids = filenames_w_ids[((filenames_w_ids['filename'].str.endswith('D01')) | (filenames_w_ids['filename'].str.endswith('D02'))) & (filenames_w_ids['hup_id'] == 'HUP099')]
+#keep only the filenames ending in D02 for hup_id = HUP100
+filenames_w_ids = filenames_w_ids[(filenames_w_ids['filename'].str.endswith('D02')) & (filenames_w_ids['hup_id'] == 'HUP100')]
+#keep only filename ending in D01 for hup_id = HUP110
+filenames_w_ids = filenames_w_ids[(filenames_w_ids['filename'].str.endswith('D01')) & (filenames_w_ids['hup_id'] == 'HUP110')]
+#keep only filename ending in D01 for hup_id = HUP111
+filenames_w_ids = filenames_w_ids[(filenames_w_ids['filename'].str.endswith('D01')) & (filenames_w_ids['hup_id'] == 'HUP111')]
+#keep only filename ending in D01 for hup_id = HUP113
+filenames_w_ids = filenames_w_ids[(filenames_w_ids['filename'].str.endswith('D01')) & (filenames_w_ids['hup_id'] == 'HUP113')]
+#remove all rows for hup_id = HUP117
+filenames_w_ids = filenames_w_ids[filenames_w_ids['hup_id'] != 'HUP117']
+#remove all rows for hup_id = HUP118
+filenames_w_ids = filenames_w_ids[filenames_w_ids['hup_id'] != 'HUP118']
+#remove all rows for hup_id = HUP122
+filenames_w_ids = filenames_w_ids[filenames_w_ids['hup_id'] != 'HUP122']
+#keep only filename ending in D01 for hup_id = HUP123
+filenames_w_ids = filenames_w_ids[(filenames_w_ids['filename'].str.endswith('D01')) & (filenames_w_ids['hup_id'] == 'HUP123')]
+#keep only filename ending in D02 for hup_id = HUP126
+filenames_w_ids = filenames_w_ids[(filenames_w_ids['filename'].str.endswith('D02')) & (filenames_w_ids['hup_id'] == 'HUP126')]
+#keep only filename ending in D02 for hup_id = HUP128
+filenames_w_ids = filenames_w_ids[(filenames_w_ids['filename'].str.endswith('D02')) & (filenames_w_ids['hup_id'] == 'HUP128')]
+#remove all rows for hup_id = HUP129
+filenames_w_ids = filenames_w_ids[filenames_w_ids['hup_id'] != 'HUP129']
+#remove all rows for hup_id = HUP132 -- get back to this when you talk to alfredo
+filenames_w_ids = filenames_w_ids[filenames_w_ids['hup_id'] != 'HUP132']
+#keep only the filenames ending in D01 for hup_id = HUP134
+filenames_w_ids = filenames_w_ids[(filenames_w_ids['filename'].str.endswith('D01')) & (filenames_w_ids['hup_id'] == 'HUP134')]
+#remove all rows for hup_id = HUP137
+filenames_w_ids = filenames_w_ids[filenames_w_ids['hup_id'] != 'HUP137']
+#keep only the filenames ending in D02 for hup_id = HUP140
+filenames_w_ids = filenames_w_ids[(filenames_w_ids['filename'].str.endswith('D02')) & (filenames_w_ids['hup_id'] == 'HUP140')]
+#keep only the filenames ending in D02 for hup_id = HUP148
+filenames_w_ids = filenames_w_ids[(filenames_w_ids['filename'].str.endswith('D02')) & (filenames_w_ids['hup_id'] == 'HUP148')]
+#remove all rows for hup_id = HUP152
+filenames_w_ids = filenames_w_ids[filenames_w_ids['hup_id'] != 'HUP152']
+#keep only the filenames ending in D01 for hup_id = HUP153
+filenames_w_ids = filenames_w_ids[(filenames_w_ids['filename'].str.endswith('D01')) & (filenames_w_ids['hup_id'] == 'HUP153')]
+#keep only the filenames ending in D01 for hup_id = HUP156
+filenames_w_ids = filenames_w_ids[(filenames_w_ids['filename'].str.endswith('D01')) & (filenames_w_ids['hup_id'] == 'HUP156')]
+#keep only the filenames ending in D01 for hup_id = HUP159
+filenames_w_ids = filenames_w_ids[(filenames_w_ids['filename'].str.endswith('D01')) & (filenames_w_ids['hup_id'] == 'HUP159')]
+#keep only the filenames ending in D02 for hup_id = HUP167
+filenames_w_ids = filenames_w_ids[(filenames_w_ids['filename'].str.endswith('D02')) & (filenames_w_ids['hup_id'] == 'HUP167')]
+#remove all rows for hup_id = HUP168 #no images for this patient
+filenames_w_ids = filenames_w_ids[filenames_w_ids['hup_id'] != 'HUP168']
+#keep only the filenames ending in D01 for hup_id = HUP179
+filenames_w_ids = filenames_w_ids[(filenames_w_ids['filename'].str.endswith('D01')) & (filenames_w_ids['hup_id'] == 'HUP179')]
+#keep only the filenames ending in D01 for hup_id = HUP181
+filenames_w_ids = filenames_w_ids[(filenames_w_ids['filename'].str.endswith('D01')) & (filenames_w_ids['hup_id'] == 'HUP181')]
+#keep only the filenames ending in D02 for hup_id = HUP197
+filenames_w_ids = filenames_w_ids[(filenames_w_ids['filename'].str.endswith('D02')) & (filenames_w_ids['hup_id'] == 'HUP197')]
+#remove all rows for hup_id = HUP201
+filenames_w_ids = filenames_w_ids[filenames_w_ids['hup_id'] != 'HUP201']
+#keep only the filenames ending in D01 for hup_id = HUP209
+filenames_w_ids = filenames_w_ids[(filenames_w_ids['filename'].str.endswith('D01')) & (filenames_w_ids['hup_id'] == 'HUP209')]
+#keep only the filenames ending in D01 for hup_id = HUP213
+filenames_w_ids = filenames_w_ids[(filenames_w_ids['filename'].str.endswith('D01')) & (filenames_w_ids['hup_id'] == 'HUP213')]
+#remove all rows for hup_id = HUP214 - this one has electrode names but no record on my end again
+filenames_w_ids = filenames_w_ids[filenames_w_ids['hup_id'] != 'HUP214']
+#keep only the filenames ending in D01 and D02 for hup_id = HUP215
+filenames_w_ids = filenames_w_ids[((filenames_w_ids['filename'].str.endswith('D01')) | (filenames_w_ids['filename'].str.endswith('D02'))) & (filenames_w_ids['hup_id'] == 'HUP215')]
+#keep only the filenames ending in D01 for hup_id = HUP218
+filenames_w_ids = filenames_w_ids[(filenames_w_ids['filename'].str.endswith('D01')) & (filenames_w_ids['hup_id'] == 'HUP218')]
+#remove hup098 - no images
+filenames_w_ids = filenames_w_ids[filenames_w_ids['hup_id'] != 'HUP098']

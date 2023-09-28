@@ -17,98 +17,149 @@ from ied_fx_v3 import *
 data_directory = ['/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2', '/mnt/leif/littlab/data/Human_Data']
 
 #load all the filenames (long form IEEG filenames)
-filenames_w_ids = pd.read_csv('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/filenames_w_ids.csv').drop(columns = ['whichpt'])
+filenames_w_ids = pd.read_csv('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/filenames_w_ids.csv')
 #load the list of patients to exclude
 blacklist = ['HUP101' ,'HUP112','HUP115','HUP119','HUP124','HUP144','HUP147','HUP149','HUP155','HUP176','HUP193','HUP194','HUP195','HUP198','HUP208','HUP212','HUP216','HUP217','HUP064','HUP071','HUP072','HUP073','HUP085','HUP094']
 # remove the patients in the blacklist from filenames_w_ids
 filenames_w_ids = filenames_w_ids[~filenames_w_ids['hup_id'].isin(blacklist)]
-
-#show me all the rows that their filename ends in D02
-filenames_w_ids[filenames_w_ids['filename'].str.endswith('D02')]
-
-#take the following comment and make these changes to the large dataframe, to reduce time spent.
-"""
-#keep only the filenames ending in D01 and D02 for hup_id = HUP099
-filenames_w_ids = filenames_w_ids[((filenames_w_ids['filename'].str.endswith('D01')) | (filenames_w_ids['filename'].str.endswith('D02'))) & (filenames_w_ids['hup_id'] == 'HUP099')]
-#keep only the filenames ending in D02 for hup_id = HUP100
-filenames_w_ids = filenames_w_ids[(filenames_w_ids['filename'].str.endswith('D02')) & (filenames_w_ids['hup_id'] == 'HUP100')]
-#keep only filename ending in D01 for hup_id = HUP110
-filenames_w_ids = filenames_w_ids[(filenames_w_ids['filename'].str.endswith('D01')) & (filenames_w_ids['hup_id'] == 'HUP110')]
-#keep only filename ending in D01 for hup_id = HUP111
-filenames_w_ids = filenames_w_ids[(filenames_w_ids['filename'].str.endswith('D01')) & (filenames_w_ids['hup_id'] == 'HUP111')]
-#keep only filename ending in D01 for hup_id = HUP113
-filenames_w_ids = filenames_w_ids[(filenames_w_ids['filename'].str.endswith('D01')) & (filenames_w_ids['hup_id'] == 'HUP113')]
-#remove all rows for hup_id = HUP117
-filenames_w_ids = filenames_w_ids[filenames_w_ids['hup_id'] != 'HUP117']
-#remove all rows for hup_id = HUP118
-filenames_w_ids = filenames_w_ids[filenames_w_ids['hup_id'] != 'HUP118']
-#remove all rows for hup_id = HUP122
-filenames_w_ids = filenames_w_ids[filenames_w_ids['hup_id'] != 'HUP122']
-#keep only filename ending in D01 for hup_id = HUP123
-filenames_w_ids = filenames_w_ids[(filenames_w_ids['filename'].str.endswith('D01')) & (filenames_w_ids['hup_id'] == 'HUP123')]
-#keep only filename ending in D02 for hup_id = HUP126
-filenames_w_ids = filenames_w_ids[(filenames_w_ids['filename'].str.endswith('D02')) & (filenames_w_ids['hup_id'] == 'HUP126')]
-#keep only filename ending in D02 for hup_id = HUP128
-filenames_w_ids = filenames_w_ids[(filenames_w_ids['filename'].str.endswith('D02')) & (filenames_w_ids['hup_id'] == 'HUP128')]
-#remove all rows for hup_id = HUP129
-filenames_w_ids = filenames_w_ids[filenames_w_ids['hup_id'] != 'HUP129']
-#remove all rows for hup_id = HUP132 -- get back to this when you talk to alfredo
-filenames_w_ids = filenames_w_ids[filenames_w_ids['hup_id'] != 'HUP132']
-#keep only the filenames ending in D01 for hup_id = HUP134
-filenames_w_ids = filenames_w_ids[(filenames_w_ids['filename'].str.endswith('D01')) & (filenames_w_ids['hup_id'] == 'HUP134')]
-#remove all rows for hup_id = HUP137
-filenames_w_ids = filenames_w_ids[filenames_w_ids['hup_id'] != 'HUP137']
-#keep only the filenames ending in D02 for hup_id = HUP140
-filenames_w_ids = filenames_w_ids[(filenames_w_ids['filename'].str.endswith('D02')) & (filenames_w_ids['hup_id'] == 'HUP140')]
-#keep only the filenames ending in D02 for hup_id = HUP148
-filenames_w_ids = filenames_w_ids[(filenames_w_ids['filename'].str.endswith('D02')) & (filenames_w_ids['hup_id'] == 'HUP148')]
-#remove all rows for hup_id = HUP152
-filenames_w_ids = filenames_w_ids[filenames_w_ids['hup_id'] != 'HUP152']
-#keep only the filenames ending in D01 for hup_id = HUP153
-filenames_w_ids = filenames_w_ids[(filenames_w_ids['filename'].str.endswith('D01')) & (filenames_w_ids['hup_id'] == 'HUP153')]
-#keep only the filenames ending in D01 for hup_id = HUP156
-filenames_w_ids = filenames_w_ids[(filenames_w_ids['filename'].str.endswith('D01')) & (filenames_w_ids['hup_id'] == 'HUP156')]
-#keep only the filenames ending in D01 for hup_id = HUP159
-filenames_w_ids = filenames_w_ids[(filenames_w_ids['filename'].str.endswith('D01')) & (filenames_w_ids['hup_id'] == 'HUP159')]
-#keep only the filenames ending in D02 for hup_id = HUP167
-filenames_w_ids = filenames_w_ids[(filenames_w_ids['filename'].str.endswith('D02')) & (filenames_w_ids['hup_id'] == 'HUP167')]
-#remove all rows for hup_id = HUP168 #no images for this patient
-filenames_w_ids = filenames_w_ids[filenames_w_ids['hup_id'] != 'HUP168']
-#keep only the filenames ending in D01 for hup_id = HUP179
-filenames_w_ids = filenames_w_ids[(filenames_w_ids['filename'].str.endswith('D01')) & (filenames_w_ids['hup_id'] == 'HUP179')]
-#keep only the filenames ending in D01 for hup_id = HUP181
-filenames_w_ids = filenames_w_ids[(filenames_w_ids['filename'].str.endswith('D01')) & (filenames_w_ids['hup_id'] == 'HUP181')]
-#keep only the filenames ending in D02 for hup_id = HUP197
-filenames_w_ids = filenames_w_ids[(filenames_w_ids['filename'].str.endswith('D02')) & (filenames_w_ids['hup_id'] == 'HUP197')]
-#remove all rows for hup_id = HUP201
-filenames_w_ids = filenames_w_ids[filenames_w_ids['hup_id'] != 'HUP201']
-#keep only the filenames ending in D01 for hup_id = HUP209
-filenames_w_ids = filenames_w_ids[(filenames_w_ids['filename'].str.endswith('D01')) & (filenames_w_ids['hup_id'] == 'HUP209')]
-#keep only the filenames ending in D01 for hup_id = HUP213
-filenames_w_ids = filenames_w_ids[(filenames_w_ids['filename'].str.endswith('D01')) & (filenames_w_ids['hup_id'] == 'HUP213')]
-#remove all rows for hup_id = HUP214 - this one has electrode names but no record on my end again
-filenames_w_ids = filenames_w_ids[filenames_w_ids['hup_id'] != 'HUP214']
-#keep only the filenames ending in D01 and D02 for hup_id = HUP215
-filenames_w_ids = filenames_w_ids[((filenames_w_ids['filename'].str.endswith('D01')) | (filenames_w_ids['filename'].str.endswith('D02'))) & (filenames_w_ids['hup_id'] == 'HUP215')]
-#keep only the filenames ending in D01 for hup_id = HUP218
-filenames_w_ids = filenames_w_ids[(filenames_w_ids['filename'].str.endswith('D01')) & (filenames_w_ids['hup_id'] == 'HUP218')]
-#remove hup098 - no images
-filenames_w_ids = filenames_w_ids[filenames_w_ids['hup_id'] != 'HUP098']
-"""
-
-
+#only keep rows where the column "to use" is a 1
+filenames_w_ids = filenames_w_ids[filenames_w_ids['to use'] == 1]
 
 #split filenames_w_ids dataframe into 10 dataframes
-pt_files_split = np.array_split(filenames_w_ids, 10)
-
+pt_files_split = np.array_split(filenames_w_ids, 7)
 
 #%% load the session
-print("Using Carlos session")
-with open("agu_ieeglogin.bin", "r") as f:
+#use Carlos's Session
+password_bin_filepath = "/mnt/leif/littlab/users/aguilac/tools/agu_ieeglogin.bin"
+with open(password_bin_filepath, "r") as f:
     session = Session("aguilac", f.read())
 
-#%%
+#%% loop through each patient
 
-#pick a list of patients to run
-pt_to_use = pt_files_split[0]
+#pick a split dataframe from the 7 from pt_files_split
+pt_files = pt_files_split[0]
 
+#loop through each patient
+for index, row in pt_files.iterrows():
+    hup_id = row['hup_id']
+    dataset_name = row['filename']
+
+    print("\n")
+    print(f"------Processing HUP {hup_id} with dataset {dataset_name}------")
+
+    ########################################
+    # Get the data from IEEG
+    ########################################
+
+    dataset = session.open_dataset(dataset_name)
+
+    all_channel_labels = np.array(dataset.get_channel_labels())
+    channel_labels_to_download = all_channel_labels[
+        electrode_selection(all_channel_labels)
+    ]
+
+    duration_usec = dataset.get_time_series_details(
+        channel_labels_to_download[0]
+    ).duration
+    duration_hours = int(duration_usec / 1000000 / 60 / 60)
+    enlarged_duration_hours = duration_hours + 24
+
+    print(f"Opening {dataset_name} with duration {duration_hours} hours")
+
+    # Calculate the total number of 1-minute intervals in the enlarged duration
+    total_intervals = enlarged_duration_hours * 60  # 60min/hour / 1min = 60
+
+    # Choose 5 unique random intervals before the loop
+    chosen_intervals = random.sample(range(total_intervals), 5)
+    print(f"Chosen intervals: {chosen_intervals}")
+
+    # Loop through each 2-minute interval
+    for interval in range(total_intervals):
+        print(
+            f"Getting iEEG data for interval {interval} out of {total_intervals} for HUP {hup_id}"
+        )
+        duration_usec = 6e7  # 1 minute
+        start_time_usec = interval * 6e7  # 1 minutes in microseconds
+        stop_time_usec = start_time_usec + duration_usec
+
+        try:
+            ieeg_data, fs = get_iEEG_data(
+                "aguilac",
+                "agu_ieeglogin.bin",
+                dataset_name,
+                start_time_usec,
+                stop_time_usec,
+                channel_labels_to_download,
+            )
+            fs = int(fs)
+            if interval in chosen_intervals:
+                save_path = os.path.join(
+                    RANDOMLY_SAVE_CLIPS_DIR,
+                    f"ieeg_data_{dataset_name}_{interval}.pkl",
+                )
+                with open(save_path, "wb") as file:
+                    pickle.dump(ieeg_data, file)
+                print(f"Saved ieeg_data segment to {save_path}")
+        except:
+            continue
+
+        # Check if ieeg_data dataframe is all NaNs
+        if ieeg_data.isnull().values.all():
+            print(f"Empty dataframe after download, skip...")
+            continue
+
+        good_channels_res = detect_bad_channels_optimized(ieeg_data.to_numpy(), fs)
+        good_channel_indicies = good_channels_res[0]
+        good_channel_labels = channel_labels_to_download[good_channel_indicies]
+        ieeg_data = ieeg_data[good_channel_labels].to_numpy()
+
+        # Check if ieeg_data is empty after dropping bad channels
+        if ieeg_data.size == 0:
+            print(f"Empty dataframe after artifact rejection, skip...")
+            continue
+
+        ieeg_data = common_average_montage(ieeg_data)
+
+        # Apply the filters directly on the DataFrame
+        ieeg_data = notch_filter(ieeg_data, 59, 61, fs)
+        ieeg_data = bandpass_filter(ieeg_data, 1, 70, fs)
+
+        ##############################
+        # Detect spikes
+        ##############################
+
+        spike_output = spike_detector(
+            data=ieeg_data,
+            fs=fs,
+            electrode_labels=good_channel_labels,
+        )
+        spike_output = spike_output.astype(int)
+        actual_number_of_spikes = len(spike_output)
+
+        if actual_number_of_spikes == 0:
+            print(f"No spikes detected, skip saving...")
+            continue
+        else:
+            # Map the channel indices to the corresponding good_channel_labels
+            channel_labels_mapped = good_channel_labels[spike_output[:, 1]]
+
+            # Create the structured array
+            spike_output_to_save = np.array(
+                list(
+                    zip(
+                        channel_labels_mapped,
+                        spike_output[:, 0],
+                        spike_output[:, 2],
+                    )
+                ),
+                dtype=dt,
+            )
+            np.save(
+                os.path.join(SPIKES_OUTPUT_DIR, f"{dataset_name}_{interval}.npy"),
+                spike_output_to_save,
+            )
+            print(
+                f"Saved {actual_number_of_spikes} spikes to {dataset_name}_{interval}.npy"
+            )
+# Restore the standard output to its original value
+sys.stdout = original_stdout
