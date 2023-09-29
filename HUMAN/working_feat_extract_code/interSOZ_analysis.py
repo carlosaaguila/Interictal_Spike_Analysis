@@ -300,11 +300,11 @@ def run_interSOZ(ptnames, data_directory, load = True):
 
     if load == True:
         print('loading data')
-        SOZ_all_chs_stacked_DF = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v2/SOZ_all_chs_stacked_DF.csv')
-        nonSOZ_all_chs_stacked_DF = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v2/nonSOZ_all_chs_stacked_DF.csv')
-        SOZ_average_waveform_DF = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v2/SOZ_average_waveform_DF.csv')
-        nonSOZ_average_waveform_DF = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v2/nonSOZ_average_waveform_DF.csv')
-        id_df = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v2/id_df.csv')
+        SOZ_all_chs_stacked_DF = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v3/SOZ_all_chs_stacked_DF.csv')
+        nonSOZ_all_chs_stacked_DF = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v3/nonSOZ_all_chs_stacked_DF.csv')
+        SOZ_average_waveform_DF = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v3/SOZ_average_waveform_DF.csv')
+        nonSOZ_average_waveform_DF = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v3/nonSOZ_average_waveform_DF.csv')
+        id_df = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v3/id_df.csv')
 
     else:
         print('getting data')
@@ -369,24 +369,24 @@ def run_interSOZ(ptnames, data_directory, load = True):
 
             #save updated dataframes
             if Z == 0:
-                SOZ_all_chs_stacked_DF.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v2/SOZ_all_chs_stacked_DF.csv', index = False)
-                nonSOZ_all_chs_stacked_DF.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v2/nonSOZ_all_chs_stacked_DF.csv',index = False)
-                SOZ_average_waveform_DF.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v2/SOZ_average_waveform_DF.csv',index = False)
-                nonSOZ_average_waveform_DF.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v2/nonSOZ_average_waveform_DF.csv',index = False)
-                id_df.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v2/id_df.csv', index = False)
+                SOZ_all_chs_stacked_DF.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v3/SOZ_all_chs_stacked_DF.csv', index = False)
+                nonSOZ_all_chs_stacked_DF.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v3/nonSOZ_all_chs_stacked_DF.csv',index = False)
+                SOZ_average_waveform_DF.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v3/SOZ_average_waveform_DF.csv',index = False)
+                nonSOZ_average_waveform_DF.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v3/nonSOZ_average_waveform_DF.csv',index = False)
+                id_df.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v3/id_df.csv', index = False)
             if Z != 0:
-                SOZ_all_chs_stacked_DF.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v2/SOZ_all_chs_stacked_DF.csv', mode = 'a', index = False, header = False)
-                nonSOZ_all_chs_stacked_DF.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v2/nonSOZ_all_chs_stacked_DF.csv', mode = 'a', index = False, header = False)
-                SOZ_average_waveform_DF.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v2/SOZ_average_waveform_DF.csv', mode = 'a', index = False, header = False)
-                nonSOZ_average_waveform_DF.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v2/nonSOZ_average_waveform_DF.csv', mode = 'a', index = False, header = False)
-                id_df.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v2/id_df.csv', mode = 'a', index = False, header = False)
+                SOZ_all_chs_stacked_DF.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v3/SOZ_all_chs_stacked_DF.csv', mode = 'a', index = False, header = False)
+                nonSOZ_all_chs_stacked_DF.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v3/nonSOZ_all_chs_stacked_DF.csv', mode = 'a', index = False, header = False)
+                SOZ_average_waveform_DF.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v3/SOZ_average_waveform_DF.csv', mode = 'a', index = False, header = False)
+                nonSOZ_average_waveform_DF.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v3/nonSOZ_average_waveform_DF.csv', mode = 'a', index = False, header = False)
+                id_df.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v3/id_df.csv', mode = 'a', index = False, header = False)
 
 
-        SOZ_all_chs_stacked_DF = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v2/SOZ_all_chs_stacked_DF.csv')
-        nonSOZ_all_chs_stacked_DF = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v2/nonSOZ_all_chs_stacked_DF.csv')
-        SOZ_average_waveform_DF = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v2/SOZ_average_waveform_DF.csv')
-        nonSOZ_average_waveform_DF = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v2/nonSOZ_average_waveform_DF.csv')
-        id_df = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v2/id_df.csv')
+        SOZ_all_chs_stacked_DF = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v3/SOZ_all_chs_stacked_DF.csv')
+        nonSOZ_all_chs_stacked_DF = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v3/nonSOZ_all_chs_stacked_DF.csv')
+        SOZ_average_waveform_DF = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v3/SOZ_average_waveform_DF.csv')
+        nonSOZ_average_waveform_DF = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v3/nonSOZ_average_waveform_DF.csv')
+        id_df = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v3/id_df.csv')
 
     return SOZ_all_chs_stacked_DF, nonSOZ_all_chs_stacked_DF, SOZ_average_waveform_DF, nonSOZ_average_waveform_DF, id_df
 # %%

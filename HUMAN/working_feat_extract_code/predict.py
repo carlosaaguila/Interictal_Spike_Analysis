@@ -30,17 +30,18 @@ nonSOZ_feats_new['isSOZ'] = 0
 
 # concatenate all the data vertically
 all_feats = pd.concat([SOZ_feats_new, nonSOZ_feats_new], axis = 0)
-#drop the id column
-all_feats = all_feats.drop(columns = ['id'])
+
+#remove the 'id' column
+# all_feats = all_feats.drop(columns = ['id'])
+
 #shuffle and reset the index of all_feats
 all_feats = all_feats.sample(frac=1).reset_index(drop=True)
 
 #%% split train/test
 from sklearn.model_selection import train_test_split
-
 x_train, x_test, y_train, y_test = train_test_split(all_feats.drop(columns = ['isSOZ']), all_feats[['isSOZ']], test_size=0.25, random_state=42)
 x_val, x_test, y_val, y_test = train_test_split(x_test, y_test, test_size=0.5, random_state=42)
-
+ 
 print("Training size:\t\t", len(x_train))
 print("Validation size:\t", len(x_val))
 print("Test size:\t\t", len(x_test))
@@ -280,4 +281,51 @@ plt.show()
 
 
 
+# %%
+########################
+# LEAVE ONE OUT - RANDOM FOREST CLASSIFIER
+# ########################
+
+#Split the data according to IDs 
+
+#from all_feats dataframe, get the unique id's
+unique_ids = all_feats['id'].unique()
+#split into two lists of unique ids in a random order
+np.random.shuffle(unique_ids)
+
+#create LeaveOneOut model
+from sklearn.model_selection import LeaveOneOut
+LOO = LeaveOneOut()
+
+# Initialize the model and fit it on the training set
+# enumerate splits
+y_true, y_pred = list(), list()
+from sklearn.ensemble import RandomForestClassifier
+for train_ix, test_ix in LOO.split(unique_ids):
+
+    #get data
+    X_train = all_feats[all_feats['id'].isin(unique_ids[train_ix])]
+    X_test = all_feats[all_feats['id'].isin(unique_ids[test_ix])]
+    y_train = X_train[['isSOZ']]
+    y_test = X_test[['isSOZ']]
+    #drop columns 'isSOZ' and 'id'
+    X_train = X_train.drop(columns = ['isSOZ', 'id'])
+    X_test = X_test.drop(columns = ['isSOZ', 'id'])
+    # fit model
+    rfc = RandomForestClassifier(n_estimators = 100, random_state = 42, max_depth = None).fit(X_train, y_train)
+    # evaluate model
+    yhat = rfc.predict(X_test)
+    # store
+    y_true.append(y_test['isSOZ'].to_numpy())
+    y_pred.append(yhat)
+    # calculate accuracy
+    
+#%% 
+# evaluate predictions
+from sklearn.metrics import accuracy_score
+y_true_clean = [x for x in y_true for x in x]
+y_pred_clean = [x for x in y_pred for x in x]
+
+acc = accuracy_score(y_true_clean, y_pred_clean)
+print('Accuracy: %.3f' % acc)
 # %%
