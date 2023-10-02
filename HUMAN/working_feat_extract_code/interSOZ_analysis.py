@@ -67,8 +67,11 @@ def value_basis_interSOZ(ptname, data_directory):
         all_idx_roich = None
         all_chs = None
         all_select_oi = None
+        all_chlabels = None
+        all_spikerates = None
+        spikerates_df = None
         print('no image -- skip')
-        return all_vals, all_idx_roich, all_chs, all_select_oi
+        return all_vals, all_idx_roich, all_chs, all_select_oi, all_chlabels, spikerates_df
     
     #load master file with all elecs + SOZ's
     master_elecs = pd.read_csv('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/master_elecs.csv')
@@ -92,36 +95,52 @@ def value_basis_interSOZ(ptname, data_directory):
         all_idx_roich = None
         all_chs = None
         all_select_oi = None
+        all_chlabels = None
+        all_spikerates = None
+        spikerates_df = None
         print('no SOZ or non-SOZ electrodes in this patient')
-        return all_vals, all_idx_roich, all_chs, all_select_oi
+        return all_vals, all_idx_roich, all_chs, all_select_oi, all_chlabels, spikerates_df
     
     #get the names of the electrodes of interest
     SOZnames = np.array(SOZrows['name'])
     nonSOZnames = np.array(nonSOZrows['name'])
-    
+
+    SOZ_spikerates = (SOZrows[['name','spike_rate']])
+    nonSOZ_spikerates = (nonSOZrows[['name','spike_rate']])
+    #concat SOZ_spikerates and nonSOZ_spikerates, vertically
+    spikerates_df = pd.concat([SOZ_spikerates, nonSOZ_spikerates], axis = 0)
+
     all_vals = []
     all_idx_roich = []
     all_chs = []
     all_select_oi = []
+    all_chlabels = []
 
     for roi, roi_chlist in enumerate([SOZnames, nonSOZnames]):
 
         idx_roich = []
-        for i in range(len(spike.chlabels[0])):
-            idx_holder = []
-            for ch in roi_chlist:
-                x = np.where(spike.chlabels[0][i] == ch)[0]
-                idx_holder.append(x)
-            idx_holder = [x for x in idx_holder for x in x]
-            idx_roich.append(idx_holder)
+        for chlabel in spike.chlabels:
+            for i in range(len(chlabel)):
+                idx_holder = []
+                for ch in roi_chlist:
+                    x = np.where(chlabel[i] == ch)[0]
+                    idx_holder.append(x)
+                idx_holder = [x for x in idx_holder for x in x]
+                idx_roich.append(idx_holder)
+
+        actual_channel = []
+        for i, chlabel in enumerate(spike.chlabels[0]):
+            names = chlabel
+            actual_channel.append(names)
 
         counts,chs = hifreq_ch_spike(spike.select)
 
+        select_actual_channels = []
         select_oi = []
-
         for i, list_of_idx in enumerate(idx_roich):
             if chs[i]-1 in list_of_idx:
                 select_oi.append(i)
+                select_actual_channels.append(actual_channel[i])
 
         values_oi = []
         if np.size(select_oi) == 0:
@@ -130,7 +149,10 @@ def value_basis_interSOZ(ptname, data_directory):
             all_idx_roich = None
             all_chs = None
             all_select_oi = None
-            return all_vals, all_idx_roich, all_chs, all_select_oi
+            all_chlabels = None
+            all_spikerates = None
+            spikerates_df = None
+            return all_vals, all_idx_roich, all_chs, all_select_oi, all_chlabels, spikerates_df
 
         else:
             for soi in select_oi:
@@ -147,127 +169,11 @@ def value_basis_interSOZ(ptname, data_directory):
         all_chs.append(chs)
         all_idx_roich.append(idx_roich)
         all_select_oi.append(select_oi)
+        all_chlabels.append(select_actual_channels)
 
-    return all_vals, all_idx_roich, all_chs, all_select_oi
+    return all_vals, all_idx_roich, all_chs, all_select_oi, all_chlabels, spikerates_df
 
-def value_basis_interSOZ_v2(ptname, data_directory):
-    """
-    NEED TO UPDATE
-
-    input: ptname, data_directory
-    output: all_vals - a list containing [SOZ, non-SOZ] values for a single patient
-            all_idx_roich - a list containing [SOZ, non-SOZ] channel indices for a single patient
-            all_chs - a list containing [SOZ, non-SOZ] randomly selected channels, matlab-indexed, for a single patient
-            all_select_oi - a list containing [SOZ, non-SOZ] indices for a single patient
-    explanation: In this function we are looking to compare SOZ electrodes in a region vs. non-SOZ electrodes in the same region.
-                 example - "middle temporal gyrus" SOZ electrodes vs. Left Neocortical non-SOZ electrodes
-    """
-    #load patient
-    spike, brain_df, onsetzone, ids = load_ptall(ptname, data_directory)
-
-    #stops the function if there is "no image"
-    if isinstance(brain_df, pd.DataFrame) == False:
-        all_vals = None
-        all_idx_roich = None
-        all_chs = None
-        all_select_oi = None
-        print('no image -- skip')
-        return all_vals, all_idx_roich, all_chs, all_select_oi
-    
-    #load master file with all elecs + SOZ's
-    master_elecs = pd.read_csv('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/master_elecs.csv')
-    #clean up
-    pt_slice_df = master_elecs[master_elecs['rid'] == ids[1]].reset_index().drop(columns = 'index')
-    #merge brain_df and the master file slice to get a clean DF.
-    merge_finallabel = brain_df.merge(pt_slice_df[['vox_x','vox_y','vox_z','label','soz','resected','spike_rate','engel']], left_on = ['x','y','z'], right_on = ['vox_x','vox_y','vox_z'],  how = "inner")
-    merge_finallabel = merge_finallabel[['key_0','name','x','y','z','final_label','soz','resected','spike_rate','engel']]
-
-    #find the labels in which the SOZ is located on
-    SOZrows = merge_finallabel[merge_finallabel['soz'] == True]
-    SOZlabels = SOZrows['final_label'].unique()
-
-    nonSOZrows= pd.DataFrame()
-    for label in SOZlabels:
-        if label in roiL_mesial:
-            roi = roiL_mesial
-        elif label in roiL_lateral:
-            roi = roiL_lateral
-        elif label in roiR_mesial:
-            roi = roiR_mesial
-        elif label in roiR_lateral:
-            roi = roiR_lateral 
-        elif label in L_OC:
-            roi = L_OC
-        elif label in R_OC:
-            roi = R_OC
-        else:
-            roi = emptylabel
-        
-        for x in roi:
-            rows = merge_finallabel[(merge_finallabel['soz'] == False) & (merge_finallabel['final_label'] == x)]
-            nonSOZrows = nonSOZrows.append(rows)
-    
-    nonSOZrows = nonSOZrows.drop_duplicates()
-
-    if SOZrows.empty | nonSOZrows.empty:
-        all_vals = None
-        all_idx_roich = None
-        all_chs = None
-        all_select_oi = None
-        print('no SOZ or non-SOZ electrodes in this patient')
-        return all_vals, all_idx_roich, all_chs, all_select_oi
-        
-    #get the names of the electrodes of interest
-    SOZnames = np.array(SOZrows['name'])
-    nonSOZnames = np.array(nonSOZrows['name'])
-    
-    all_vals = []
-    all_idx_roich = []
-    all_chs = []
-    all_select_oi = []
-
-    for roi, roi_chlist in enumerate([SOZnames, nonSOZnames]):
-
-        idx_roich = []
-        for i in range(len(spike.chlabels[0])):
-            idx_holder = []
-            for ch in roi_chlist:
-                x = np.where(spike.chlabels[0][i] == ch)[0]
-                idx_holder.append(x)
-            idx_holder = [x for x in idx_holder for x in x]
-            idx_roich.append(idx_holder)
-
-        counts,chs = hifreq_ch_spike(spike.select)
-
-        select_oi = []
-
-        for i, list_of_idx in enumerate(idx_roich):
-            if chs[i]-1 in list_of_idx:
-                select_oi.append(i)
-
-        values_oi = []
-        if np.size(select_oi) == 0:
-            values_oi = 0
-            print("NO MATCHES in roi {}".format(roi))
-        else:
-            for soi in select_oi:
-                y = spike.values[soi]
-                if len(y) > 2001:
-                    spike_down = downsample_to_2001(y)
-                else:
-                    spike_down = y
-                values_oi.append(spike_down)
-
-        based_values = values_oi
-
-        all_vals.append(based_values)
-        all_chs.append(chs)
-        all_idx_roich.append(idx_roich)
-        all_select_oi.append(select_oi)
-
-    return all_vals, all_idx_roich, all_chs, all_select_oi
-
-def totalavg_roiwave(values, chs, select_oi):
+def totalavg_roiwave(values, chs, select_oi, all_chlabels, SOZ_spikerates):
     """
     input: values, chs, select_oi
     output: avg_waveform, abs_avg_waveform, all_chs_stacked
@@ -276,10 +182,14 @@ def totalavg_roiwave(values, chs, select_oi):
 
     """
     perroi_mean = [] #the mean of the stacked spikewaves
-    perroi = [] #2 element list with all the spikewaves stacked
+    perroi = [] # element list with all the spikewaves stacked
+    perroi_names = [] # element list with all the channel names        
+    perroi_rates = [] # element list with all the spike rates
     
     for j, roi in enumerate(values):
         spikewaves = []
+        names = []
+        rates = []
 
         if not roi: 
             perroi.append(np.nan)
@@ -288,13 +198,19 @@ def totalavg_roiwave(values, chs, select_oi):
 
         for l, xs in enumerate(roi):
             val_want = np.transpose(xs)
-            val_want = val_want[chs[j][select_oi[j][l]]-1]
+            val_want = val_want[chs[j][select_oi[j][l]]-1] 
+            channel_name = all_chlabels[j][l][chs[j][select_oi[j][l]]-1][0][0]
+            spike_rate = SOZ_spikerates[SOZ_spikerates['name'] == channel_name]['spike_rate'].to_list()
+            rates.append(spike_rate)
             spikewaves.append(val_want)
+            names.append(channel_name)
 
         perroi.append(spikewaves)
+        perroi_names.append(names)
         perroi_mean.append(np.nanmean(spikewaves, axis = 0))
+        perroi_rates.append(rates)
 
-    return perroi, perroi_mean
+    return perroi, perroi_mean, perroi_names, perroi_rates
 
 def run_interSOZ(ptnames, data_directory, load = True):
 
@@ -315,9 +231,15 @@ def run_interSOZ(ptnames, data_directory, load = True):
             print('Running Patient List: {}'.format(Z))
             #RESET variables to not crash
             perpt_all = []
+            perpt_names = []
+            perpt_rates = []
             perpt_mean = []
             SOZ_all_chs_stacked = []
             nonSOZ_all_chs_stacked = []
+            SOZ_all_rates_stacked = []
+            nonSOZ_all_rates_stacked = []
+            SOZ_all_names_stacked = []
+            nonSOZ_all_names_stacked = []
             SOZ_all_chs_stacked_DF = pd.DataFrame()
             nonSOZ_all_chs_stacked_DF = pd.DataFrame()
             SOZ_average_waveform_DF = pd.DataFrame()
@@ -332,21 +254,28 @@ def run_interSOZ(ptnames, data_directory, load = True):
                 print('Running Patient: {}'.format(ptname))
 
                 #get the values for the SOZ and non-SOZ electrodes
-                vals, idx_roich, chs, select_oi = value_basis_interSOZ(ptname, data_directory)
+                vals, idx_roich, chs, select_oi, chlabels, spikerates_df = value_basis_interSOZ(ptname, data_directory)
                 #vals2, idx_roich2, chs2, select_oi2 = value_basis_interSOZ_v2(ptname, data_directory)
 
                 #get the average waveform for the SOZ and non-SOZ electrodes
                 if vals != None: 
-                    perroi, perroi_mean = totalavg_roiwave(vals, chs, select_oi)
+                    perroi, perroi_mean, perroi_names, perroi_rates = totalavg_roiwave(vals, chs, select_oi, chlabels, spikerates_df)    
                     perpt_all.append(perroi)
+                    perpt_names.append(perroi_names)
+                    perpt_rates.append(perroi_rates)
                     perpt_mean.append(perroi_mean)
                     id.append([ptname, np.shape(perroi[0]), np.shape(perroi[1])])
-
 
             #add them to a dataframe
             for pt in perpt_all:
                 SOZ_all_chs_stacked.append(pt[0])
                 nonSOZ_all_chs_stacked.append(pt[1])
+            for pt in perpt_rates:
+                SOZ_all_rates_stacked.append(pt[0])
+                nonSOZ_all_rates_stacked.append(pt[1])
+            for pt in perpt_names:
+                SOZ_all_names_stacked.append(pt[0])
+                nonSOZ_all_names_stacked.append(pt[1])
 
             for pt in perpt_mean:
                 SOZ_avgs.append([pt[0]])
@@ -355,13 +284,21 @@ def run_interSOZ(ptnames, data_directory, load = True):
             #flatten the list
             SOZ_all_chs_stacked = [x for x in SOZ_all_chs_stacked for x in x]
             nonSOZ_all_chs_stacked = [x for x in nonSOZ_all_chs_stacked for x in x]
+            SOZ_all_rates_stacked = [x for x in SOZ_all_rates_stacked for x in x]
+            nonSOZ_all_rates_stacked = [x for x in nonSOZ_all_rates_stacked for x in x]
+            SOZ_all_names_stacked = [x for x in SOZ_all_names_stacked for x in x]
+            nonSOZ_all_names_stacked = [x for x in nonSOZ_all_names_stacked for x in x]
 
             SOZ_avgs = [x for x in SOZ_avgs for x in x]
             nonSOZ_avgs = [x for x in nonSOZ_avgs for x in x]
 
             #append a new lines to dataframe
             SOZ_all_chs_stacked_DF = SOZ_all_chs_stacked_DF.append(SOZ_all_chs_stacked)
+            SOZ_all_chs_stacked_DF['spike_rate'] = SOZ_all_rates_stacked
+            SOZ_all_chs_stacked_DF['name'] = SOZ_all_names_stacked
             nonSOZ_all_chs_stacked_DF = nonSOZ_all_chs_stacked_DF.append(nonSOZ_all_chs_stacked)
+            nonSOZ_all_chs_stacked_DF['spike_rate'] = nonSOZ_all_rates_stacked
+            nonSOZ_all_chs_stacked_DF['name'] = nonSOZ_all_names_stacked
             SOZ_average_waveform_DF = SOZ_average_waveform_DF.append(SOZ_avgs)
             nonSOZ_average_waveform_DF = nonSOZ_average_waveform_DF.append(nonSOZ_avgs)
             id_df = id_df.append(id)

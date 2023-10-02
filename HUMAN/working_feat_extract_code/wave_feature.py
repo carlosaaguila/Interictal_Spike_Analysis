@@ -352,6 +352,9 @@ plt.plot(right_point, myspike[right_point], 'o')
 plt.plot(slow_end, myspike[slow_end], 'o', color = 'k')
 plt.xlim(700, 1500)
 
+SOZ_all_chs_stacked_DF_cleaned = soz_w_label.drop(columns = ['spike_rate', 'name', 'id'])
+nonSOZ_all_chs_stacked_DF_cleaned = nonsoz_w_label.drop(columns = ['spike_rate', 'name', 'id'])
+
 #%% create feats dataframe USING interSOZ_analysis.py (load cleaned data from that file)
 #SOZ
 SOZ_feats = pd.DataFrame(columns = ['rise_amp', 'decay_amp', 'slow_width', 'slow_amp', 'rise_slope', 'decay_slope', 'average_amp', 'linelen'])
@@ -403,4 +406,60 @@ for randi in randi:
     plt.plot(slow_end, myspike[slow_end], 'o', color = 'k', label = 'slow_end')
     plt.xlim(700, 1500)
     plt.legend()
+# %% FIND THE MORPHOLOGY USING V2 OF THE DETECTOR, THEN APPLY IT
+SOZ_feats = pd.DataFrame(columns = ['rise_amp', 'decay_amp', 'slow_width', 'slow_amp', 'rise_slope', 'decay_slope', 'average_amp', 'linelen', 'peak','left_point','right_point','slow_end','slow_max'])
+nonSOZ_feats = pd.DataFrame(columns = ['rise_amp', 'decay_amp', 'slow_width', 'slow_amp', 'rise_slope', 'decay_slope', 'average_amp', 'linelen', 'peak','left_point','right_point','slow_end','slow_max'])
+SOZ_all_chs_stacked_DF_cleaned = soz_w_label.drop(columns = ['spike_rate', 'name', 'id'])
+nonSOZ_all_chs_stacked_DF_cleaned = nonsoz_w_label.drop(columns = ['spike_rate', 'name', 'id'])
+
+for idx in range(len(SOZ_all_chs_stacked_DF_cleaned)):
+    myspike = SOZ_all_chs_stacked_DF_cleaned.iloc[idx].to_numpy()
+    basic_features, advanced_features, is_valid, bad_reason = extract_spike_morphology(myspike)
+    peak = basic_features[0]
+    left_point = basic_features[1]
+    right_point = basic_features[2]
+    slow_end = basic_features[3]
+    slow_max = basic_features[4]
+    rise_amp = advanced_features[0]
+    decay_amp = advanced_features[1]
+    slow_width = advanced_features[2]
+    slow_amp = advanced_features[3]
+    rise_slope = advanced_features[4]
+    decay_slope = advanced_features[5]
+    average_amp = advanced_features[6]
+    linelen = advanced_features[7]
+    SOZ_feats.loc[idx] = [rise_amp, decay_amp, slow_width, slow_amp, rise_slope, decay_slope, average_amp, linelen, peak, left_point, right_point, slow_end, slow_max]
+
+for idx in range(len(nonSOZ_all_chs_stacked_DF_cleaned)):
+    myspike = nonSOZ_all_chs_stacked_DF_cleaned.iloc[idx].to_numpy()
+    basic_features, advanced_features, is_valid, bad_reason = extract_spike_morphology(myspike)
+    peak = basic_features[0]
+    left_point = basic_features[1]
+    right_point = basic_features[2]
+    slow_end = basic_features[3]
+    slow_max = basic_features[4]
+    rise_amp = advanced_features[0]
+    decay_amp = advanced_features[1]
+    slow_width = advanced_features[2]
+    slow_amp = advanced_features[3]
+    rise_slope = advanced_features[4]
+    decay_slope = advanced_features[5]
+    average_amp = advanced_features[6]
+    linelen = advanced_features[7]
+
+#%% add id, spike_rate, and name to the dataframe
+SOZ_feats['id'] = soz_w_label['id'].reset_index(drop=True)
+nonSOZ_feats['id'] = nonsoz_w_label['id'].reset_index(drop=True)
+SOZ_feats['spike_rate'] = soz_w_label['spike_rate'].reset_index(drop=True)
+nonSOZ_feats['spike_rate'] = nonsoz_w_label['spike_rate'].reset_index(drop=True)
+SOZ_feats['name'] = soz_w_label['name'].reset_index(drop=True)
+nonSOZ_feats['name'] = nonsoz_w_label['name'].reset_index(drop=True)
+
+# %% drop the nans
+SOZ_feats = SOZ_feats.dropna()
+nonSOZ_feats = nonSOZ_feats.dropna()
+
+#%% save the dataframes
+SOZ_feats.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v3/SOZ_feats.csv')
+nonSOZ_feats.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v3/nonSOZ_feats.csv')
 # %%

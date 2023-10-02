@@ -21,8 +21,8 @@ ptnames = [i for i in pt if i not in blacklist] #use only the best EEG signals (
 
 #%% load the data
 
-SOZ_feats_new = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v1/SOZ_feats.csv', index_col = 0)
-nonSOZ_feats_new = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v1/nonSOZ_feats.csv', index_col = 0)
+SOZ_feats_new = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v3/SOZ_feats.csv', index_col = 0)
+nonSOZ_feats_new = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v3/nonSOZ_feats.csv', index_col = 0)
  
 # clean the data
 SOZ_feats_new['isSOZ'] = 1
@@ -31,11 +31,31 @@ nonSOZ_feats_new['isSOZ'] = 0
 # concatenate all the data vertically
 all_feats = pd.concat([SOZ_feats_new, nonSOZ_feats_new], axis = 0)
 
-#remove the 'id' column
-# all_feats = all_feats.drop(columns = ['id'])
+
+#remove the '[' and ']' from the spike_rate column
+all_feats['spike_rate'] = all_feats['spike_rate'].str.replace('[', '')
+all_feats['spike_rate'] = all_feats['spike_rate'].str.replace(']', '')
+
+# convert spike_rate to a float
+all_feats['spike_rate'] = all_feats['spike_rate'].astype(float)
+
+all_feats = all_feats.dropna()
+
+#group by 'name' and 'id' and take the mean of each column
+all_feats_eleclevel = all_feats.groupby(['name','id']).median().reset_index()
 
 #shuffle and reset the index of all_feats
-all_feats = all_feats.sample(frac=1).reset_index(drop=True)
+all_feats_eleclevel = all_feats_eleclevel.sample(frac=1).reset_index(drop=True)
+
+#make 'isSOZ' a integer
+all_feats_eleclevel['isSOZ'] = all_feats_eleclevel['isSOZ'].astype(int)
+
+# clean dataframe
+all_feats_eleclevel = all_feats_eleclevel.drop(columns = ['peak','left_point','average_amp','right_point','slow_end','slow_max','name'])
+
+# for each row in 'id', remove 'HUP' and convert to int
+all_feats_eleclevel['id'] = all_feats_eleclevel['id'].str.replace('HUP', '')
+all_feats_eleclevel['id'] = all_feats_eleclevel['id'].astype(int)
 
 #%% split train/test
 from sklearn.model_selection import train_test_split
@@ -54,7 +74,6 @@ print("Validation, label 1:\t", len(y_val[y_val['isSOZ'] == 1]))
 print('\n')
 print("Test, label 0:\t\t", len(y_test[y_test['isSOZ'] == 0]))
 print("Test, label 1:\t\t", len(y_test[y_test['isSOZ'] == 1]))
-
 
 # %% train a Random Forest Classifier
 
@@ -280,6 +299,8 @@ fig.set_size_inches(6.5, 4.5, forward=True)
 plt.show()
 
 
+#%%
+all_feats = all_feats_eleclevel
 
 # %%
 ########################
@@ -321,11 +342,108 @@ for train_ix, test_ix in LOO.split(unique_ids):
     # calculate accuracy
     
 #%% 
-# evaluate predictions
+################ evaluate predictions
 from sklearn.metrics import accuracy_score
 y_true_clean = [x for x in y_true for x in x]
 y_pred_clean = [x for x in y_pred for x in x]
 
 acc = accuracy_score(y_true_clean, y_pred_clean)
 print('Accuracy: %.3f' % acc)
+
+################ AUC curve
+from sklearn.metrics import roc_curve
+from sklearn.metrics import RocCurveDisplay
+from sklearn.metrics import auc
+
+RocCurveDisplay.from_predictions(y_true_clean, y_pred_clean)
+plt.plot(np.linspace(0,1,100), np.linspace(0,1,100), '--', color='black')
+plt.grid()
+plt.title('FPR vs. TPR ROC Curve of LR Testing Performance')
+
+################ Confusion Matrix
+from sklearn.metrics import confusion_matrix as C_M
+import seaborn as sns
+
+rfc_confusion = C_M(y_true_clean, y_pred_clean)
+rfc_conf_mat_df = pd.DataFrame(rfc_confusion)
+plt.figure(figsize=(6,4))
+sns.heatmap(rfc_conf_mat_df, cmap='GnBu', annot=True, fmt = "g")
+plt.title("Confusion Matrix for Logistic Reg. test set predictions")
+plt.xlabel("Predicted Label")
+plt.ylabel("True Label")
+plt.show()
+
 # %%
+########################
+# LEAVE ONE OUT - RANDOM FOREST CLASSIFIER (NULL MODEL)
+# ########################
+
+FEATURE = 'spike_rate'
+
+#Split the data according to IDs 
+
+#from all_feats dataframe, get the unique id's
+unique_ids = all_feats['id'].unique()
+#split into two lists of unique ids in a random order
+np.random.shuffle(unique_ids)
+
+#create LeaveOneOut model
+from sklearn.model_selection import LeaveOneOut
+LOO = LeaveOneOut()
+
+# Initialize the model and fit it on the training set
+# enumerate splits
+y_true, y_pred = list(), list()
+from sklearn.ensemble import RandomForestClassifier
+for train_ix, test_ix in LOO.split(unique_ids):
+
+    #get data
+    X_train = all_feats[all_feats['id'].isin(unique_ids[train_ix])]
+    X_test = all_feats[all_feats['id'].isin(unique_ids[test_ix])]
+    y_train = X_train[['isSOZ']]
+    y_test = X_test[['isSOZ']]
+    #drop columns 'isSOZ' and 'id'
+    X_train = X_train[[FEATURE]]
+    X_test = X_test[[FEATURE]]
+    # fit model
+    rfc = RandomForestClassifier(n_estimators = 100, random_state = 42, max_depth = None).fit(X_train, y_train)
+    # evaluate model
+    yhat = rfc.predict(X_test)
+    # store
+    y_true.append(y_test['isSOZ'].to_numpy())
+    y_pred.append(yhat)
+    # calculate accuracy
+    
+#%% 
+################# evaluate predictions
+from sklearn.metrics import accuracy_score
+y_true_clean = [x for x in y_true for x in x]
+y_pred_clean = [x for x in y_pred for x in x]
+
+acc = accuracy_score(y_true_clean, y_pred_clean)
+print('Accuracy: %.3f' % acc)
+
+################ AUC curve
+from sklearn.metrics import roc_curve
+from sklearn.metrics import RocCurveDisplay
+from sklearn.metrics import auc
+
+RocCurveDisplay.from_predictions(y_true_clean, y_pred_clean)
+plt.plot(np.linspace(0,1,100), np.linspace(0,1,100), '--', color='black')
+plt.grid()
+plt.title('FPR vs. TPR ROC Curve LOO-RFC (spikerate)')
+
+################ Confusion Matrix
+from sklearn.metrics import confusion_matrix as C_M
+import seaborn as sns
+
+rfc_confusion = C_M(y_true_clean, y_pred_clean)
+rfc_conf_mat_df = pd.DataFrame(rfc_confusion)
+plt.figure(figsize=(6,4))
+sns.heatmap(rfc_conf_mat_df, cmap='GnBu', annot=True, fmt = "g")
+plt.title("Confusion Matrix for LOO-RFC (spikerate)")
+plt.xlabel("Predicted Label")
+plt.ylabel("True Label")
+plt.show()
+
+    # %%
