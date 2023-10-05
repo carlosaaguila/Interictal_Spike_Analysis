@@ -70,7 +70,8 @@ for index, row in pt_files.iterrows():
     random_intervals = [np.random.randint(i[0], i[1] - 60) for i in intervals]
     #create a list of tuples where each tuple is a start and stop time +- 30 seconds from the random interval
     random_intervals = [(i - 30, i + 30) for i in random_intervals]
-
+    correct_i = 0
+    
     #check to see if save file exists:
     if os.path.exists(f'{data_directory[0]}/pt_data/{hup_id}/{hup_id}_{dataset_name}_spike_output.csv'):
         print(f"------{hup_id}_{dataset_name}_spike_output.csv already exists------")
