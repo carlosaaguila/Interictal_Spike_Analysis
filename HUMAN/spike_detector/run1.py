@@ -25,8 +25,10 @@ filenames_w_ids = filenames_w_ids[~filenames_w_ids['hup_id'].isin(blacklist)]
 #only keep rows where the column "to use" is a 1
 filenames_w_ids = filenames_w_ids[filenames_w_ids['to use'] == 1]
 
-#split filenames_w_ids dataframe into 10 dataframes
+#split filenames_w_ids dataframe into 7 dataframes
 pt_files_split = np.array_split(filenames_w_ids, 7)
+
+
 
 #%% load the session
 #use Carlos's Session
@@ -35,7 +37,6 @@ with open(password_bin_filepath, "r") as f:
     session = Session("aguilac", f.read())
 
 #%% loop through each patient
-
 #pick a split dataframe from the 7 from pt_files_split
 pt_files = pt_files_split[0]
 
@@ -61,45 +62,37 @@ for index, row in pt_files.iterrows():
     duration_usec = dataset.get_time_series_details(
         channel_labels_to_download[0]
     ).duration
-    duration_hours = int(duration_usec / 1000000 / 60 / 60)
-    enlarged_duration_hours = duration_hours + 24
+    duration_secs = duration_usec / 1e6
 
-    print(f"Opening {dataset_name} with duration {duration_hours} hours")
+    #create a range spanning from 0 to duration_secs in 600 second intervals   
+    intervals = np.arange(0, duration_secs, 600)
+    #create a list of tuples where each tuple is a start and stop time for each interval
+    intervals = list(zip(intervals[:-1], intervals[1:]))
+    # for each tuple range, pick a random 60 second interval
+    random_intervals = [np.random.randint(i[0], i[1] - 60) for i in intervals]
+    #create a list of tuples where each tuple is a start and stop time +- 30 seconds from the random interval
+    random_intervals = [(i - 30, i + 30) for i in random_intervals]
 
-    # Calculate the total number of 1-minute intervals in the enlarged duration
-    total_intervals = enlarged_duration_hours * 60  # 60min/hour / 1min = 60
-
-    # Choose 5 unique random intervals before the loop
-    chosen_intervals = random.sample(range(total_intervals), 5)
-    print(f"Chosen intervals: {chosen_intervals}")
-
-    # Loop through each 2-minute interval
-    for interval in range(total_intervals):
+    # Loop through each minute interval
+    for i, interval in enumerate(random_intervals):
         print(
-            f"Getting iEEG data for interval {interval} out of {total_intervals} for HUP {hup_id}"
+            f"Getting iEEG data for interval {i} out of {len(random_intervals)} for HUP {hup_id}"
         )
         duration_usec = 6e7  # 1 minute
-        start_time_usec = interval * 6e7  # 1 minutes in microseconds
-        stop_time_usec = start_time_usec + duration_usec
+        start_time_sec, stop_time_sec = interval[0], interval[1]
+        start_time_usec = int(start_time_sec * 1e6)
+        stop_time_usec = int(stop_time_sec * 1e6)
 
         try:
             ieeg_data, fs = get_iEEG_data(
                 "aguilac",
-                "agu_ieeglogin.bin",
+                password_bin_filepath,
                 dataset_name,
                 start_time_usec,
                 stop_time_usec,
                 channel_labels_to_download,
             )
             fs = int(fs)
-            if interval in chosen_intervals:
-                save_path = os.path.join(
-                    RANDOMLY_SAVE_CLIPS_DIR,
-                    f"ieeg_data_{dataset_name}_{interval}.pkl",
-                )
-                with open(save_path, "wb") as file:
-                    pickle.dump(ieeg_data, file)
-                print(f"Saved ieeg_data segment to {save_path}")
         except:
             continue
 
@@ -121,8 +114,8 @@ for index, row in pt_files.iterrows():
         ieeg_data = common_average_montage(ieeg_data)
 
         # Apply the filters directly on the DataFrame
-        ieeg_data = notch_filter(ieeg_data, 59, 61, fs)
-        ieeg_data = bandpass_filter(ieeg_data, 1, 70, fs)
+        ieeg_data = notch_filter(ieeg_data, 60, fs) 
+        ieeg_data = new_bandpass_filt(ieeg_data, 1, 70, fs, order = 4) 
 
         ##############################
         # Detect spikes
@@ -136,30 +129,70 @@ for index, row in pt_files.iterrows():
         spike_output = spike_output.astype(int)
         actual_number_of_spikes = len(spike_output)
 
-        if actual_number_of_spikes == 0:
-            print(f"No spikes detected, skip saving...")
+        if len(spike_output) == 0:
+            print("No spikes detected, skip saving...")
             continue
         else:
-            # Map the channel indices to the corresponding good_channel_labels
-            channel_labels_mapped = good_channel_labels[spike_output[:, 1]]
+            print(f"Detected {len(spike_output)} spikes")
 
-            # Create the structured array
-            spike_output_to_save = np.array(
-                list(
-                    zip(
-                        channel_labels_mapped,
-                        spike_output[:, 0],
-                        spike_output[:, 2],
-                    )
-                ),
-                dtype=dt,
-            )
-            np.save(
-                os.path.join(SPIKES_OUTPUT_DIR, f"{dataset_name}_{interval}.npy"),
-                spike_output_to_save,
-            )
-            print(
-                f"Saved {actual_number_of_spikes} spikes to {dataset_name}_{interval}.npy"
-            )
-# Restore the standard output to its original value
-sys.stdout = original_stdout
+        ##############################
+        # Extract spike morphologies
+        ##############################
+
+        #                                                                                           FIX HERE. TRY TO FIGURE OUT THAT THIS WILL WORK.
+        # Preallocate the result array
+        spike_output_to_save = np.empty((spike_output.shape[0], 17), dtype=object)
+        spike_output_to_save[:, :] = np.NaN  # Fill with NaNs
+
+        for z, spike in enumerate(spike_output):
+            peak_index = int(spike[0])
+            channel_index = int(spike[1])
+            spike_sequence = spike[2]
+
+            # Fill the first two columns with peak_index and channel_index
+            spike_output_to_save[z, 0] = peak_index
+            spike_output_to_save[z, 1] = channel_index
+            spike_output_to_save[z, 2] = good_channel_labels[channel_index]
+            spike_output_to_save[z, 3] = spike_sequence
+
+            # Extract the spike signal
+            spike_signal = ieeg_data[
+                peak_index - (2*fs) : peak_index + (2*fs), channel_index
+            ]
+
+            if len(spike_signal) > 2001:
+                spike_signal = downsample_to_2001(spike_signal)
+
+            try:
+                (
+                    basic_features,
+                    advanced_features,
+                    is_valid,
+                    bad_reason,
+                ) = extract_spike_morphology(spike_signal)
+
+                if is_valid:
+                    # Fill the rest of the columns with computed features
+                    spike_output_to_save[z, 4:9] = basic_features
+                    spike_output_to_save[z, 9:17] = advanced_features
+            except Exception as e:
+                print(f"Error extracting spike features: {e}")
+                continue
+        
+        # convert to dataframe
+        spike_output_DF = pd.DataFrame(spike_output_to_save, columns = ['peak_index', 'channel_index', 'channel_label', 'spike_sequence', 'peak', 'left_point', 'right_point','slow_end','slow_max','rise_amp','decay_amp','slow_width','slow_amp','rise_slope','decay_slope','average_amp','linelen'])
+        spike_output_DF['interval number'] = i
+        start_time_samples = (start_time_usec/(1e6)) * fs
+        spike_output_DF['peak_index_samples'] = spike_output_DF['peak_index'] + start_time_samples
+        spike_output_DF['peak_time_usec'] = spike_output_DF['peak_index_samples'] * (1e6/fs)
+
+    if i == 0: 
+        #save spike_output_DF as a new csv file
+        spike_output_DF.to_csv(f'{data_directory[0]}/pt_data/{hup_id}/{hup_id}_{dataset_name}_spike_output.csv', index = False)
+    else: 
+        #save spike_output_DF, append to existing csv file
+        spike_output_DF.to_csv(f'{data_directory[0]}/pt_data/{hup_id}/{hup_id}_{dataset_name}_spike_output.csv', index = False, header = False, mode = 'a')
+
+        
+    
+# %%
