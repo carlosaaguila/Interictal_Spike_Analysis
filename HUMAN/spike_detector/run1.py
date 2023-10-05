@@ -35,7 +35,7 @@ with open(password_bin_filepath, "r") as f:
     session = Session("aguilac", f.read())
 
 #%% loop through each patient
-#pick a split dataframe from the 7 from pt_files_split
+#pick a split dataframe from the 7 from pt_files_split to process       #CHANGE IN THE FUTURE FOR DIFFERENT BATCHES
 pt_files = pt_files_split[0]
 
 #loop through each patient
