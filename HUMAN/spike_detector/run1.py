@@ -71,7 +71,7 @@ for index, row in pt_files.iterrows():
     #create a list of tuples where each tuple is a start and stop time +- 30 seconds from the random interval
     random_intervals = [(i - 30, i + 30) for i in random_intervals]
     correct_i = 0
-    
+
     #check to see if save file exists:
     if os.path.exists(f'{data_directory[0]}/pt_data/{hup_id}/{hup_id}_{dataset_name}_spike_output.csv'):
         print(f"------{hup_id}_{dataset_name}_spike_output.csv already exists------")
@@ -208,12 +208,12 @@ for index, row in pt_files.iterrows():
         spike_output_DF['peak_index_samples'] = spike_output_DF['peak_index'] + start_time_samples
         spike_output_DF['peak_time_usec'] = spike_output_DF['peak_index_samples'] * (1e6/fs)
 
-    if i == 0: 
-        #save spike_output_DF as a new csv file
-        spike_output_DF.to_csv(f'{data_directory[0]}/pt_data/{hup_id}/{hup_id}_{dataset_name}_spike_output.csv', index = False)
-    else: 
-        #save spike_output_DF, append to existing csv file
-        spike_output_DF.to_csv(f'{data_directory[0]}/pt_data/{hup_id}/{hup_id}_{dataset_name}_spike_output.csv', index = False, header = False, mode = 'a')
+        if i == 0: 
+            #save spike_output_DF as a new csv file
+            spike_output_DF.to_csv(f'{data_directory[0]}/pt_data/{hup_id}/{hup_id}_{dataset_name}_spike_output.csv', index = False)
+        else: 
+            #save spike_output_DF, append to existing csv file
+            spike_output_DF.to_csv(f'{data_directory[0]}/pt_data/{hup_id}/{hup_id}_{dataset_name}_spike_output.csv', index = False, header = False, mode = 'a')
 
     
 # %%
