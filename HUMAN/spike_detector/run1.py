@@ -28,8 +28,6 @@ filenames_w_ids = filenames_w_ids[filenames_w_ids['to use'] == 1]
 #split filenames_w_ids dataframe into 7 dataframes
 pt_files_split = np.array_split(filenames_w_ids, 7)
 
-
-
 #%% load the session
 #use Carlos's Session
 password_bin_filepath = "/mnt/leif/littlab/users/aguilac/tools/agu_ieeglogin.bin"
@@ -73,8 +71,31 @@ for index, row in pt_files.iterrows():
     #create a list of tuples where each tuple is a start and stop time +- 30 seconds from the random interval
     random_intervals = [(i - 30, i + 30) for i in random_intervals]
 
+    #check to see if save file exists:
+    if os.path.exists(f'{data_directory[0]}/pt_data/{hup_id}/{hup_id}_{dataset_name}_spike_output.csv'):
+        print(f"------{hup_id}_{dataset_name}_spike_output.csv already exists------")
+
+        #load the file
+        spike_output_DF = pd.read_csv(f'{data_directory[0]}/pt_data/{hup_id}/{hup_id}_{dataset_name}_spike_output.csv')
+        #get the number of intervals already processed
+        num_intervals = spike_output_DF['interval number'].max()
+
+        #remove the intervals already processed from random_intervals
+        random_intervals = random_intervals[num_intervals+1:]
+
+        #check to see if there are any intervals left to process
+        if len(random_intervals) < 2:
+            print(f"------No intervals left to process for {hup_id}_{dataset_name}------")
+            continue
+
+        #correct the index for the intervals if it exists.
+        correct_i = num_intervals + 1
+    
     # Loop through each minute interval
     for i, interval in enumerate(random_intervals):
+        
+        i = i + correct_i
+
         print(
             f"Getting iEEG data for interval {i} out of {len(random_intervals)} for HUP {hup_id}"
         )
@@ -193,6 +214,5 @@ for index, row in pt_files.iterrows():
         #save spike_output_DF, append to existing csv file
         spike_output_DF.to_csv(f'{data_directory[0]}/pt_data/{hup_id}/{hup_id}_{dataset_name}_spike_output.csv', index = False, header = False, mode = 'a')
 
-        
     
 # %%
