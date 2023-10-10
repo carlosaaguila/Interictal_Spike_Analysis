@@ -19,8 +19,8 @@ pt = pt['pt'].to_list()
 blacklist = ['HUP101' ,'HUP112','HUP115','HUP124','HUP144','HUP147','HUP149','HUP155','HUP176','HUP193','HUP194','HUP195','HUP198','HUP208','HUP212','HUP216','HUP217','HUP064','HUP071','HUP072','HUP073','HUP085','HUP094']
 ptnames = [i for i in pt if i not in blacklist] #use only the best EEG signals (>75% visually validated)
 
-#%% load the data
-
+#%% 
+# load the data
 SOZ_feats_new = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v3/SOZ_feats.csv', index_col = 0)
 nonSOZ_feats_new = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v3/nonSOZ_feats.csv', index_col = 0)
  
@@ -41,8 +41,10 @@ all_feats['spike_rate'] = all_feats['spike_rate'].astype(float)
 
 all_feats = all_feats.dropna()
 
+#%%
 #group by 'name' and 'id' and take the mean of each column
 all_feats_eleclevel = all_feats.groupby(['name','id']).median().reset_index()
+# all_feats_eleclevel = all_feats.groupby(['id','isSOZ']).median().reset_index()
 
 #shuffle and reset the index of all_feats
 all_feats_eleclevel = all_feats_eleclevel.sample(frac=1).reset_index(drop=True)
@@ -321,7 +323,11 @@ LOO = LeaveOneOut()
 # Initialize the model and fit it on the training set
 # enumerate splits
 y_true, y_pred = list(), list()
+y_predprob = list()
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import GridSearchCV
+
 for train_ix, test_ix in LOO.split(unique_ids):
 
     #get data
@@ -333,10 +339,14 @@ for train_ix, test_ix in LOO.split(unique_ids):
     X_train = X_train.drop(columns = ['isSOZ', 'id'])
     X_test = X_test.drop(columns = ['isSOZ', 'id'])
     # fit model
-    rfc = RandomForestClassifier(n_estimators = 100, random_state = 42, max_depth = None).fit(X_train, y_train)
+    # rfc = RandomForestClassifier(n_estimators = 100, random_state = 42, max_depth = None).fit(X_train, y_train)
+    rfc = LogisticRegression().fit(X_train, y_train)
+
     # evaluate model
     yhat = rfc.predict(X_test)
+    y_pred_prob = rfc.predict_proba(X_test)[:,1]
     # store
+    y_predprob.append(y_pred_prob)
     y_true.append(y_test['isSOZ'].to_numpy())
     y_pred.append(yhat)
     # calculate accuracy
@@ -346,6 +356,7 @@ for train_ix, test_ix in LOO.split(unique_ids):
 from sklearn.metrics import accuracy_score
 y_true_clean = [x for x in y_true for x in x]
 y_pred_clean = [x for x in y_pred for x in x]
+y_predprob_clean = [x for x in y_predprob for x in x]
 
 acc = accuracy_score(y_true_clean, y_pred_clean)
 print('Accuracy: %.3f' % acc)
@@ -355,7 +366,7 @@ from sklearn.metrics import roc_curve
 from sklearn.metrics import RocCurveDisplay
 from sklearn.metrics import auc
 
-RocCurveDisplay.from_predictions(y_true_clean, y_pred_clean)
+RocCurveDisplay.from_predictions(y_true_clean, y_predprob_clean)
 plt.plot(np.linspace(0,1,100), np.linspace(0,1,100), '--', color='black')
 plt.grid()
 plt.title('FPR vs. TPR ROC Curve of LR Testing Performance')
@@ -378,7 +389,7 @@ plt.show()
 # LEAVE ONE OUT - RANDOM FOREST CLASSIFIER (NULL MODEL)
 # ########################
 
-FEATURE = 'spike_rate'
+FEATURE = 'linelen'
 
 #Split the data according to IDs 
 
@@ -395,6 +406,9 @@ LOO = LeaveOneOut()
 # enumerate splits
 y_true, y_pred = list(), list()
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import GridSearchCV
+
 for train_ix, test_ix in LOO.split(unique_ids):
 
     #get data
@@ -406,9 +420,10 @@ for train_ix, test_ix in LOO.split(unique_ids):
     X_train = X_train[[FEATURE]]
     X_test = X_test[[FEATURE]]
     # fit model
-    rfc = RandomForestClassifier(n_estimators = 100, random_state = 42, max_depth = None).fit(X_train, y_train)
+    # rfc = RandomForestClassifier(n_estimators = 100, random_state = 42, max_depth = None).fit(X_train, y_train)
+    rfc = LogisticRegression().fit(X_train, y_train)
     # evaluate model
-    yhat = rfc.predict(X_test)
+    yhat = rfc.decision_function(X_test)
     # store
     y_true.append(y_test['isSOZ'].to_numpy())
     y_pred.append(yhat)
@@ -420,8 +435,8 @@ from sklearn.metrics import accuracy_score
 y_true_clean = [x for x in y_true for x in x]
 y_pred_clean = [x for x in y_pred for x in x]
 
-acc = accuracy_score(y_true_clean, y_pred_clean)
-print('Accuracy: %.3f' % acc)
+# acc = accuracy_score(y_true_clean, y_pred_clean)
+# print('Accuracy: %.3f' % acc)
 
 ################ AUC curve
 from sklearn.metrics import roc_curve
@@ -434,16 +449,16 @@ plt.grid()
 plt.title('FPR vs. TPR ROC Curve LOO-RFC (spikerate)')
 
 ################ Confusion Matrix
-from sklearn.metrics import confusion_matrix as C_M
-import seaborn as sns
+# from sklearn.metrics import confusion_matrix as C_M
+# import seaborn as sns
 
-rfc_confusion = C_M(y_true_clean, y_pred_clean)
-rfc_conf_mat_df = pd.DataFrame(rfc_confusion)
-plt.figure(figsize=(6,4))
-sns.heatmap(rfc_conf_mat_df, cmap='GnBu', annot=True, fmt = "g")
-plt.title("Confusion Matrix for LOO-RFC (spikerate)")
-plt.xlabel("Predicted Label")
-plt.ylabel("True Label")
-plt.show()
+# rfc_confusion = C_M(y_true_clean, y_pred_clean)
+# rfc_conf_mat_df = pd.DataFrame(rfc_confusion)
+# plt.figure(figsize=(6,4))
+# sns.heatmap(rfc_conf_mat_df, cmap='GnBu', annot=True, fmt = "g")
+# plt.title("Confusion Matrix for LOO-RFC (spikerate)")
+# plt.xlabel("Predicted Label")
+# plt.ylabel("True Label")
+# plt.show()
 
     # %%

@@ -568,21 +568,46 @@ ax.legend()
 #           all paired plots            #
 #########################################
 # %%
-SOZ_feats_new = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v1/SOZ_feats.csv', index_col = 0)
-nonSOZ_feats_new = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v1/nonSOZ_feats.csv', index_col = 0)
+# SOZ_feats_new = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v1/SOZ_feats.csv', index_col = 0)
+# nonSOZ_feats_new = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v1/nonSOZ_feats.csv', index_col = 0)
+SOZ_feats_new = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v3/SOZ_feats.csv', index_col = 0)
+nonSOZ_feats_new = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/intra_SOZ_v3/nonSOZ_feats.csv', index_col = 0)
+#remove the '[' and ']' from the string in column 'spike_rate'
+SOZ_feats_new['spike_rate'] = SOZ_feats_new['spike_rate'].str.replace('[', '')
+SOZ_feats_new['spike_rate'] = SOZ_feats_new['spike_rate'].str.replace(']', '')
+nonSOZ_feats_new['spike_rate'] = nonSOZ_feats_new['spike_rate'].str.replace('[', '')
+nonSOZ_feats_new['spike_rate'] = nonSOZ_feats_new['spike_rate'].str.replace(']', '')
+#change 'spike_rate' to float
+SOZ_feats_new['spike_rate'] = SOZ_feats_new['spike_rate'].astype(float)
+nonSOZ_feats_new['spike_rate'] = nonSOZ_feats_new['spike_rate'].astype(float)
+
 # %%
 SOZ_median_feats = SOZ_feats_new.groupby('id').median()
 nonSOZ_median_feats = nonSOZ_feats_new.groupby('id').median()
 
-SOZ_median_feats = SOZ_median_feats.rename(columns = {'rise_amp': 'SOZ rise amp', 'decay_amp': 'SOZ decay amp', 'slow_width':'SOZ slow width', 'slow_amp': 'SOZ slow amp', 'rise_slope': 'SOZ rise slope', 'decay_slope': 'SOZ decay slope', 'linelen': 'SOZ LL', 'average_amp': 'SOZ avg amp'})
-nonSOZ_median_feats = nonSOZ_median_feats.rename(columns = {'rise_amp': 'nonSOZ rise amp', 'decay_amp': 'nonSOZ decay amp', 'slow_width':'nonSOZ slow width', 'slow_amp': 'nonSOZ slow amp', 'rise_slope': 'nonSOZ rise slope', 'decay_slope': 'nonSOZ decay slope', 'linelen': 'nonSOZ LL', 'average_amp': 'nonSOZ avg amp'})
+#%% #drop columns 'peak','left_point', 'right_point', 'slow_end', 'slow_max'
+SOZ_median_feats = SOZ_median_feats.drop(columns = ['peak','left_point', 'right_point', 'slow_end', 'slow_max'])
+nonSOZ_median_feats = nonSOZ_median_feats.drop(columns = ['peak','left_point', 'right_point', 'slow_end', 'slow_max'])
+
+#%%
+SOZ_median_feats = SOZ_median_feats.rename(columns = {'rise_amp': 'SOZ rise amp', 'decay_amp': 'SOZ decay amp',
+                                                       'slow_width':'SOZ slow width', 'slow_amp': 'SOZ slow amp', 
+                                                       'rise_slope': 'SOZ rise slope', 'decay_slope': 'SOZ decay slope',
+                                                       'linelen': 'SOZ LL', 'average_amp': 'SOZ avg amp', 
+                                                       'spike_rate': 'SOZ spike rate'})
+nonSOZ_median_feats = nonSOZ_median_feats.rename(columns = {'rise_amp': 'nonSOZ rise amp', 'decay_amp': 'nonSOZ decay amp',
+                                                            'slow_width':'nonSOZ slow width', 'slow_amp': 'nonSOZ slow amp', 
+                                                            'rise_slope': 'nonSOZ rise slope', 'decay_slope': 'nonSOZ decay slope', 
+                                                            'linelen': 'nonSOZ LL', 'average_amp': 'nonSOZ avg amp', 
+                                                            'spike_rate': 'nonSOZ spike rate'})
 
 median_feats = pd.concat([SOZ_median_feats, nonSOZ_median_feats], axis = 1)
 
 #%%
 SOZ_columns = SOZ_median_feats.columns.to_list()
 nonSOZ_columns = nonSOZ_median_feats.columns.to_list()
-newcolumns = ['color_riseamp', 'color_decayamp', 'color_slowwidth', 'color_slowamp', 'color_riseslope', 'color_decayslope', 'color_avgamp', 'color_LL']
+newcolumns = ['color_riseamp', 'color_decayamp', 'color_slowwidth', 'color_slowamp', 'color_riseslope', 
+              'color_decayslope', 'color_avgamp', 'color_LL', 'color_spikerate']
 
 for i, (SOZ, nonSOZ) in enumerate(zip(SOZ_columns, nonSOZ_columns)):
     median_feats[newcolumns[i]] = median_feats[SOZ] - median_feats[nonSOZ]
@@ -590,7 +615,7 @@ for i, (SOZ, nonSOZ) in enumerate(zip(SOZ_columns, nonSOZ_columns)):
 
 # %%
 #create paired plots
-title = ['Rise Amp', 'Decay Amp', 'Slow Width', 'Slow Amp', 'Rise Slope', 'Decay Slope', 'Avg Amp', 'LL']
+title = ['Rise Amp', 'Decay Amp', 'Slow Width', 'Slow Amp', 'Rise Slope', 'Decay Slope', 'Avg Amp', 'LL', 'Spike Rate']
 for i in range(len(newcolumns)):
     fig, ax = plt.subplots(1,1, figsize = (10,10))
     ax.scatter(median_feats[median_feats[newcolumns[i]] == 1][SOZ_columns[i]], median_feats[median_feats[newcolumns[i]] == 1][nonSOZ_columns[i]], color = 'r', label = "Patients w/ SOZ > ({})".format(len(median_feats[median_feats[newcolumns[i]] == 1])))
