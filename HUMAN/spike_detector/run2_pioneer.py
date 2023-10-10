@@ -2,6 +2,7 @@
 import pandas as pd
 import numpy as np
 from ieeg.auth import Session
+from resampy import resample
 
 # Import custom functions
 from get_iEEG_data import *
@@ -26,7 +27,7 @@ filenames_w_ids = filenames_w_ids[~filenames_w_ids['hup_id'].isin(blacklist)]
 filenames_w_ids = filenames_w_ids[filenames_w_ids['to use'] == 1]
 
 #split filenames_w_ids dataframe into 7 dataframes
-pt_files_split = np.array_split(filenames_w_ids, 7)
+pt_files_split = np.array_split(filenames_w_ids, 2)
 
 #%% load the session
 #use Carlos's Session
@@ -36,7 +37,7 @@ with open(password_bin_filepath, "r") as f:
 
 #%% loop through each patient
 #pick a split dataframe from the 7 from pt_files_split to process       #CHANGE IN THE FUTURE FOR DIFFERENT BATCHES
-pt_files = pt_files_split[0]
+pt_files = pt_files_split[1]
 
 #loop through each patient
 for index, row in pt_files.iterrows():
@@ -73,11 +74,13 @@ for index, row in pt_files.iterrows():
     correct_i = 0
 
     #check to see if save file exists:
-    if os.path.exists(f'{data_directory[0]}/pt_data/{hup_id}/{hup_id}_{dataset_name}_spike_output.csv'):
+    if os.path.exists(f'{data_directory[0]}/spike_leaders/{dataset_name}_spike_output.csv'):
         print(f"------{hup_id}_{dataset_name}_spike_output.csv already exists------")
 
         #load the file
-        spike_output_DF = pd.read_csv(f'{data_directory[0]}/pt_data/{hup_id}/{hup_id}_{dataset_name}_spike_output.csv')
+        spike_output_DF = pd.read_csv(f'{data_directory[0]}/spike_leaders/{dataset_name}_spike_output.csv', header = None)
+        spike_output_DF.columns = ['peak_index', 'channel_index', 'channel_label', 'spike_sequence', 'peak', 'left_point', 'right_point','slow_end','slow_max','rise_amp','decay_amp','slow_width','slow_amp','rise_slope','decay_slope','average_amp','linelen', 'interval number', 'peak_index_samples', 'peak_time_usec']
+
         #get the number of intervals already processed
         num_intervals = spike_output_DF['interval number'].max()
 
@@ -118,6 +121,12 @@ for index, row in pt_files.iterrows():
         except:
             continue
 
+        # check is FS is too low
+        if fs <= 499:
+            print(f"Sampling rate is {fs}")
+            print("Sampling rate is too low, skip...")
+            continue
+        
         # Check if ieeg_data dataframe is all NaNs
         if ieeg_data.isnull().values.all():
             print(f"Empty dataframe after download, skip...")
@@ -166,10 +175,15 @@ for index, row in pt_files.iterrows():
         spike_output_to_save = np.empty((spike_output.shape[0], 17), dtype=object)
         spike_output_to_save[:, :] = np.NaN  # Fill with NaNs
 
+        sequence_to_skip = None
+
         for z, spike in enumerate(spike_output):
             peak_index = int(spike[0])
             channel_index = int(spike[1])
             spike_sequence = spike[2]
+
+            if spike_sequence == sequence_to_skip:
+                continue
 
             # Fill the first two columns with peak_index and channel_index
             spike_output_to_save[z, 0] = peak_index
@@ -182,8 +196,23 @@ for index, row in pt_files.iterrows():
                 peak_index - (2*fs) : peak_index + (2*fs), channel_index
             ]
 
-            if len(spike_signal) > 2001:
-                spike_signal = downsample_to_2001(spike_signal)
+            #check for edge case and remove all spikes in that same sequence
+            if len(spike_signal) != 4*fs:
+                print("Edge case, skip...")
+                sequence_to_skip = spike_sequence
+                continue
+
+            sequence_to_skip = None
+
+            if fs >= 500:
+                spike_signal = resample(spike_signal, fs, 500)
+            elif fs < 499:
+                print(f"Sampling rate is too low ({fs}), skip...")
+                continue
+            else: 
+                print(f"Sampling rate is {fs}")
+                print("Sampling rate is too low, skip...""")
+                continue                
 
             try:
                 (
@@ -210,10 +239,7 @@ for index, row in pt_files.iterrows():
 
         if i == 0: 
             #save spike_output_DF as a new csv file
-            spike_output_DF.to_csv(f'{data_directory[0]}/pt_data/{hup_id}/{hup_id}_{dataset_name}_spike_output.csv', index = False)
+            spike_output_DF.to_csv(f'{data_directory[0]}/spike_leaders/{dataset_name}_spike_output.csv', index = False)
         else: 
             #save spike_output_DF, append to existing csv file
-            spike_output_DF.to_csv(f'{data_directory[0]}/pt_data/{hup_id}/{hup_id}_{dataset_name}_spike_output.csv', index = False, header = False, mode = 'a')
-
-    
-# %%
+            spike_output_DF.to_csv(f'{data_directory[0]}/spike_leaders/{dataset_name}_spike_output.csv', index = False, header = False, mode = 'a')

@@ -449,7 +449,7 @@ def downsample_to_2001(vals):
         new_sample = "ERROR"
 
     return new_sample
-
+    
 def value_basis(spike, brain_df, roi):
     """
     Function that takes in all values, the DKT atlas dataframe, and a region of interest (ROI)
