@@ -339,8 +339,8 @@ for train_ix, test_ix in LOO.split(unique_ids):
     X_train = X_train.drop(columns = ['isSOZ', 'id'])
     X_test = X_test.drop(columns = ['isSOZ', 'id'])
     # fit model
-    # rfc = RandomForestClassifier(n_estimators = 100, random_state = 42, max_depth = None).fit(X_train, y_train)
-    rfc = LogisticRegression().fit(X_train, y_train)
+    rfc = RandomForestClassifier(n_estimators = 100, random_state = 42, max_depth = None).fit(X_train, y_train)
+    #rfc = LogisticRegression().fit(X_train, y_train)
 
     # evaluate model
     yhat = rfc.predict(X_test)
@@ -369,7 +369,7 @@ from sklearn.metrics import auc
 RocCurveDisplay.from_predictions(y_true_clean, y_predprob_clean)
 plt.plot(np.linspace(0,1,100), np.linspace(0,1,100), '--', color='black')
 plt.grid()
-plt.title('FPR vs. TPR ROC Curve of LR Testing Performance')
+plt.title('FPR vs. TPR ROC Curve of RFC Testing Performance')
 
 ################ Confusion Matrix
 from sklearn.metrics import confusion_matrix as C_M
@@ -379,7 +379,7 @@ rfc_confusion = C_M(y_true_clean, y_pred_clean)
 rfc_conf_mat_df = pd.DataFrame(rfc_confusion)
 plt.figure(figsize=(6,4))
 sns.heatmap(rfc_conf_mat_df, cmap='GnBu', annot=True, fmt = "g")
-plt.title("Confusion Matrix for Logistic Reg. test set predictions")
+plt.title("Confusion Matrix for RFC test set predictions")
 plt.xlabel("Predicted Label")
 plt.ylabel("True Label")
 plt.show()
@@ -389,7 +389,7 @@ plt.show()
 # LEAVE ONE OUT - RANDOM FOREST CLASSIFIER (NULL MODEL)
 # ########################
 
-FEATURE = 'linelen'
+FEATURE = 'rise_amp'
 
 #Split the data according to IDs 
 
@@ -420,10 +420,10 @@ for train_ix, test_ix in LOO.split(unique_ids):
     X_train = X_train[[FEATURE]]
     X_test = X_test[[FEATURE]]
     # fit model
-    # rfc = RandomForestClassifier(n_estimators = 100, random_state = 42, max_depth = None).fit(X_train, y_train)
-    rfc = LogisticRegression().fit(X_train, y_train)
+    rfc = RandomForestClassifier(n_estimators = 100, random_state = 42, max_depth = None).fit(X_train, y_train)
+    #rfc = LogisticRegression().fit(X_train, y_train)
     # evaluate model
-    yhat = rfc.decision_function(X_test)
+    yhat = rfc.predict_proba(X_test)[:,1]
     # store
     y_true.append(y_test['isSOZ'].to_numpy())
     y_pred.append(yhat)
@@ -446,7 +446,7 @@ from sklearn.metrics import auc
 RocCurveDisplay.from_predictions(y_true_clean, y_pred_clean)
 plt.plot(np.linspace(0,1,100), np.linspace(0,1,100), '--', color='black')
 plt.grid()
-plt.title('FPR vs. TPR ROC Curve LOO-RFC (spikerate)')
+plt.title(f'FPR vs. TPR ROC Curve LOO-RFC ({FEATURE})')
 
 ################ Confusion Matrix
 # from sklearn.metrics import confusion_matrix as C_M

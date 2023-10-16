@@ -51,14 +51,14 @@ spike_output_DF.columns = ['peak_index', 'channel_index', 'channel_label', 'spik
 #this will be used to identify each spike sequence and interval when we combine all the dataframes
 spike_output_DF['new_spike_seq'] = spike_output_DF.groupby(['interval number','spike_sequence']).ngroup()
 
-#sort by new_spike_seq
+#sort by new_spike_seq, drop all rows with NaN values
 spike_output_DF = spike_output_DF.sort_values(by=['new_spike_seq']).dropna()
 
 # %%
 #create a new column called "is_spike_leader" that is 1 if the spike is a spike leader and 0 if it is not
 spike_output_DF['is_spike_leader'] = 0
 #set the first spike in each spike sequence to be a spike leader, based on smallest peak_index in each group
-spike_output_DF.loc[spike_output_DF.groupby(['interval number','spike_sequence'])['peak_index'].idxmin(),'is_spike_leader'] = 1
+spike_output_DF.loc[spike_output_DF.groupby(['new_spike_seq'])['peak_index'].idxmin(),'is_spike_leader'] = 1
 
 spike_output_DF
 # %% FIND THE DISTRIBUTION OF SPIKE SEQUENCE SIZES
@@ -66,5 +66,33 @@ spike_output_DF
 spike_output_DF.groupby('new_spike_seq').size()
 #plot the distribution of spike sequence sizes
 spike_output_DF.groupby('new_spike_seq').size().hist(bins=50)
+
+#%%
+# load the patient data for patient = 'HUP143 using load_ptall
+spike, brain_df, onsetzone, ids = load_ptall(patient, data_directory)
+
+#%%
+#merge brain_df using "key_0" to spike_output_DF using "channel_label", to get 'final_label' in spike_output_DF
+spike_output_DF = spike_output_DF.merge(brain_df[['key_0','final_label']], left_on='channel_label', right_on='key_0', how='left')
+#drop the extra column 'key_0'
+spike_output_DF = spike_output_DF.drop(columns=['key_0'])
+
+# %%
+#only keep the spike leaders
+spike_output_DF_leads = spike_output_DF[spike_output_DF['is_spike_leader'] == 1].reset_index(drop=True)
+
+#add patient id
+spike_output_DF_leads['pt_id'] = patient
+
+#calculate spike_width
+spike_output_DF_leads['spike_width'] = spike_output_DF_leads['right_point']-spike_output_DF_leads['left_point']
+
+#%%
+# tell me how many unique 'channel_label' there are
+spike_output_DF_leads['channel_label'].nunique()
+# what is the distribution of channel labels?
+spike_output_DF_leads['channel_label'].value_counts().to_dict()
+# what is the distribution of 'final_label'?
+spike_output_DF_leads['final_label'].value_counts().to_dict()
 
 # %%
