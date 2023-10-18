@@ -876,3 +876,25 @@ def feat_extract(lists_ptnames, roilist, data_directory):
     clinic_soz = [x for x in clinic_soz_all for x in x]
 
     return Aperpt_mean, LLperpt_mean, totalcount_perpt, clinic_soz
+
+from numpy import var, mean, sqrt
+from pandas import Series
+
+def cohend(d1: Series, d2: Series) -> float:
+    """
+    takes 2 series from pandas and returns the cohens d
+    """
+    # calculate the size of samples
+    n1, n2 = len(d1), len(d2)
+
+    # calculate the variance of the samples
+    s1, s2 = var(d1, ddof=1), var(d2, ddof=1)
+
+    # calculate the pooled standard deviation
+    s = sqrt(((n1 - 1) * s1 + (n2 - 1) * s2) / (n1 + n2 - 2))
+
+    # calculate the means of the samples
+    u1, u2 = mean(d1), mean(d2)
+
+    # return the effect size
+    return (u1 - u2) / s
