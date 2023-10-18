@@ -163,8 +163,13 @@ for index, row in filenames_w_ids.iterrows():
     #set the first spike in each spike sequence to be a spike leader, based on smallest peak_index in each group
     spike_output_DF.loc[spike_output_DF.groupby(['new_spike_seq'])['peak_index'].idxmin(),'is_spike_leader'] = 1
 
-    # load the patient data for patient = 'HUP143 using load_ptall
-    spike, brain_df, onsetzone, ids = load_ptall(hup_id, data_directory)
+    # load the patient data
+    if os.path.exists(data_directory[0] + '/pickle_spike/{}_obj.pkl'.format(hup_id)):
+        spike, brain_df, onsetzone, ids = load_ptall(hup_id, data_directory)
+    else:
+        print(f'no pickle file for {hup_id}')
+        print('skipping patient')
+        continue
 
     # check if brain_df is a dataframe, if not you can skip this patient
     if isinstance(brain_df, pd.DataFrame) == False:
