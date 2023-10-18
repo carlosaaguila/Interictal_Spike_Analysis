@@ -581,6 +581,22 @@ nonSOZ_feats_new['spike_rate'] = nonSOZ_feats_new['spike_rate'].str.replace(']',
 SOZ_feats_new['spike_rate'] = SOZ_feats_new['spike_rate'].astype(float)
 nonSOZ_feats_new['spike_rate'] = nonSOZ_feats_new['spike_rate'].astype(float)
 
+#%% add some extra features
+#for SOZ
+SOZ_feats_new['spike_width'] = SOZ_feats_new['right_point']-SOZ_feats_new['left_point']
+#calculate the sharpness of a spike, by subtracting decay_slope from rise_slope
+SOZ_feats_new['sharpness'] = np.abs(SOZ_feats_new['rise_slope']-SOZ_feats_new['decay_slope'])
+#calculate rise_duration of a spike, by subtracting left_point from peak
+SOZ_feats_new['rise_duration'] = SOZ_feats_new['peak']-SOZ_feats_new['left_point']
+#calculate decay_duration of a spike, by subtracting peak from right_point
+SOZ_feats_new['decay_duration'] = SOZ_feats_new['right_point']-SOZ_feats_new['peak']
+
+#repeat for nonSOZ
+nonSOZ_feats_new['spike_width'] = nonSOZ_feats_new['right_point']-nonSOZ_feats_new['left_point']
+nonSOZ_feats_new['sharpness'] = np.abs(nonSOZ_feats_new['rise_slope']-nonSOZ_feats_new['decay_slope'])
+nonSOZ_feats_new['rise_duration'] = nonSOZ_feats_new['peak']-nonSOZ_feats_new['left_point']
+nonSOZ_feats_new['decay_duration'] = nonSOZ_feats_new['right_point']-nonSOZ_feats_new['peak']
+
 # %%
 SOZ_median_feats = SOZ_feats_new.groupby('id').median()
 nonSOZ_median_feats = nonSOZ_feats_new.groupby('id').median()
@@ -594,12 +610,16 @@ SOZ_median_feats = SOZ_median_feats.rename(columns = {'rise_amp': 'SOZ rise amp'
                                                        'slow_width':'SOZ slow width', 'slow_amp': 'SOZ slow amp', 
                                                        'rise_slope': 'SOZ rise slope', 'decay_slope': 'SOZ decay slope',
                                                        'linelen': 'SOZ LL', 'average_amp': 'SOZ avg amp', 
-                                                       'spike_rate': 'SOZ spike rate'})
+                                                       'spike_rate': 'SOZ spike rate', 'spike_width': 'SOZ spike width',
+                                                       'sharpness': 'SOZ sharpness', 'rise_duration': 'SOZ rise duration',
+                                                       'decay_duration': 'SOZ decay duration'})
 nonSOZ_median_feats = nonSOZ_median_feats.rename(columns = {'rise_amp': 'nonSOZ rise amp', 'decay_amp': 'nonSOZ decay amp',
                                                             'slow_width':'nonSOZ slow width', 'slow_amp': 'nonSOZ slow amp', 
                                                             'rise_slope': 'nonSOZ rise slope', 'decay_slope': 'nonSOZ decay slope', 
                                                             'linelen': 'nonSOZ LL', 'average_amp': 'nonSOZ avg amp', 
-                                                            'spike_rate': 'nonSOZ spike rate'})
+                                                            'spike_rate': 'nonSOZ spike rate', 'spike_width': 'nonSOZ spike width',
+                                                            'sharpness': 'nonSOZ sharpness', 'rise_duration': 'nonSOZ rise duration',
+                                                            'decay_duration': 'nonSOZ decay duration'})
 
 median_feats = pd.concat([SOZ_median_feats, nonSOZ_median_feats], axis = 1)
 
@@ -607,7 +627,8 @@ median_feats = pd.concat([SOZ_median_feats, nonSOZ_median_feats], axis = 1)
 SOZ_columns = SOZ_median_feats.columns.to_list()
 nonSOZ_columns = nonSOZ_median_feats.columns.to_list()
 newcolumns = ['color_riseamp', 'color_decayamp', 'color_slowwidth', 'color_slowamp', 'color_riseslope', 
-              'color_decayslope', 'color_avgamp', 'color_LL', 'color_spikerate']
+              'color_decayslope', 'color_avgamp', 'color_LL', 'color_spikerate', 'color_spikewidth', 'color_sharpness',
+              'color_riseduration', 'color_decayduration']
 
 for i, (SOZ, nonSOZ) in enumerate(zip(SOZ_columns, nonSOZ_columns)):
     median_feats[newcolumns[i]] = median_feats[SOZ] - median_feats[nonSOZ]
@@ -615,7 +636,8 @@ for i, (SOZ, nonSOZ) in enumerate(zip(SOZ_columns, nonSOZ_columns)):
 
 # %%
 #create paired plots
-title = ['Rise Amp', 'Decay Amp', 'Slow Width', 'Slow Amp', 'Rise Slope', 'Decay Slope', 'Avg Amp', 'LL', 'Spike Rate']
+title = ['Rise Amp', 'Decay Amp', 'Slow Width', 'Slow Amp', 'Rise Slope', 'Decay Slope', 'Avg Amp', 'LL', 
+         'Spike Rate', 'Spike Width', 'Sharpness', 'Rise Duration', 'Decay Duration']
 for i in range(len(newcolumns)):
     fig, ax = plt.subplots(1,1, figsize = (10,10))
     ax.scatter(median_feats[median_feats[newcolumns[i]] == 1][SOZ_columns[i]], median_feats[median_feats[newcolumns[i]] == 1][nonSOZ_columns[i]], color = 'r', label = "Patients w/ SOZ > ({})".format(len(median_feats[median_feats[newcolumns[i]] == 1])))
@@ -676,7 +698,7 @@ for SOZfeat, nonSOZfeat in zip(SOZ_columns, nonSOZ_columns):
 # %%
 #CREATE HUGE BOXPLOT WITH ALL FEATURES FOR AES
 
-feats_OI = ['SOZ rise amp','nonSOZ rise amp','SOZ decay amp','nonSOZ decay amp','SOZ slow width','nonSOZ slow width','SOZ slow amp','nonSOZ slow amp','SOZ rise slope','nonSOZ rise slope','SOZ decay slope','nonSOZ decay slope','SOZ LL','nonSOZ LL']
+feats_OI = ['SOZ rise amp','nonSOZ rise amp','SOZ decay amp','nonSOZ decay amp','SOZ slow width','nonSOZ slow width','SOZ slow amp','nonSOZ slow amp','SOZ rise slope','nonSOZ rise slope','SOZ decay slope','nonSOZ decay slope','SOZ LL','nonSOZ LL','SOZ spike rate','nonSOZ spike rate','SOZ spike width','nonSOZ spike width','SOZ sharpness','nonSOZ sharpness','SOZ rise duration','nonSOZ rise duration','SOZ decay duration','nonSOZ decay duration']
 
 median_feats['SOZ rise slope'] = median_feats['SOZ rise slope'].abs()
 median_feats['nonSOZ rise slope'] = median_feats['nonSOZ rise slope'].abs()
@@ -693,25 +715,33 @@ plt.yscale('log')
 
 import matplotlib
 
-colors = ['r','b','r','b','r','b','r','b','r','b','r','b','r','b']
+colors = ['r','b','r','b','r','b','r','b','r','b','r','b','r','b', 'r','b','r','b','r','b','r','b','r','b']
 for i, color in enumerate(colors):
     axes.findobj(matplotlib.patches.Patch)[i].set_facecolor(color)
 
-plt.xticks(ticks = [1.5,3.5,5.5,7.5,9.5,11.5,13.5], labels = ['Rise Amplitude', 'Falling Amplitude','Slow Width','Slow Amplitude','Rise Slope','Falling Slope','Line Length'])
+plt.xticks(ticks = [1.5,3.5,5.5,7.5,9.5,11.5,13.5, 15.5, 17.5, 19.5, 21.5, 23.5], labels = ['Rise Amplitude', 'Falling Amplitude','Slow Width','Slow Amplitude','Rise Slope','Falling Slope','Line Length','Spike Rate','Spike Width','Sharpness','Rise Duration','Falling Duration'], rotation = 45, ha = 'right')
 #add xticks to the top of the plot as well to mirror the x axis
 plt.tick_params(top = True)
 
+#add significance stars
+#rising apitude
 plt.plot([1, 1, 2, 2], [(10**4+10**3)/2, 10**4, 10**4, (10**4+10**3)/2], lw=1.5, c='k')
-plt.text((1+2)*.5, 10**4, "***", ha='center', va='bottom', color='k')
-
+plt.text((1+2)*.5, 10**4, "*** ttest", ha='center', va='bottom', color='k')
+#falling amplitude
 plt.plot([3, 3, 4, 4], [(10**4+10**3)/2, 10**4, 10**4, (10**4+10**3)/2], lw=1.5, c='k')
-plt.text((4+3)*.5, 10**4, "***", ha='center', va='bottom', color='k')
-
+plt.text((4+3)*.5, 10**4, "*** ttest", ha='center', va='bottom', color='k')
+#slow amplitude
 plt.plot([7, 7, 8, 8], [(10**4+10**3)/2, 10**4, 10**4, (10**4+10**3)/2], lw=1.5, c='k')
-plt.text((8+7)*.5, 10**4, "***", ha='center', va='bottom', color='k')
-
+plt.text((8+7)*.5, 10**4, "*** wilc", ha='center', va='bottom', color='k')
+#line length
 plt.plot([13, 13, 14, 14], [(10**4+10**3)/2, 10**4, 10**4, (10**4+10**3)/2], lw=1.5, c='k')
-plt.text((13+14)*.5, 10**4, "***", ha='center', va='bottom', color='k')
+plt.text((13+14)*.5, 10**4, "*** ttest", ha='center', va='bottom', color='k')
+#spike rate
+plt.plot([15, 15, 16, 16], [(10**4+10**3)/2, 10**4, 10**4, (10**4+10**3)/2], lw=1.5, c='k')
+plt.text((15+16)*.5, 10**4, "*** wilc", ha='center', va='bottom', color='k')
+#sharpness
+plt.plot([19, 19, 20, 20], [(10**4+10**3)/2, 10**4, 10**4, (10**4+10**3)/2], lw=1.5, c='k')
+plt.text((19+20)*.5, 10**4, "*** ttest", ha='center', va='bottom', color='k')
 
 plt.title("Univariate Analysis of SOZ vs. non-SOZ Features Within Brain Regions")
 
@@ -721,7 +751,7 @@ plt.legend(handles=[SOZ,nonSOZ])
 plt.ylabel('log(arbitrary units)')
 plt.show()
 
-#%% ADD HUP IDS TO RID in master_elecs 
+##%% ADD HUP IDS TO RID in master_elecs 
 master_elecs = pd.read_csv('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/master_elecs.csv')
 all_ids = pd.read_csv('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/all_ptids.csv', index_col=0)
 
@@ -740,7 +770,7 @@ good_outcomes = engel_w_median_feats[engel_w_median_feats['engel'] == 1]
 bad_outcomes = engel_w_median_feats[(engel_w_median_feats['engel'] != 1)].dropna()
 
 #%% GOOD OUTCOMES PAIRED PLOTS
-title = ['Rise Amp', 'Decay Amp', 'Slow Width', 'Slow Amp', 'Rise Slope', 'Decay Slope', 'Avg Amp', 'LL']
+title = ['Rise Amp', 'Decay Amp', 'Slow Width', 'Slow Amp', 'Rise Slope', 'Decay Slope', 'LL', 'Spike Rate', 'Spike Width', 'Sharpness', 'Rise Duration', 'Decay Duration']
 median_feats = good_outcomes
 for i in range(len(newcolumns)):
     fig, ax = plt.subplots(1,1, figsize = (10,10))
