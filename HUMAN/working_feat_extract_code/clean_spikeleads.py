@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 from ieeg.auth import Session
 from resampy import resample
+import re
 
 # Import custom functions
 import sys, os
@@ -176,6 +177,8 @@ for index, row in filenames_w_ids.iterrows():
         print('brain_df is not a dataframe')
         continue
 
+    #clean labels
+    spike_output_DF['channel_label'] = spike_output_DF['channel_label'].apply(lambda x: decompose_labels(x, hup_id))
     #merge brain_df using "key_0" to spike_output_DF using "channel_label", to get 'final_label' in spike_output_DF
     spike_output_DF = spike_output_DF.merge(brain_df[['key_0','final_label']], left_on='channel_label', right_on='key_0', how='left')
     #drop the extra column 'key_0'
