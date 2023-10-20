@@ -39,9 +39,12 @@ all_df[all_df['final_label'].isna()]['pt_id'].unique()
 
 #%%
 #load patient data for 'HUP106'
-pt_id = 'HUP107'
+pt_id = 'HUP106'
 pt_df = all_df[all_df['pt_id'] == pt_id]
 pt_df = pt_df.reset_index(drop=True)
+
+#find all the unique channels in channel_label
+channels = pt_df['channel_label'].unique()
 
 #using load_ptall, load this patients data
 spike, brain_df, _, _ = load_ptall(pt_id, data_directory)
