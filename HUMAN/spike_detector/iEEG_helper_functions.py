@@ -292,6 +292,8 @@ def new_bandpass_filt(data, lowcut, highcut, fs, order = 4):
 
     return signal_bp
 
+import re
+
 #clean labels
 def decompose_labels(chLabel, name):
     """
