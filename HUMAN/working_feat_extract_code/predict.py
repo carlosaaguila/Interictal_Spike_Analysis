@@ -28,6 +28,23 @@ nonSOZ_feats_new = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike
 SOZ_feats_new['isSOZ'] = 1
 nonSOZ_feats_new['isSOZ'] = 0
 
+#%% add some extra features
+#for SOZ
+SOZ_feats_new['spike_width'] = SOZ_feats_new['right_point']-SOZ_feats_new['left_point']
+#calculate the sharpness of a spike, by subtracting decay_slope from rise_slope
+SOZ_feats_new['sharpness'] = np.abs(SOZ_feats_new['rise_slope']-SOZ_feats_new['decay_slope'])
+#calculate rise_duration of a spike, by subtracting left_point from peak
+SOZ_feats_new['rise_duration'] = SOZ_feats_new['peak']-SOZ_feats_new['left_point']
+#calculate decay_duration of a spike, by subtracting peak from right_point
+SOZ_feats_new['decay_duration'] = SOZ_feats_new['right_point']-SOZ_feats_new['peak']
+
+#repeat for nonSOZ
+nonSOZ_feats_new['spike_width'] = nonSOZ_feats_new['right_point']-nonSOZ_feats_new['left_point']
+nonSOZ_feats_new['sharpness'] = np.abs(nonSOZ_feats_new['rise_slope']-nonSOZ_feats_new['decay_slope'])
+nonSOZ_feats_new['rise_duration'] = nonSOZ_feats_new['peak']-nonSOZ_feats_new['left_point']
+nonSOZ_feats_new['decay_duration'] = nonSOZ_feats_new['right_point']-nonSOZ_feats_new['peak']
+
+#%%
 # concatenate all the data vertically
 all_feats = pd.concat([SOZ_feats_new, nonSOZ_feats_new], axis = 0)
 
@@ -58,6 +75,53 @@ all_feats_eleclevel = all_feats_eleclevel.drop(columns = ['peak','left_point','a
 # for each row in 'id', remove 'HUP' and convert to int
 all_feats_eleclevel['id'] = all_feats_eleclevel['id'].str.replace('HUP', '')
 all_feats_eleclevel['id'] = all_feats_eleclevel['id'].astype(int)
+
+#%%
+import seaborn as sns
+
+#run correlation matrices on features
+ids_in_study = all_feats_eleclevel['id'].unique()
+#for each id in ids_in_study calculate a correlation matrix
+corr_matrices = np.zeros(len(ids_in_study), dtype = object)
+for i,pt in enumerate(ids_in_study):
+    print(pt)
+    #get the data for that id
+    id_data = all_feats_eleclevel[all_feats_eleclevel['id'] == pt]
+    #drop id column
+    id_data = id_data.drop(columns = ['id'])
+    #get the correlation matrix for that id
+    corr_matrix = id_data.corr().abs()
+    #plt.figure(figsize=(10,10))
+    #plt.title(f'Correlation Matrix for {ids_in_study[i]}')
+    #sns.heatmap(corr_matrix.abs(), cmap='coolwarm', annot=True, fmt='.2f')
+    #plt.show()
+    corr_matrices[i] = corr_matrix
+
+#find the mean across all the matrices in corr_matrices for each element in the matrix, keeping the same shape
+mean_corr_matrix = np.mean(corr_matrices, axis = 0)
+
+#%% RUN PCA ON ALL FEATURES
+#Import necessary libraries
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+
+# TO-DO: Get transformed set of principal components on x_test (17)
+# 1. Refit and transform on training with parameter n (as deduced from the last step) 
+scaler = StandardScaler()
+scaler.fit(X_train)
+X_train_s = scaler.transform(X_train)
+X_test_s = scaler.transform(X_test)
+
+# TO-DO: Instantiate and Fit PCA
+pca = PCA(random_state = seed, n_components = 17)
+pca.fit(X_train_s)
+
+# 2. Transform on Testing Set and store it as `X_test_pca`
+X_test_pca = pca.transform(X_test_s)
+X_train_pca = pca.transform(X_train_s)
+
+explained_variance_ratios = PCmodel.explained_variance_ratio_
+cum_evr = np.cumsum(explained_variance_ratios)
 
 #%% split train/test
 from sklearn.model_selection import train_test_split
