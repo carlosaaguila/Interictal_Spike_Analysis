@@ -224,7 +224,7 @@ for index, row in filenames_w_ids.iterrows():
     spike_output_DF_leads_all = spike_output_DF_leads_all.append(spike_output_DF_leads)
 
 #save spike_output_DF_leads_all 
-spike_output_DF_leads_all.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/clean_spikeleads/spike_output_DF_leads_all', index=False)
+spike_output_DF_leads_all.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/clean_spikeleads/spike_output_DF_leads_all_v2', index=False)
 
 
 
