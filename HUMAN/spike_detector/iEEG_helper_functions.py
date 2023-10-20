@@ -291,3 +291,76 @@ def new_bandpass_filt(data, lowcut, highcut, fs, order = 4):
         signal_bp = filtfilt(bandpass_b, bandpass_a, data, axis=0)
 
     return signal_bp
+
+#clean labels
+def decompose_labels(chLabel, name):
+    """
+    clean the channel labels, one at a time.
+    """
+    clean_label = []
+    elec = []
+    number = []
+    label = chLabel
+
+    if isinstance(label, str):
+        label_str = label
+    else:
+        label_str = label[0]
+
+    # Remove leading zero
+    label_num_idx = re.search(r'\d', label_str)
+    if label_num_idx:
+        label_non_num = label_str[:label_num_idx.start()]
+        label_num = label_str[label_num_idx.start():]
+
+        if label_num.startswith('0'):
+            label_num = label_num[1:]
+
+        label_str = label_non_num + label_num
+
+    # Remove 'EEG '
+    eeg_text = 'EEG '
+    if eeg_text in label_str:
+        label_str = label_str.replace(eeg_text, '')
+
+    # Remove '-Ref'
+    ref_text = '-Ref'
+    if ref_text in label_str:
+        label_str = label_str.replace(ref_text, '')
+
+    # Remove spaces
+    label_str = label_str.replace(' ', '')
+
+    # Remove '-'
+    label_str = label_str.replace('-', '')
+
+    # Remove CAR
+    label_str = label_str.replace('CAR', '')
+
+    # Switch HIPP to DH, AMY to DA
+    label_str = label_str.replace('HIPP', 'DH')
+    label_str = label_str.replace('AMY', 'DA')
+
+    # Dumb fixes specific to individual patients
+    if name == 'HUP099':
+        if label_str.startswith('R'):
+            label_str = label_str[1:]
+
+    if name == 'HUP189':
+        label_str = label_str.replace('Gr', 'G')
+
+    if name == 'HUP106':
+        label_str = label_str.replace('LDA', 'LA')
+        label_str = label_str.replace('LDH', 'LH')
+        label_str = label_str.replace('RDA', 'RA')
+        label_str = label_str.replace('RDH', 'RH')
+
+    clean_label = label_str
+
+    if 'Fp1' in label_str.lower():
+        clean_label = 'Fp1'
+
+    if 'Fp2' in label_str.lower():
+        clean_label = 'Fp2'
+
+    return clean_label
