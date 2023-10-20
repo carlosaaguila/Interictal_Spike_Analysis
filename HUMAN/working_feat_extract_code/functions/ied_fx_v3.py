@@ -388,6 +388,8 @@ def changelabel(ptname, brain_df, data_directory):
     directions = pd.read_csv('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/label_change/{}.csv'.format(ptname))
     replace_dict = dict(zip(directions['name'], directions['change_to']))
     brain_df['name'] = brain_df['name'].apply(replace_letters, replace_dict = replace_dict)
+    #do the same for key_0
+    brain_df['key_0'] = brain_df['key_0'].apply(replace_letters, replace_dict = replace_dict)
     return brain_df
     
 def load_ptall(ptname, data_directory):
