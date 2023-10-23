@@ -48,7 +48,6 @@ nonSOZ_feats_new['decay_duration'] = nonSOZ_feats_new['right_point']-nonSOZ_feat
 # concatenate all the data vertically
 all_feats = pd.concat([SOZ_feats_new, nonSOZ_feats_new], axis = 0)
 
-
 #remove the '[' and ']' from the spike_rate column
 all_feats['spike_rate'] = all_feats['spike_rate'].str.replace('[', '')
 all_feats['spike_rate'] = all_feats['spike_rate'].str.replace(']', '')
@@ -100,7 +99,9 @@ for i,pt in enumerate(ids_in_study):
 #find the mean across all the matrices in corr_matrices for each element in the matrix, keeping the same shape
 mean_corr_matrix = np.mean(corr_matrices, axis = 0)
 
+
 #%% RUN PCA ON ALL FEATURES
+"""
 #Import necessary libraries
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
@@ -122,8 +123,9 @@ X_train_pca = pca.transform(X_train_s)
 
 explained_variance_ratios = PCmodel.explained_variance_ratio_
 cum_evr = np.cumsum(explained_variance_ratios)
-
+"""
 #%% split train/test
+"""
 from sklearn.model_selection import train_test_split
 x_train, x_test, y_train, y_test = train_test_split(all_feats.drop(columns = ['isSOZ']), all_feats[['isSOZ']], test_size=0.25, random_state=42)
 x_val, x_test, y_val, y_test = train_test_split(x_test, y_test, test_size=0.5, random_state=42)
@@ -176,8 +178,8 @@ plt.ylabel("True Label")
 plt.show()
 
 """
-Random Forest Classifier R-squared score for    test set:	         0.6379378197560016
-Random Forest Classifier R-squared score for    validation set:	     0.6194411648957103
+# Random Forest Classifier R-squared score for    test set:	         0.6379378197560016
+# Random Forest Classifier R-squared score for    validation set:	     0.6194411648957103
 """
 
 ############### Precision, Recall, F1 Score
@@ -189,21 +191,21 @@ print('Recall: ', rec)
 print('F1 Score: ', f1)
 
 """
-TP = 1126
-TN = 495
-FP = 579
-FN = 341
+# TP = 1126
+# TN = 495
+# FP = 579
+# FN = 341
 
-Given our confusion matrix, we see 579 False Positives and 341 False Negatives using our Random Forest Classifier given our test set.
+# Given our confusion matrix, we see 579 False Positives and 341 False Negatives using our Random Forest Classifier given our test set.
 
-Given this, we calculated our precision or the positive predictive value to understand the fraction 
-of true postitives from all relevant positive predictions (true and false positives). Our precision from this model was 0.661.
+# Given this, we calculated our precision or the positive predictive value to understand the fraction 
+# of true postitives from all relevant positive predictions (true and false positives). Our precision from this model was 0.661.
 
-We also measured recall or sensitivity, to understand the ratio of relevant instances that were predicted.
-Our recall score for this model was 0.768.
+# We also measured recall or sensitivity, to understand the ratio of relevant instances that were predicted.
+# Our recall score for this model was 0.768.
 
-Additiaonlly, we calculated an F1 score to display the model's accuracy as a harmonic mean of both the
-precision and the recall in one metric. Our F1 score for this model was 0.710.
+# Additiaonlly, we calculated an F1 score to display the model's accuracy as a harmonic mean of both the
+# precision and the recall in one metric. Our F1 score for this model was 0.710.
 """
 
 ############### AUC Curves
@@ -217,14 +219,14 @@ plt.grid()
 plt.title('FPR vs. TPR ROC Curve of RFC Testing Performance')
 
 """
-An ROC curve (reciever oparting characteristic curve) shows the performance of a classification model 
-at different classifications thresholds by showing the ratio of the True Positive Rate by the
-False Positive Rate. To further understand the ROC curve, we calculate the area under the curve (AUC).
-This provides an aggregate measurement of performace that is equal to the probability that the model 
-ranks a random positive example more highly than a random negative example.
+# An ROC curve (reciever oparting characteristic curve) shows the performance of a classification model 
+# at different classifications thresholds by showing the ratio of the True Positive Rate by the
+# False Positive Rate. To further understand the ROC curve, we calculate the area under the curve (AUC).
+# This provides an aggregate measurement of performace that is equal to the probability that the model 
+# ranks a random positive example more highly than a random negative example.
 
-For our Random Forest Classifier, we get a AUC of 0.61, signifying that our chances of 
-predicting the correct value are a bit higher than chance. (50/50)
+# For our Random Forest Classifier, we get a AUC of 0.61, signifying that our chances of 
+# predicting the correct value are a bit higher than chance. (50/50)
 """
 
 ############### Feature Importances
@@ -280,8 +282,8 @@ plt.grid()
 plt.title('FPR vs. TPR ROC Curve of SVM Testing Performance')
 
 """
-Performance was not very good 
-AUC = 0.47
+# Performance was not very good 
+# AUC = 0.47
 """
 # %% Train Linear Regression Models
 
@@ -330,8 +332,8 @@ plt.ylabel("True Label")
 plt.show()
 
 """
-Random Forest Classifier R-squared score for    test set:	         0.6379378197560016
-Random Forest Classifier R-squared score for    validation set:	     0.6194411648957103
+# Random Forest Classifier R-squared score for    test set:	         0.6379378197560016
+# Random Forest Classifier R-squared score for    validation set:	     0.6194411648957103
 """
 
 ############### Precision, Recall, F1 Score
@@ -363,7 +365,7 @@ plt.ylabel("Morphology Feature")
 plt.figure(figsize=(5,5))
 fig.set_size_inches(6.5, 4.5, forward=True)
 plt.show()
-
+"""
 
 #%%
 all_feats = all_feats_eleclevel
@@ -402,6 +404,7 @@ for train_ix, test_ix in LOO.split(unique_ids):
     #drop columns 'isSOZ' and 'id'
     X_train = X_train.drop(columns = ['isSOZ', 'id'])
     X_test = X_test.drop(columns = ['isSOZ', 'id'])
+
     # fit model
     rfc = RandomForestClassifier(n_estimators = 100, random_state = 42, max_depth = None).fit(X_train, y_train)
     #rfc = LogisticRegression().fit(X_train, y_train)
@@ -449,6 +452,107 @@ plt.ylabel("True Label")
 plt.show()
 
 # %%
+########################
+# LEAVE ONE OUT + PCA + GRID SEARCH - RANDOM FOREST CLASSIFIER
+# ########################
+
+#Split the data according to IDs 
+#from all_feats dataframe, get the unique id's
+unique_ids = all_feats['id'].unique()
+#split into two lists of unique ids in a random order
+np.random.shuffle(unique_ids)
+
+#create LeaveOneOut model
+from sklearn.model_selection import LeaveOneOut
+LOO = LeaveOneOut()
+
+# Initialize the model and fit it on the training set
+# enumerate splits
+y_true, y_pred = list(), list()
+y_predprob = list()
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import GridSearchCV
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+
+for train_ix, test_ix in LOO.split(unique_ids):
+
+    #get data
+    X_train = all_feats[all_feats['id'].isin(unique_ids[train_ix])]
+    X_test = all_feats[all_feats['id'].isin(unique_ids[test_ix])]
+    y_train = X_train[['isSOZ']]
+    y_test = X_test[['isSOZ']]
+    #drop columns 'isSOZ' and 'id'
+    X_train = X_train.drop(columns = ['isSOZ', 'id'])
+    X_test = X_test.drop(columns = ['isSOZ', 'id'])
+
+    #PCA
+    # 1. Refit and transform on training with parameter n (as deduced from the last step)
+    scaler = StandardScaler()
+    scaler.fit(X_train)
+    X_train_s = scaler.transform(X_train)
+    X_test_s = scaler.transform(X_test)
+
+    # 2. Transform on Testing Set and store it as `X_test_pca`
+    pca = PCA(random_state = 42, n_components = 6) #if we are using standard scaler... n_components = 6, if not we use 2.
+    pca.fit(X_train_s)
+    X_test_pca = pca.transform(X_test_s)
+    X_train_pca = pca.transform(X_train_s)
+
+    # fit model
+    rfc = RandomForestClassifier()
+    param_grid = { 
+        'n_estimators': [200, 500],
+        'max_features': ['auto', 'sqrt', 'log2'],
+        'max_depth' : [4,5,6,7,8, None],
+        'criterion' :['gini', 'entropy']
+    }
+    grid_RFC = GridSearchCV(rfc, param_grid = param_grid, scoring = 'recall')
+    grid_RFC.fit(X_train_pca, y_train)
+
+    #Predict values based on new parameters
+    yhat = grid_RFC.predict(X_test_pca)
+    y_pred_prob = grid_RFC.predict_proba(X_test_pca)[:,1]
+    # store
+    y_predprob.append(y_pred_prob)
+    y_true.append(y_test['isSOZ'].to_numpy())
+    y_pred.append(yhat)
+    # calculate accuracy
+    
+#%% 
+################ evaluate predictions
+from sklearn.metrics import accuracy_score
+y_true_clean = [x for x in y_true for x in x]
+y_pred_clean = [x for x in y_pred for x in x]
+y_predprob_clean = [x for x in y_predprob for x in x]
+
+acc = accuracy_score(y_true_clean, y_pred_clean)
+print('Accuracy: %.3f' % acc)
+
+################ AUC curve
+from sklearn.metrics import roc_curve
+from sklearn.metrics import RocCurveDisplay
+from sklearn.metrics import auc
+
+RocCurveDisplay.from_predictions(y_true_clean, y_predprob_clean)
+plt.plot(np.linspace(0,1,100), np.linspace(0,1,100), '--', color='black')
+plt.grid()
+plt.title('FPR vs. TPR ROC Curve of RFC Testing Performance')
+
+################ Confusion Matrix
+from sklearn.metrics import confusion_matrix as C_M
+import seaborn as sns
+
+rfc_confusion = C_M(y_true_clean, y_pred_clean)
+rfc_conf_mat_df = pd.DataFrame(rfc_confusion)
+plt.figure(figsize=(6,4))
+sns.heatmap(rfc_conf_mat_df, cmap='GnBu', annot=True, fmt = "g")
+plt.title("Confusion Matrix for RFC test set predictions")
+plt.xlabel("Predicted Label")
+plt.ylabel("True Label")
+plt.show()
+
+ # %%
 ########################
 # LEAVE ONE OUT - RANDOM FOREST CLASSIFIER (NULL MODEL)
 # ########################
