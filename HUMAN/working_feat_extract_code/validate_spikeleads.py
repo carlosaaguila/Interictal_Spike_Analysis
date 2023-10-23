@@ -33,21 +33,34 @@ filenames_w_ids = filenames_w_ids[~filenames_w_ids['hup_id'].isin(blacklist)]
 filenames_w_ids = filenames_w_ids[filenames_w_ids['to use'] == 1].reset_index(drop=True)
 
 #%%
-all_df = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/clean_spikeleads/spike_output_DF_leads_all')
+all_df = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/clean_spikeleads/spike_output_DF_leads_all_v2')
 #show me where the nan's are for each patient
 all_df[all_df['final_label'].isna()]['pt_id'].unique()
+# which patient has the most nan's?
+all_df[all_df['final_label'].isna()]['pt_id'].value_counts()
 
 #%%
-#load patient data for 'HUP106'
-pt_id = 'HUP106'
+#load patient data
+pt_id = 'HUP123'
 pt_df = all_df[all_df['pt_id'] == pt_id]
 pt_df = pt_df.reset_index(drop=True)
 
 #find all the unique channels in channel_label
-channels = pt_df['channel_label'].unique()
-
+channels = pt_df['channel_label'].unique() #channels in pt_df
 #using load_ptall, load this patients data
 spike, brain_df, _, _ = load_ptall(pt_id, data_directory)
+#try to correct
+brain_df['key_0'] = brain_df['key_0'].apply(lambda x: decompose_labels(x, pt_id))
+channels2 = brain_df['key_0'].unique() #channels in brain_df
+
+#%%
+#find difference between channels and channels2
+#channels not in brain_df but in pt_df
+missing_channels_1 = [i for i in channels if i not in channels2]
+print(missing_channels_1)
+#channels not in pt_df but in brain_df
+missing_channels_2 = [i for i in channels2 if i not in channels]
+print(missing_channels_2)
 # %%
 #find which channels are missing from channel_label in pt_df and key_0 in brain_df
 #chanels not in brain_df but in pt_df
@@ -61,3 +74,31 @@ print(missing_channels_2)
 #problems to look for -- some of the labels aren't clean, we might have to clean them before merging with atlas 
 #HUP 106 in particular has the LDA -> LA and RGH -> RH problem
 #HUP 107 has clean labels issue
+
+
+#%%
+
+#we want to add a isSOZ column to all_df
+filenames_w_ids = pd.read_csv('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/filenames_w_ids.csv')
+#load the master elecs file
+master_elecs = pd.read_csv('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/master_elecs.csv')
+#add hup_id by merging on r_id to master_elecs 
+all_elecs = master_elecs.merge(filenames_w_ids[['r_id', 'hup_id']], left_on='rid', right_on = 'r_id', how='left')
+#drop duplicate rows
+all_elecs = all_elecs.drop_duplicates(subset=['rid', 'name'])
+
+#decompose labels to all_elecs using name and hup_id as inputs
+
+all_elecs['clean_labels'] = all_elecs.apply(lambda x: decompose_labels(x['name'], x['hup_id']), axis=1)
+
+# %%
+all_df = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/clean_spikeleads/spike_output_DF_leads_all_v2')
+
+#%%
+all_elecs = all_elecs[['hup_id', 'clean_labels', 'soz', 'label']]
+# %%
+#merge all_df with all_elecs on pt_id and channel_label
+all_df_2 = all_df.merge(all_elecs, left_on=['pt_id', 'channel_label'], right_on=['hup_id', 'clean_labels'], how='left')
+all_df_2 = all_df_2.drop(columns=['hup_id', 'clean_labels','label'])
+all_df_2 = all_df_2.dropna()
+# %%
