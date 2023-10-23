@@ -179,6 +179,11 @@ for index, row in filenames_w_ids.iterrows():
 
     #clean labels
     spike_output_DF['channel_label'] = spike_output_DF['channel_label'].apply(lambda x: decompose_labels(x, hup_id))
+    
+    #clean brain_df labels
+    brain_df['key_0'] = brain_df['key_0'].apply(lambda x: decompose_labels(x, hup_id))
+
+
     #merge brain_df using "key_0" to spike_output_DF using "channel_label", to get 'final_label' in spike_output_DF
     spike_output_DF = spike_output_DF.merge(brain_df[['key_0','final_label']], left_on='channel_label', right_on='key_0', how='left')
     #drop the extra column 'key_0'
@@ -224,8 +229,6 @@ for index, row in filenames_w_ids.iterrows():
     spike_output_DF_leads_all = spike_output_DF_leads_all.append(spike_output_DF_leads)
 
 #save spike_output_DF_leads_all 
-spike_output_DF_leads_all.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/clean_spikeleads/spike_output_DF_leads_all_v2', index=False)
-
-
+spike_output_DF_leads_all.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/clean_spikeleads/spike_output_DF_leads_all_v3', index=False)
 
 # %%

@@ -357,6 +357,12 @@ def decompose_labels(chLabel, name):
         label_str = label_str.replace('RDA', 'RA')
         label_str = label_str.replace('RDH', 'RH')
 
+    if (name == 'HUP086') | (name == 'HUP078'):
+        label_str = label_str.replace('Grid', 'LG')
+
+    if name == 'HUP075':
+        label_str = label_str.replace('Grid', 'G')
+
     clean_label = label_str
 
     if 'Fp1' in label_str.lower():
