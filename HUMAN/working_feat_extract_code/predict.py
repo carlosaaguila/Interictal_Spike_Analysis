@@ -76,6 +76,7 @@ all_feats_eleclevel['id'] = all_feats_eleclevel['id'].str.replace('HUP', '')
 all_feats_eleclevel['id'] = all_feats_eleclevel['id'].astype(int)
 
 #%%
+"""
 import seaborn as sns
 
 #run correlation matrices on features
@@ -98,7 +99,7 @@ for i,pt in enumerate(ids_in_study):
 
 #find the mean across all the matrices in corr_matrices for each element in the matrix, keeping the same shape
 mean_corr_matrix = np.mean(corr_matrices, axis = 0)
-
+"""
 
 #%% RUN PCA ON ALL FEATURES
 """
@@ -142,8 +143,9 @@ print("Validation, label 1:\t", len(y_val[y_val['isSOZ'] == 1]))
 print('\n')
 print("Test, label 0:\t\t", len(y_test[y_test['isSOZ'] == 0]))
 print("Test, label 1:\t\t", len(y_test[y_test['isSOZ'] == 1]))
-
+"""
 # %% train a Random Forest Classifier
+"""
 
 ########################
 # RANDOM FOREST CLASSIFIER
@@ -251,7 +253,9 @@ plt.figure(figsize=(5,5))
 fig.set_size_inches(6.5, 4.5, forward=True)
 plt.show()
 
+"""
 #%% Train a Support Vector Machine Classifier
+"""
 
 ########################
 #SUPPORT VECTOR MACHINE
@@ -285,7 +289,9 @@ plt.title('FPR vs. TPR ROC Curve of SVM Testing Performance')
 # Performance was not very good 
 # AUC = 0.47
 """
+"""
 # %% Train Linear Regression Models
+"""
 
 ########################
 #LOGISTIC REGRESSION CLASSIFIER
@@ -366,11 +372,12 @@ plt.figure(figsize=(5,5))
 fig.set_size_inches(6.5, 4.5, forward=True)
 plt.show()
 """
-
 #%%
+
 all_feats = all_feats_eleclevel
 
 # %%
+"""
 ########################
 # LEAVE ONE OUT - RANDOM FOREST CLASSIFIER
 # ########################
@@ -417,8 +424,12 @@ for train_ix, test_ix in LOO.split(unique_ids):
     y_true.append(y_test['isSOZ'].to_numpy())
     y_pred.append(yhat)
     # calculate accuracy
-    
+
+filename = '/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/models/basic_loocv_rfc.sav' 
+pkl.dump(rfc, open(filename, 'wb'))
+"""
 #%% 
+"""
 ################ evaluate predictions
 from sklearn.metrics import accuracy_score
 y_true_clean = [x for x in y_true for x in x]
@@ -437,6 +448,7 @@ RocCurveDisplay.from_predictions(y_true_clean, y_predprob_clean)
 plt.plot(np.linspace(0,1,100), np.linspace(0,1,100), '--', color='black')
 plt.grid()
 plt.title('FPR vs. TPR ROC Curve of RFC Testing Performance')
+plt.savefig('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/ML/basic_loocv_rfc/auc.png', dpi = 300)
 
 ################ Confusion Matrix
 from sklearn.metrics import confusion_matrix as C_M
@@ -449,8 +461,8 @@ sns.heatmap(rfc_conf_mat_df, cmap='GnBu', annot=True, fmt = "g")
 plt.title("Confusion Matrix for RFC test set predictions")
 plt.xlabel("Predicted Label")
 plt.ylabel("True Label")
-plt.show()
-
+plt.savefig('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/ML/basic_loocv_rfc/confusion.png', dpi = 300)
+"""
 # %%
 ########################
 # LEAVE ONE OUT + PCA + GRID SEARCH - RANDOM FOREST CLASSIFIER
@@ -476,7 +488,7 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
 for train_ix, test_ix in LOO.split(unique_ids):
-
+    print('startng training')
     #get data
     X_train = all_feats[all_feats['id'].isin(unique_ids[train_ix])]
     X_test = all_feats[all_feats['id'].isin(unique_ids[test_ix])]
@@ -518,8 +530,9 @@ for train_ix, test_ix in LOO.split(unique_ids):
     y_true.append(y_test['isSOZ'].to_numpy())
     y_pred.append(yhat)
     # calculate accuracy
-    
+
 #%% 
+
 ################ evaluate predictions
 from sklearn.metrics import accuracy_score
 y_true_clean = [x for x in y_true for x in x]
@@ -535,9 +548,11 @@ from sklearn.metrics import RocCurveDisplay
 from sklearn.metrics import auc
 
 RocCurveDisplay.from_predictions(y_true_clean, y_predprob_clean)
+plt.figure(figsize=(6,4))
 plt.plot(np.linspace(0,1,100), np.linspace(0,1,100), '--', color='black')
 plt.grid()
 plt.title('FPR vs. TPR ROC Curve of RFC Testing Performance')
+plt.savefig('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/ML/LOO_PCA_RFC_auc.png', dpi = 300)
 
 ################ Confusion Matrix
 from sklearn.metrics import confusion_matrix as C_M
@@ -550,9 +565,18 @@ sns.heatmap(rfc_conf_mat_df, cmap='GnBu', annot=True, fmt = "g")
 plt.title("Confusion Matrix for RFC test set predictions")
 plt.xlabel("Predicted Label")
 plt.ylabel("True Label")
-plt.show()
+plt.savefig('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/ML/LOO_PCA_RFC_confusion.png', dpi = 300)
+
+#finally save the model & outputs, did this last in case any thing else crashes
+pkl.dump(y_true_clean, open('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/models/grisearch/y_true.pkl', 'wb'))
+pkl.dump(y_pred_clean, open('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/models/grisearch/y_pred.pkl', 'wb'))
+pkl.dump(y_predprob_clean, open('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/models/grisearch/y_predprob.pkl', 'wb'))
+filename = '/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/models/grisearch/gridsearch_loocv_rfc.sav' 
+pkl.dump(grid_RFC, open(filename, 'wb'))
+
 
  # %%
+"""
 ########################
 # LEAVE ONE OUT - RANDOM FOREST CLASSIFIER (NULL MODEL)
 # ########################
@@ -628,5 +652,4 @@ plt.title(f'FPR vs. TPR ROC Curve LOO-RFC ({FEATURE})')
 # plt.xlabel("Predicted Label")
 # plt.ylabel("True Label")
 # plt.show()
-
-    # %%
+"""
