@@ -4,6 +4,8 @@ import pandas as pd
 import numpy as np
 from ieeg.auth import Session
 from resampy import resample
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 # Import custom functions
 import sys, os
@@ -33,7 +35,8 @@ filenames_w_ids = filenames_w_ids[~filenames_w_ids['hup_id'].isin(blacklist)]
 filenames_w_ids = filenames_w_ids[filenames_w_ids['to use'] == 1].reset_index(drop=True)
 
 #%%
-all_df = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/clean_spikeleads/spike_output_DF_leads_all_v2')
+"""
+all_df = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/clean_spikeleads/spike_output_DF_leads_all_v3')
 #show me where the nan's are for each patient
 all_df[all_df['final_label'].isna()]['pt_id'].unique()
 # which patient has the most nan's?
@@ -69,12 +72,7 @@ print(missing_channels_1)
 #channels not in pt_df but in brain_df
 missing_channels_2 = [i for i in brain_df['key_0'].unique() if i not in pt_df['channel_label'].unique()]
 print(missing_channels_2)
-# %%
-
-#problems to look for -- some of the labels aren't clean, we might have to clean them before merging with atlas 
-#HUP 106 in particular has the LDA -> LA and RGH -> RH problem
-#HUP 107 has clean labels issue
-
+"""
 
 #%%
 
@@ -88,12 +86,13 @@ all_elecs = master_elecs.merge(filenames_w_ids[['r_id', 'hup_id']], left_on='rid
 all_elecs = all_elecs.drop_duplicates(subset=['rid', 'name'])
 
 #decompose labels to all_elecs using name and hup_id as inputs
-
 all_elecs['clean_labels'] = all_elecs.apply(lambda x: decompose_labels(x['name'], x['hup_id']), axis=1)
 
 # %%
-all_df = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/clean_spikeleads/spike_output_DF_leads_all_v2')
+all_df = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/clean_spikeleads/spike_output_DF_leads_all_v3')
 
+#drop all "EmptyLabel" rows in all_df
+all_df = all_df[all_df['final_label'] != 'EmptyLabel']
 #%%
 all_elecs = all_elecs[['hup_id', 'clean_labels', 'soz', 'label']]
 # %%
@@ -101,4 +100,20 @@ all_elecs = all_elecs[['hup_id', 'clean_labels', 'soz', 'label']]
 all_df_2 = all_df.merge(all_elecs, left_on=['pt_id', 'channel_label'], right_on=['hup_id', 'clean_labels'], how='left')
 all_df_2 = all_df_2.drop(columns=['hup_id', 'clean_labels','label'])
 all_df_2 = all_df_2.dropna()
+# %%
+#for each pt_id, find which value of final_label when soz is True
+SOZ_labels = all_df_2[all_df_2['soz'] == True].groupby('pt_id')['final_label'].unique().to_dict()
+
+all_df_3 = pd.DataFrame()
+for key, value in SOZ_labels.items():
+    #find all the rows in all_df_2 where pt_id == key and final_label is in value
+    df = all_df_2[(all_df_2['pt_id'] == key) & (all_df_2['final_label'].isin(value))]
+    #drop final_label == 'Empty Label'
+    df = df[df['final_label'] != 'EmptyLabel']
+    all_df_3 = all_df_3.append(df)
+
+#%%
+#save this dataframe as intra_soz_leaders.csv in working features/clean_spikeleads
+#all_df_3.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/clean_spikeleads/intra_soz_leaders.csv', index=False)
+
 # %%
