@@ -548,7 +548,6 @@ from sklearn.metrics import RocCurveDisplay
 from sklearn.metrics import auc
 
 RocCurveDisplay.from_predictions(y_true_clean, y_predprob_clean)
-plt.figure(figsize=(6,4))
 plt.plot(np.linspace(0,1,100), np.linspace(0,1,100), '--', color='black')
 plt.grid()
 plt.title('FPR vs. TPR ROC Curve of RFC Testing Performance')
@@ -568,10 +567,11 @@ plt.ylabel("True Label")
 plt.savefig('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/ML/LOO_PCA_RFC_confusion.png', dpi = 300)
 
 #finally save the model & outputs, did this last in case any thing else crashes
-pkl.dump(y_true_clean, open('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/models/grisearch/y_true.pkl', 'wb'))
-pkl.dump(y_pred_clean, open('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/models/grisearch/y_pred.pkl', 'wb'))
-pkl.dump(y_predprob_clean, open('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/models/grisearch/y_predprob.pkl', 'wb'))
-filename = '/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/models/grisearch/gridsearch_loocv_rfc.sav' 
+pkl.dump(y_true_clean, open('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/models/gridsearch/y_true.pkl', 'wb'))
+pkl.dump(y_pred_clean, open('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/models/gridsearch/y_pred.pkl', 'wb'))
+pkl.dump(y_predprob_clean, open('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/models/gridsearch/y_predprob.pkl', 'wb'))
+
+filename = '/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/models/gridsearch/gridsearch_loocv_rfc.sav' 
 pkl.dump(grid_RFC, open(filename, 'wb'))
 
 
