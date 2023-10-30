@@ -73,32 +73,12 @@ atlas_spikes['final_label'] = atlas_spikes['final_label'].apply(lambda x: x.repl
 #find the median value for each final_label and each patient
 median_vals = atlas_spikes.groupby(['final_label', 'pt_id']).median().reset_index()
 
-#%%
 #merge the SOZ designation for each patient
 SOZ_list = pd.read_csv('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/soz_locations.csv', index_col = 0)
 
 #merge the SOZ designation for each patient
 median_vals = median_vals.merge(SOZ_list, left_on = 'pt_id', right_on = 'name', how = 'left')
 
-# function to match SOZ and ROI
-def convertTF(feature_matrix, dict_soz):
-    """
-    Function to add 1/0 to match SOZ to ROI
-    """
-    df_riseamp_v3_clean = pd.DataFrame()
-    for soz, roi in dict_soz.items():
-        #riseamp v2 table
-        subdf = feature_matrix.loc[feature_matrix['soz'] == soz]
-        subdf = subdf.replace(to_replace = dict_soz)
-        #change elements in soz to 1 or 0 if they match elements in roi
-        subdf['soz2'] = subdf['soz'] == subdf['roi']
-        subdf['soz2'] = subdf['soz2'].astype(int) #convert to int
-        subdf['soz2'] = subdf['soz2'].astype('category')
-        df_riseamp_v3_clean = pd.concat([df_riseamp_v3_clean, subdf], axis = 0)
-
-    return df_riseamp_v3_clean
-
-#%%
 #dictionary containing the SOZ and their corresponding ROI
 dict_soz = {'bilateral - mesial temporal':'R_Mesial', 'bilateral - mesial temporal':'L_Mesial',
              'bilateral - temporal neocortical':'R_Lateral', 'bilateral - temporal neocortical':'L_Lateral',
@@ -109,39 +89,23 @@ dict_soz = {'bilateral - mesial temporal':'R_Mesial', 'bilateral - mesial tempor
              'left - temporal':'L_Mesial', 'right - temporal':'R_Mesial'
              }
 
-
-dict_soz2 = {'bilateral - mesial temporal':'Amyg_Hipp_L', 'bilateral - mesial temporal':'Amyg_Hipp_R',
-             'bilateral - mesial temporal':'ParaHippocampal_R', 'bilateral - mesial temporal':'ParaHippocampal_L',
-             'left - mesial temporal':'Amyg_Hipp_L', 'left - mesial temporal':'ParaHippocampal_L',
-             'right - mesial temporal':'Amyg_Hipp_R', 'right - mesial temporal':'ParaHippocampal_R',
-             'bilateral - temporal neocortical':'Temporal_Inf_L', 'bilateral - temporal neocortical':'Temporal_Inf_R',
-             'bilateral - temporal neocortical':'Temporal_Mid_L', 'bilateral - temporal neocortical':'Temporal_Mid_R',
-             'bilateral - temporal neocortical':'Temporal_Sup_L', 'bilateral - temporal neocortical':'Temporal_Sup_R',
-             'bilateral - temporal neocortical':'Fusiform_L', 'bilateral - temporal neocortical':'Fusiform_R', 
-             'left - temporal neocortical':'Temporal_Inf_L', 'left - temporal neocortical':'Temporal_Mid_L', 
-             'left - temporal neocortical':'Temporal_Sup_L', 'left - temporal neocortical':'Fusiform_L',
-             'right - temporal neocortical':'Temporal_Inf_R', 'right - temporal neocortical':'Temporal_Mid_R', 
-             'right - temporal neocortical':'Temporal_Sup_R', 'right - temporal neocortical':'Fusiform_R',
-             'left - other cortex':'Cingulum_L', 'left - other cortex':'FMO_Rect_L', 'left - other cortex':'Frontal_Mid_All_L', 
-             'left - other cortex':'Frontal_Sup_All_L', 'left - other cortex':'Frontal_inf_All_L', 'left - other cortex':'Insula_L', 
-             'left - other cortex':'Occipital_Lat_L', 'left - other cortex':'Occipital_Med_L', 'left - other cortex':'Parietal_Sup_Inf_L', 
-             'left - other cortex':'Postcentral_L', 'left - other cortex':'Precentral_L', 'left - other cortex':'Precuneus_PCL_L', 
-             'left - other cortex':'SupraMarginal_Angular_L', 'left - other cortex':'thalam_limbic_L',
-             'right - other cortex':'Cingulum_R', 'right - other cortex':'FMO_Rect_R', 'right - other cortex':'Frontal_Mid_All_R', 
-             'right - other cortex':'Frontal_Sup_All_R', 'right - other cortex':'Frontal_inf_All_R', 
-             'right - other cortex':'Insula_R', 'right - other cortex':'Occipital_Lat_R', 'right - other cortex':'Occipital_Med_R', 
-             'right - other cortex':'Parietal_Sup_Inf_R', 'right - other cortex':'Postcentral_R', 'right - other cortex':'Precentral_R', 
-             'right - other cortex':'Precuneus_PCL_R', 'right - other cortex':'SupraMarginal_Angular_R', 'right - other cortex':'thalam_limbic_R'
-             'left - temporal':'Temporal_Inf_L', 'left - temporal':'Temporal_Mid_L', 
-             'left - temporal':'Temporal_Sup_L', 'left - temporal':'Fusiform_L',
-             'left - temporal':'Amyg_Hipp_L', 'left - temporal':'ParaHippocampal_L',
-            'right - temporal':'Temporal_Inf_R', 'right - temporal':'Temporal_Mid_R',
-            'right - temporal':'Temporal_Sup_R', 'right - temporal':'Fusiform_R',
-            'right - temporal':'Amyg_Hipp_R', 'right - temporal':'ParaHippocampal_R'
-            'bilateral - temporal':'Temporal_Inf_L', 'bilateral - temporal':'Temporal_Mid_L', 'bilateral - temporal':'Temporal_Sup_L', 'bilateral - temporal':'Fusiform_L',
-            'bilateral - temporal':'Temporal_Inf_R', 'bilateral - temporal':'Temporal_Mid_R', 'bilateral - temporal':'Temporal_Sup_R', 'bilateral - temporal':'Fusiform_R',
-            'bilateral - temporal':'Amyg_Hipp_L', 'bilateral - temporal':'Amyg_Hipp_R', 'bilateral - temporal':'ParaHippocampal_L', 'bilateral - temporal':'ParaHippocampal_R'
-             }
+SOZs = ['bilateral - mesial temporal', 'left - mesial temporal', 'right - mesial temporal', 
+         'bilateral - temporal neocortical', 'left - temporal neocortical', 'right - temporal neocortical',
+         'left - other cortex', 'right - other cortex',
+         'left - temporal', 'right - temporal', 'bilateral - temporal']
+regions = [
+         ['Amyg_Hipp_L', 'Amyg_Hipp_R', 'ParaHippocampal_R', 'ParaHippocampal_L'],
+         ['Amyg_Hipp_L', 'ParaHippocampal_L'],
+         ['Amyg_Hipp_R', 'ParaHippocampal_R'],
+         ['Temporal_Inf_L', 'Temporal_Mid_L', 'Temporal_Sup_L', 'Fusiform_L', 'Temporal_Inf_R', 'Temporal_Mid_R', 'Temporal_Sup_R', 'Fusiform_R'],
+         ['Temporal_Inf_L', 'Temporal_Mid_L', 'Temporal_Sup_L', 'Fusiform_L'],
+         ['Temporal_Inf_R', 'Temporal_Mid_R', 'Temporal_Sup_R', 'Fusiform_R'],
+         ['Cingulum_L', 'FMO_Rect_L','Frontal_Mid_All_L','Frontal_Sup_All_L','Frontal_inf_All_L','Insula_L','Occipital_Lat_L','Occipital_Med_L','Parietal_Sup_Inf_L','Postcentral_L','Precentral_L','Precuneus_PCL_L','SupraMarginal_Angular_L','thalam_limbic_L'],
+         ['Cingulum_R', 'FMO_Rect_R','Frontal_Mid_All_R','Frontal_Sup_All_R','Frontal_inf_All_R','Insula_R','Occipital_Lat_R','Occipital_Med_R','Parietal_Sup_Inf_R','Postcentral_R','Precentral_R','Precuneus_PCL_R','SupraMarginal_Angular_R','thalam_limbic_R'],
+         ['Temporal_Inf_L', 'Temporal_Mid_L', 'Temporal_Sup_L', 'Fusiform_L','Amyg_Hipp_L', 'ParaHippocampal_L'],
+         ['Temporal_Inf_R', 'Temporal_Mid_R', 'Temporal_Sup_R', 'Fusiform_R','Amyg_Hipp_R', 'ParaHippocampal_R'],
+         ['Temporal_Inf_L', 'Temporal_Mid_L', 'Temporal_Sup_L', 'Fusiform_L','Temporal_Inf_R', 'Temporal_Mid_R', 'Temporal_Sup_R', 'Fusiform_R','Amyg_Hipp_L', 'Amyg_Hipp_R', 'ParaHippocampal_R', 'ParaHippocampal_L']
+         ]
 
 #CLASS LIST COMBINATION
 to_combine = ['bilateral - diffuse', 'bilateral - mesial temporal', 'bilateral - multifocal' , 'bilateral - temporal multifocal','diffuse - diffuse', 'left - diffuse' ,'left - multifocal', 'right - multifocal']
@@ -153,12 +117,24 @@ for l in to_remove:
 
 #combine the SOZ and region labels
 median_vals['soz'] = median_vals['lateralization'] + " - " + median_vals['region'] 
-#combine the bilateral and diffuse labels
-median_vals['soz'] = median_vals['soz'].apply(lambda x: "bilateral" if x in to_combine else x)
 
-#WHEN I PICK UP TOMORROW: HERE YOU WANT TO USE CONVERT TF TO AGGREGATE THE NEW 1/0 SOZ LABELS
-# WORK ON A DRAFT OF THE POWERPOINT
+#remove nans in the soz
+median_vals = median_vals.dropna(subset = ['soz']).reset_index(drop = True)
 
+#create new column
+median_vals['soz2'] = 0
+#if the soz is in SOZs, then check if the regions is in the corresponding values, add a 1 to the soz2 column
+for i in range(len(median_vals)):
+    for j in range(len(SOZs)):
+        if median_vals['soz'][i] == SOZs[j]:
+            if median_vals['final_label'][i] in regions[j]:
+                median_vals['soz2'][i] = 1
+                break
+            else:
+                median_vals['soz2'][i] = 0
+                break
+        else:
+            median_vals['soz2'][i] = 0
 
 # %%
 #show the distribution of the labels
