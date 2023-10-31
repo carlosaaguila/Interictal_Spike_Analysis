@@ -76,7 +76,6 @@ all_feats_eleclevel['id'] = all_feats_eleclevel['id'].str.replace('HUP', '')
 all_feats_eleclevel['id'] = all_feats_eleclevel['id'].astype(int)
 
 #%%
-"""
 import seaborn as sns
 
 #run correlation matrices on features
@@ -99,10 +98,10 @@ for i,pt in enumerate(ids_in_study):
 
 #find the mean across all the matrices in corr_matrices for each element in the matrix, keeping the same shape
 mean_corr_matrix = np.mean(corr_matrices, axis = 0)
-"""
+
 
 #%% RUN PCA ON ALL FEATURES
-"""
+
 #Import necessary libraries
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
@@ -371,13 +370,13 @@ plt.ylabel("Morphology Feature")
 plt.figure(figsize=(5,5))
 fig.set_size_inches(6.5, 4.5, forward=True)
 plt.show()
-"""
+
 #%%
 
 all_feats = all_feats_eleclevel
 
 # %%
-"""
+
 ########################
 # LEAVE ONE OUT - RANDOM FOREST CLASSIFIER
 # ########################
@@ -462,7 +461,7 @@ plt.title("Confusion Matrix for RFC test set predictions")
 plt.xlabel("Predicted Label")
 plt.ylabel("True Label")
 plt.savefig('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/ML/basic_loocv_rfc/confusion.png', dpi = 300)
-"""
+
 # %%
 ########################
 # LEAVE ONE OUT + PCA + GRID SEARCH - RANDOM FOREST CLASSIFIER
@@ -576,12 +575,12 @@ pkl.dump(grid_RFC, open(filename, 'wb'))
 
 
  # %%
-"""
+
 ########################
 # LEAVE ONE OUT - RANDOM FOREST CLASSIFIER (NULL MODEL)
 # ########################
 
-FEATURE = 'rise_amp'
+FEATURE = 'spike_rate'
 
 #Split the data according to IDs 
 
@@ -600,7 +599,7 @@ y_true, y_pred = list(), list()
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import GridSearchCV
-
+y_predprob = list()
 for train_ix, test_ix in LOO.split(unique_ids):
 
     #get data
@@ -615,10 +614,12 @@ for train_ix, test_ix in LOO.split(unique_ids):
     rfc = RandomForestClassifier(n_estimators = 100, random_state = 42, max_depth = None).fit(X_train, y_train)
     #rfc = LogisticRegression().fit(X_train, y_train)
     # evaluate model
-    yhat = rfc.predict_proba(X_test)[:,1]
+    y_pred_prob = rfc.predict_proba(X_test)[:,1]
+    yhat = rfc.predict(X_test)
     # store
     y_true.append(y_test['isSOZ'].to_numpy())
     y_pred.append(yhat)
+    y_predprob.append(y_pred_prob)
     # calculate accuracy
     
 #%% 
@@ -626,6 +627,8 @@ for train_ix, test_ix in LOO.split(unique_ids):
 from sklearn.metrics import accuracy_score
 y_true_clean = [x for x in y_true for x in x]
 y_pred_clean = [x for x in y_pred for x in x]
+y_prob_clean = [x for x in y_predprob for x in x]
+
 
 # acc = accuracy_score(y_true_clean, y_pred_clean)
 # print('Accuracy: %.3f' % acc)
@@ -635,21 +638,22 @@ from sklearn.metrics import roc_curve
 from sklearn.metrics import RocCurveDisplay
 from sklearn.metrics import auc
 
-RocCurveDisplay.from_predictions(y_true_clean, y_pred_clean)
+RocCurveDisplay.from_predictions(y_true_clean, y_prob_clean)
 plt.plot(np.linspace(0,1,100), np.linspace(0,1,100), '--', color='black')
 plt.grid()
-plt.title(f'FPR vs. TPR ROC Curve LOO-RFC ({FEATURE})')
+plt.title(f'FPR vs. TPR ROC Curve LOO-RFC (Spike Rate)')
 
 ################ Confusion Matrix
-# from sklearn.metrics import confusion_matrix as C_M
-# import seaborn as sns
+from sklearn.metrics import confusion_matrix as C_M
+import seaborn as sns
 
-# rfc_confusion = C_M(y_true_clean, y_pred_clean)
-# rfc_conf_mat_df = pd.DataFrame(rfc_confusion)
-# plt.figure(figsize=(6,4))
-# sns.heatmap(rfc_conf_mat_df, cmap='GnBu', annot=True, fmt = "g")
-# plt.title("Confusion Matrix for LOO-RFC (spikerate)")
-# plt.xlabel("Predicted Label")
-# plt.ylabel("True Label")
-# plt.show()
-"""
+rfc_confusion = C_M(y_true_clean, y_pred_clean)
+rfc_conf_mat_df = pd.DataFrame(rfc_confusion)
+plt.figure(figsize=(6,4))
+sns.heatmap(rfc_conf_mat_df, cmap='GnBu', annot=True, fmt = "g")
+plt.title("Confusion Matrix for LOO-RFC (spikerate)")
+plt.xlabel("Predicted Label")
+plt.ylabel("True Label")
+plt.show()
+
+# %%
