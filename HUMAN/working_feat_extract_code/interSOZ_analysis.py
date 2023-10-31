@@ -676,7 +676,7 @@ ax.yaxis.tick_right()
 ax.yaxis.set_label_position("right")
 ax.legend()
 
-fig.savefig('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/rise_amp_1output.png')
+#fig.savefig('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/rise_amp_1output.png')
 
 # %% normalcy test
 for SOZfeat, nonSOZfeat in zip(SOZ_columns, nonSOZ_columns):
@@ -726,22 +726,25 @@ plt.tick_params(top = True)
 #add significance stars
 #rising apitude
 plt.plot([1, 1, 2, 2], [(10**4+10**3)/2, 10**4, 10**4, (10**4+10**3)/2], lw=1.5, c='k')
-plt.text((1+2)*.5, 10**4, "*** ttest", ha='center', va='bottom', color='k')
+plt.text((1+2)*.5, 10**4, "***", ha='center', va='bottom', color='k')
 #falling amplitude
 plt.plot([3, 3, 4, 4], [(10**4+10**3)/2, 10**4, 10**4, (10**4+10**3)/2], lw=1.5, c='k')
-plt.text((4+3)*.5, 10**4, "*** ttest", ha='center', va='bottom', color='k')
+plt.text((4+3)*.5, 10**4, "***", ha='center', va='bottom', color='k')
 #slow amplitude
 plt.plot([7, 7, 8, 8], [(10**4+10**3)/2, 10**4, 10**4, (10**4+10**3)/2], lw=1.5, c='k')
-plt.text((8+7)*.5, 10**4, "*** wilc", ha='center', va='bottom', color='k')
+plt.text((8+7)*.5, 10**4, "***", ha='center', va='bottom', color='k')
+#decay slope
+plt.plot([11, 11, 12, 12], [(10**4+10**3)/2, 10**4, 10**4, (10**4+10**3)/2], lw=1.5, c='k')
+plt.text((11+12)*.5, 10**4, "***", ha='center', va='bottom', color='k')
 #line length
 plt.plot([13, 13, 14, 14], [(10**4+10**3)/2, 10**4, 10**4, (10**4+10**3)/2], lw=1.5, c='k')
-plt.text((13+14)*.5, 10**4, "*** ttest", ha='center', va='bottom', color='k')
+plt.text((13+14)*.5, 10**4, "***", ha='center', va='bottom', color='k')
 #spike rate
 plt.plot([15, 15, 16, 16], [(10**4+10**3)/2, 10**4, 10**4, (10**4+10**3)/2], lw=1.5, c='k')
-plt.text((15+16)*.5, 10**4, "*** wilc", ha='center', va='bottom', color='k')
+plt.text((15+16)*.5, 10**4, "***", ha='center', va='bottom', color='k')
 #sharpness
 plt.plot([19, 19, 20, 20], [(10**4+10**3)/2, 10**4, 10**4, (10**4+10**3)/2], lw=1.5, c='k')
-plt.text((19+20)*.5, 10**4, "*** ttest", ha='center', va='bottom', color='k')
+plt.text((19+20)*.5, 10**4, "***", ha='center', va='bottom', color='k')
 
 plt.title("Univariate Analysis of SOZ vs. non-SOZ Features Within Brain Regions")
 
@@ -769,8 +772,12 @@ engel_w_median_feats = median_feats.merge(master_elect[['ptname','engel']], how 
 good_outcomes = engel_w_median_feats[engel_w_median_feats['engel'] == 1]
 bad_outcomes = engel_w_median_feats[(engel_w_median_feats['engel'] != 1)].dropna()
 
+#%%
+#remove SOZ avg_amp
+
+
 #%% GOOD OUTCOMES PAIRED PLOTS
-title = ['Rise Amp', 'Decay Amp', 'Slow Width', 'Slow Amp', 'Rise Slope', 'Decay Slope', 'LL', 'Spike Rate', 'Spike Width', 'Sharpness', 'Rise Duration', 'Decay Duration']
+title = ['Rise Amp', 'Decay Amp', 'Slow Width', 'Slow Amp', 'Rise Slope', 'Decay Slope', 'Average Amp', 'LL', 'Spike Rate', 'Spike Width', 'Sharpness', 'Rise Duration', 'Decay Duration']
 median_feats = good_outcomes
 for i in range(len(newcolumns)):
     fig, ax = plt.subplots(1,1, figsize = (10,10))
