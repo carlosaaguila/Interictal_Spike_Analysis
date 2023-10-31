@@ -230,6 +230,8 @@ titles = ['Rise Amp', 'Decay Amp', 'Slow Width', 'Slow Amp', 'Rise Slope', 'Deca
 
 #%% Forest Plots function
 def forest_plots(model, title):
+    plt.rcParams["font.family"] = "Arial"
+    plt.rcParams['font.size'] = 12
     params = model.params
     conf = model.conf_int()
     conf['Odds Ratio'] = params
@@ -238,7 +240,7 @@ def forest_plots(model, title):
     odds['pvalues'] = model.pvalues
     odds['significant?'] = ['significant' if pval <= 0.05 else 'not significant' for pval in model.pvalues]
 
-    fig, ax = plt.subplots(nrows=1, sharex=True, sharey=True, figsize=(10, 10), dpi=150)
+    fig, ax = plt.subplots(nrows=1, sharex=True, sharey=True, figsize=(10, 10), dpi=300)
     for idx, row in odds.iloc[::-1].iterrows():
         ci = [[row['Odds Ratio'] - row[::-1]['2.5%']], [row['97.5%'] - row['Odds Ratio']]]
         if row['significant?'] == 'significant':
@@ -250,19 +252,22 @@ def forest_plots(model, title):
                 ecolor='tab:gray', capsize=3, linestyle='None', linewidth=1, marker="o", 
                         markersize=5, mfc="tab:gray", mec="tab:gray")
         plt.axvline(x=1, linewidth=0.8, linestyle='--', color='black')
-    plt.tick_params(axis='both', which='major', labelsize=8)
-    plt.xlabel('Odds Ratio and 95% Confidence Interval', fontsize=8)
+    plt.tick_params(axis='both', which='major', labelsize=10)
+    plt.xlabel('Odds Ratio and 95% Confidence Interval', fontsize=10)
     plt.tight_layout()
-    plt.title('Forest Plot of {}'.format(title), fontsize=10)
+    plt.title('Forest Plot of {}'.format(title), fontsize=12)
+    plt.savefig('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/forest_plots/MNI/{}.png'.format(title), dpi=300)
     plt.show()
     return odds, fig
 #%% mixed LM - average feature
 for i, (feat, list) in enumerate(zip(feature, feature_avg_list)):
-    md = smf.mixedlm("{} ~ C(soz) + C(roi) + C(soz):C(roi)".format(feat), list, groups="pt")
+    md = smf.mixedlm("{} ~ C(soz) + C(roi)".format(feat), list, groups="pt")
     mdf = md.fit()
     print("{} --- MIXED LM RESULTS".format(titles[i]))
     print(mdf.summary())
     print(mdf.pvalues)
+    odds, fig = forest_plots(mdf, titles[i])
+
 
 #%% mixed LM - all features
 for i, (feat, list) in enumerate(zip(feature, feature_list)):
@@ -294,7 +299,7 @@ for i,(feat, list) in enumerate(zip(feature, feature_list)):
 # %% mixed LM  - MNI atlas table (convert tables)
 for i, (feat, list) in enumerate(zip(feature, mni_avg_list)):
     print(titles[i])
-    md = smf.mixedlm("{} ~ C(soz) + C(roi)".format(feat), list, groups="pt")
+    md = smf.mixedlm('{} ~ C(soz) + C(roi, Treatment(reference = "Temporal_Mid_L"))'.format(feat), list, groups="pt")
     mdf = md.fit()
     print("{} --- MIXED LM RESULTS".format(titles[i]))
     print(mdf.summary())
