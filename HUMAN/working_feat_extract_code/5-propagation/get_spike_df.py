@@ -5,6 +5,9 @@ from ieeg.auth import Session
 from resampy import resample
 import re
 
+import warnings
+warnings.filterwarnings('ignore')
+
 # Import custom functions
 import sys, os
 code_v2_path = os.path.dirname('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/spike_detector/')
@@ -55,7 +58,9 @@ pt_in_soz = filenames_w_ids[filenames_w_ids['hup_id'].isin(SOZ_list['name'])].re
 all_spikes = pd.DataFrame()
 
 for index, row in pt_in_soz.iterrows():
-    
+    print(f'Processing {row["filename"]}')
+    print(f'{index} out of {len(pt_in_soz)}')
+
     filename = row['filename']
     hup_id = row['hup_id']
 
@@ -134,8 +139,8 @@ for index, row in pt_in_soz.iterrows():
     #drop region and lateralization
     spike_output_DF = spike_output_DF.drop(columns=['region', 'lateralization'])
 
-    #add spike_output_DF to all_spikes
-    all_spikes = all_spikes.append(spike_output_DF)
+    #concat spike_output_DF to all_spikes
+    all_spikes = pd.concat([all_spikes, spike_output_DF], ignore_index=True)
 
 #save the new dataframe as a csv
 all_spikes.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/spikes_bySOZ.csv', index=False)
