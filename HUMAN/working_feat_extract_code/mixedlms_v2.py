@@ -256,7 +256,7 @@ def forest_plots(model, title):
     plt.xlabel('Odds Ratio and 95% Confidence Interval', fontsize=10)
     plt.tight_layout()
     plt.title('Forest Plot of {}'.format(title), fontsize=12)
-    plt.savefig('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/forest_plots/MNI/{}.png'.format(title), dpi=300)
+    # plt.savefig('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/forest_plots/MNI/{}.png'.format(title), dpi=300)
     plt.show()
     return odds, fig
 #%% mixed LM - average feature
@@ -308,8 +308,8 @@ for i, (feat, list) in enumerate(zip(feature, mni_avg_list)):
 
 # %% 2-WAY ANOVA MODEL - MNI atlas table
 
-for i,(feat, list) in enumerate(zip(feature, mni_list)):
-    model = ols('{} ~ C(soz) + C(roi)'.format(feat), data=list).fit()
+for i,(feat, list) in enumerate(zip(feature, mni_avg_list)):
+    model = ols('{} ~ C(soz) + C(roi) + C(soz):C(roi)'.format(feat), data=list, groups = 'pt').fit()
     result = sm.stats.anova_lm(model, type=2)
     print("{} --- 2-WAY ANOVA RESULTS".format(titles[i]))
     print(result)
