@@ -87,9 +87,9 @@ for i,pt in enumerate(ids_in_study):
     #get the data for that id
     id_data = all_feats_eleclevel[all_feats_eleclevel['id'] == pt]
     #drop id column
-    id_data = id_data.drop(columns = ['id'])
+    id_data = id_data.drop(columns = ['id','isSOZ'])
     #get the correlation matrix for that id
-    corr_matrix = id_data.corr().abs()
+    corr_matrix = id_data.corr()
     #plt.figure(figsize=(10,10))
     #plt.title(f'Correlation Matrix for {ids_in_study[i]}')
     #sns.heatmap(corr_matrix.abs(), cmap='coolwarm', annot=True, fmt='.2f')
@@ -98,13 +98,25 @@ for i,pt in enumerate(ids_in_study):
 
 #find the mean across all the matrices in corr_matrices for each element in the matrix, keeping the same shape
 mean_corr_matrix = np.mean(corr_matrices, axis = 0)
-
+#change font size to 12 and font to arial
+sns.set(font_scale=1.2, font='Arial')
+plt.figure(figsize=(10,10), dpi = 300)
+plt.title(f'Correlation Matrix for all features')
+sns.heatmap(mean_corr_matrix, cmap='coolwarm', annot=True, fmt='.2f', vmin = -1, vmax = 1)
+# plt.savefig('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/ML/corr_matrix.png', dpi = 300)
+plt.show()
 
 #%% RUN PCA ON ALL FEATURES
 
 #Import necessary libraries
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
+PCA_feats = all_feats_eleclevel
+PCA_feats = PCA_feats[PCA_feats['id'] != 188]
+PCA_feats = PCA_feats[PCA_feats['id'] != 113]
+X_test = all_feats_eleclevel[(all_feats_eleclevel['id'] == 188) | (all_feats_eleclevel['id'] == 113)]
+X_train = PCA_feats.drop(columns = ['isSOZ'])
+X_test = X_test.drop(columns = ['isSOZ'])
 
 # TO-DO: Get transformed set of principal components on x_test (17)
 # 1. Refit and transform on training with parameter n (as deduced from the last step) 
@@ -114,18 +126,33 @@ X_train_s = scaler.transform(X_train)
 X_test_s = scaler.transform(X_test)
 
 # TO-DO: Instantiate and Fit PCA
-pca = PCA(random_state = seed, n_components = 17)
+pca = PCA(random_state = 42)
 pca.fit(X_train_s)
 
 # 2. Transform on Testing Set and store it as `X_test_pca`
 X_test_pca = pca.transform(X_test_s)
 X_train_pca = pca.transform(X_train_s)
 
-explained_variance_ratios = PCmodel.explained_variance_ratio_
+explained_variance_ratios = pca.explained_variance_ratio_
 cum_evr = np.cumsum(explained_variance_ratios)
-"""
+
+#%%
+#plot the cumulative explained variance ratio
+plt.figure()
+#arial font
+plt.rcParams['font.family'] = 'Arial'
+#size 12 font
+plt.rcParams['font.size'] = 12
+#plot with dots and lines
+plt.plot(cum_evr, marker = '.', linestyle = '-', color = 'k')
+plt.title('Explained Variance')
+plt.xlabel('Number of Components')
+plt.ylabel('Explained Variance')
+# plt.savefig('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/ML/PCA_explained_variance.png', dpi = 300)
+plt.show()
+
 #%% split train/test
-"""
+
 from sklearn.model_selection import train_test_split
 x_train, x_test, y_train, y_test = train_test_split(all_feats.drop(columns = ['isSOZ']), all_feats[['isSOZ']], test_size=0.25, random_state=42)
 x_val, x_test, y_val, y_test = train_test_split(x_test, y_test, test_size=0.5, random_state=42)
@@ -142,9 +169,7 @@ print("Validation, label 1:\t", len(y_val[y_val['isSOZ'] == 1]))
 print('\n')
 print("Test, label 0:\t\t", len(y_test[y_test['isSOZ'] == 0]))
 print("Test, label 1:\t\t", len(y_test[y_test['isSOZ'] == 1]))
-"""
 # %% train a Random Forest Classifier
-"""
 
 ########################
 # RANDOM FOREST CLASSIFIER
@@ -252,9 +277,7 @@ plt.figure(figsize=(5,5))
 fig.set_size_inches(6.5, 4.5, forward=True)
 plt.show()
 
-"""
 #%% Train a Support Vector Machine Classifier
-"""
 
 ########################
 #SUPPORT VECTOR MACHINE
@@ -288,9 +311,7 @@ plt.title('FPR vs. TPR ROC Curve of SVM Testing Performance')
 # Performance was not very good 
 # AUC = 0.47
 """
-"""
 # %% Train Linear Regression Models
-"""
 
 ########################
 #LOGISTIC REGRESSION CLASSIFIER
@@ -399,7 +420,7 @@ y_predprob = list()
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import GridSearchCV
-
+feature_importances_TEST = list()
 for train_ix, test_ix in LOO.split(unique_ids):
 
     #get data
@@ -423,12 +444,13 @@ for train_ix, test_ix in LOO.split(unique_ids):
     y_true.append(y_test['isSOZ'].to_numpy())
     y_pred.append(yhat)
     # calculate accuracy
+    feature_importances_TEST.append(rfc.feature_importances_)
 
-filename = '/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/models/basic_loocv_rfc.sav' 
-pkl.dump(rfc, open(filename, 'wb'))
-"""
+# filename = '/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/models/basic_loocv_rfc.sav' 
+# pkl.dump(rfc, open(filename, 'wb'))
+
 #%% 
-"""
+
 ################ evaluate predictions
 from sklearn.metrics import accuracy_score
 y_true_clean = [x for x in y_true for x in x]
@@ -485,9 +507,14 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import GradientBoostingClassifier
+
+pca_components = list()
+pca_variance = list()
+feature_importance = list()
+X_new = list()
 
 for train_ix, test_ix in LOO.split(unique_ids):
-    print('startng training')
     #get data
     X_train = all_feats[all_feats['id'].isin(unique_ids[train_ix])]
     X_test = all_feats[all_feats['id'].isin(unique_ids[test_ix])]
@@ -505,13 +532,17 @@ for train_ix, test_ix in LOO.split(unique_ids):
     X_test_s = scaler.transform(X_test)
 
     # 2. Transform on Testing Set and store it as `X_test_pca`
-    pca = PCA(random_state = 42, n_components = 6) #if we are using standard scaler... n_components = 6, if not we use 2.
+    pca = PCA(random_state = 42, n_components = 8) #if we are using standard scaler... n_components = 6, if not we use 2.
     pca.fit(X_train_s)
     X_test_pca = pca.transform(X_test_s)
     X_train_pca = pca.transform(X_train_s)
+    X_new.append(X_train_pca)
+    pca_variance.append(pca.explained_variance_ratio_)
+    pca_components.append(pca.components_)
 
     # fit model
-    rfc = RandomForestClassifier()
+    """
+    gridrfc = RandomForestClassifier()
     param_grid = { 
         'n_estimators': [200, 500],
         'max_features': ['auto', 'sqrt', 'log2'],
@@ -520,6 +551,10 @@ for train_ix, test_ix in LOO.split(unique_ids):
     }
     grid_RFC = GridSearchCV(rfc, param_grid = param_grid, scoring = 'recall')
     grid_RFC.fit(X_train_pca, y_train)
+    """
+    grid_RFC = RandomForestClassifier(n_estimators = 500, random_state = 42, max_depth = None, max_features = 'log2', criterion = 'gini').fit(X_train_pca, y_train)
+    #feasture importance
+    feature_importance.append(grid_RFC.feature_importances_)
 
     #Predict values based on new parameters
     yhat = grid_RFC.predict(X_test_pca)
@@ -529,6 +564,16 @@ for train_ix, test_ix in LOO.split(unique_ids):
     y_true.append(y_test['isSOZ'].to_numpy())
     y_pred.append(yhat)
     # calculate accuracy
+
+#%%
+#get mean of pca components
+pca_components_avg = np.mean(pca_components, axis = 0)
+#get mean of pca variance
+pca_variance_avg = np.mean(pca_variance, axis = 0)
+#get mean of feature importance
+feature_importance_avg = np.mean(feature_importance, axis = 0)
+
+#%%
 
 #%% 
 
@@ -550,7 +595,7 @@ RocCurveDisplay.from_predictions(y_true_clean, y_predprob_clean)
 plt.plot(np.linspace(0,1,100), np.linspace(0,1,100), '--', color='black')
 plt.grid()
 plt.title('FPR vs. TPR ROC Curve of RFC Testing Performance')
-plt.savefig('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/ML/LOO_PCA_RFC_auc.png', dpi = 300)
+# plt.savefig('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/ML/LOO_PCA_RFC_auc_quick.png', dpi = 300)
 
 ################ Confusion Matrix
 from sklearn.metrics import confusion_matrix as C_M
@@ -563,15 +608,15 @@ sns.heatmap(rfc_conf_mat_df, cmap='GnBu', annot=True, fmt = "g")
 plt.title("Confusion Matrix for RFC test set predictions")
 plt.xlabel("Predicted Label")
 plt.ylabel("True Label")
-plt.savefig('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/ML/LOO_PCA_RFC_confusion.png', dpi = 300)
+# plt.savefig('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/ML/LOO_PCA_RFC_confusion_quick.png', dpi = 300)
 
 #finally save the model & outputs, did this last in case any thing else crashes
-pkl.dump(y_true_clean, open('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/models/gridsearch/y_true.pkl', 'wb'))
-pkl.dump(y_pred_clean, open('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/models/gridsearch/y_pred.pkl', 'wb'))
-pkl.dump(y_predprob_clean, open('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/models/gridsearch/y_predprob.pkl', 'wb'))
+# pkl.dump(y_true_clean, open('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/models/gridsearch/y_true.pkl', 'wb'))
+# pkl.dump(y_pred_clean, open('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/models/gridsearch/y_pred.pkl', 'wb'))
+# pkl.dump(y_predprob_clean, open('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/models/gridsearch/y_predprob.pkl', 'wb'))
 
-filename = '/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/models/gridsearch/gridsearch_loocv_rfc.sav' 
-pkl.dump(grid_RFC, open(filename, 'wb'))
+# filename = '/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/models/gridsearch/gridsearch_loocv_rfc.sav' 
+# pkl.dump(grid_RFC, open(filename, 'wb'))
 
 
  # %%
@@ -639,21 +684,27 @@ from sklearn.metrics import RocCurveDisplay
 from sklearn.metrics import auc
 
 RocCurveDisplay.from_predictions(y_true_clean, y_prob_clean)
+#arial font
+plt.rcParams['font.family'] = 'Arial'
+#size 12 font
+plt.rcParams['font.size'] = 12
 plt.plot(np.linspace(0,1,100), np.linspace(0,1,100), '--', color='black')
 plt.grid()
 plt.title(f'FPR vs. TPR ROC Curve LOO-RFC (Spike Rate)')
+plt.savefig('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/ML/null_model/auc.png', dpi = 300)
+plt.show()
 
 ################ Confusion Matrix
 from sklearn.metrics import confusion_matrix as C_M
 import seaborn as sns
-
 rfc_confusion = C_M(y_true_clean, y_pred_clean)
 rfc_conf_mat_df = pd.DataFrame(rfc_confusion)
 plt.figure(figsize=(6,4))
 sns.heatmap(rfc_conf_mat_df, cmap='GnBu', annot=True, fmt = "g")
-plt.title("Confusion Matrix for LOO-RFC (spikerate)")
+plt.title("Confusion Matrix for LOO-RFC (Spike Rate)")
 plt.xlabel("Predicted Label")
 plt.ylabel("True Label")
+plt.savefig('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/ML/null_model/confusion.png', dpi = 300)
 plt.show()
 
 # %%
