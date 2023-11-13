@@ -135,14 +135,23 @@ plt.show()
 # REDO the analysis but this time add color to the plot for each SOZ type
 
 #Initialize the feature of interest, this will generate a heatmap on this feature.
-Feat_of_interest = 'decay_amp'
+Feat_of_interest = 'spike_rate'
+take_spike_leads = False
 
 ####################
 # 1. Load in data  #
 ####################
 
-#load spikes from dataset
-all_spikes = pd.read_csv('dataset/spikes_bySOZ.csv')
+if Feat_of_interest == 'spike_rate':
+    all_spikes = pd.read_csv('dataset/spikes_bySOZ_v2.csv')
+else:
+    #load spikes from dataset
+    all_spikes = pd.read_csv('dataset/spikes_bySOZ.csv')
+
+#flag that says we want spike leaders only
+if take_spike_leads == True:
+    all_spikes = all_spikes[all_spikes['is_spike_leader'] == 1]
+
 #remove patients with 'SOZ' containing other
 all_spikes = all_spikes[~all_spikes['SOZ'].str.contains('other')].reset_index(drop=True)
 
@@ -237,6 +246,11 @@ temporal_patch = mpatches.Patch(color='#3C5488FF', label='Temporal Patients')
 neocort_patch = mpatches.Patch(color='#00A087FF', label='Temporal Neocortical Patients')
 plt.legend(handles=[mesial_patch, temporal_patch, neocort_patch], loc='upper right')
 
-plt.savefig(f'figures/perSOZ/{Feat_of_interest}_allptsbySOZ.png.png', dpi = 300)
+if take_spike_leads == True:
+    plt.savefig(f'figures/perSOZ_leads/{Feat_of_interest}_allptsbySOZ.png.png', dpi = 300)
+else: 
+    plt.savefig(f'figures/perSOZ/{Feat_of_interest}_allptsbySOZ.png.png', dpi = 300)
+
 plt.show()
+
 # %%
