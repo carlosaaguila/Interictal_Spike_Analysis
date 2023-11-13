@@ -135,7 +135,7 @@ plt.show()
 # REDO the analysis but this time add color to the plot for each SOZ type
 
 #Initialize the feature of interest, this will generate a heatmap on this feature.
-Feat_of_interest = 'spike_rate'
+Feat_of_interest = 'sharpness'
 take_spike_leads = False
 
 ####################
@@ -153,7 +153,7 @@ if take_spike_leads == True:
     all_spikes = all_spikes[all_spikes['is_spike_leader'] == 1]
 
 #remove patients with 'SOZ' containing other
-all_spikes = all_spikes[~all_spikes['SOZ'].str.contains('other')].reset_index(drop=True)
+# all_spikes = all_spikes[~all_spikes['SOZ'].str.contains('other')].reset_index(drop=True)
 
 #channels to keep 
 chs_tokeep = ['RA','LA','RDA','LDA','LH','RH','LDH','RDH','DA','DH','DHA','LB','LDB','LC','LDC','RB','RDB','RC','RDC']
@@ -225,17 +225,18 @@ import matplotlib.pyplot as plt
 # plt.show()
 
 #color in all the mesial temporal channels
-plt.figure(figsize=(15,15))
+plt.figure(figsize=(20,20))
 sns.heatmap(all_spikes_avg, cmap='viridis', alpha = 1)
-plt.xlabel('Channel Number', fontsize=16)
-plt.ylabel('Patient ID', fontsize=16)
-plt.title(f'Average {Feat_of_interest} by Channel and Patient', fontsize=20)
+plt.xlabel('Channel Number', fontsize=20)
+plt.ylabel('Patient ID', fontsize=20)
+plt.title(f'Average {Feat_of_interest} by Channel and Patient', fontsize=24)
 plt.axhline(25, color='k', linewidth=2.5)
-plt.axhline(25+10, color='k', linewidth=1.5, linestyle = '--')
+plt.axhline(25+22, color='k', linewidth=1.5, linestyle = '--')
+plt.axhline(25+22+13, color='k', linewidth=1.5, linestyle = '--')
 #change y-tick labels to only be the first element in the index, making the first 25 red and the rest black
-plt.yticks(np.arange(0.5, len(all_spikes_avg.index), 1), all_spikes_avg.index.get_level_values(0))
+plt.yticks(np.arange(0.5, len(all_spikes_avg.index), 1), all_spikes_avg.index.get_level_values(0), fontsize=13)
 #create a list of 48 colors
-colors = ['#E64B35FF']*25 + ['#3C5488FF']*10 + ['#00A087FF']*13
+colors = ['#E64B35FF']*25 + ['#7E6148FF']*22 + ['#00A087FF']*13 + ['#3C5488FF']*10 
 for ytick, color in zip(plt.gca().get_yticklabels(), colors):
     ytick.set_color(color)
 
@@ -244,12 +245,13 @@ import matplotlib.patches as mpatches
 mesial_patch = mpatches.Patch(color='#E64B35FF', label='Mesial Temporal Patients')
 temporal_patch = mpatches.Patch(color='#3C5488FF', label='Temporal Patients')
 neocort_patch = mpatches.Patch(color='#00A087FF', label='Temporal Neocortical Patients')
-plt.legend(handles=[mesial_patch, temporal_patch, neocort_patch], loc='upper right')
+other_patch = mpatches.Patch(color='#7E6148FF', label='Other Cortex Patients')
+plt.legend(handles=[mesial_patch, temporal_patch, neocort_patch, other_patch], loc='upper right')
 
 if take_spike_leads == True:
     plt.savefig(f'figures/perSOZ_leads/{Feat_of_interest}_allptsbySOZ.png.png', dpi = 300)
 else: 
-    plt.savefig(f'figures/perSOZ/{Feat_of_interest}_allptsbySOZ.png.png', dpi = 300)
+    plt.savefig(f'figures/perSOZ/add_OC/{Feat_of_interest}_allptsbySOZ.png.png', dpi = 300)
 
 plt.show()
 
