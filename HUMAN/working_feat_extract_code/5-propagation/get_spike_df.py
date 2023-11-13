@@ -36,7 +36,6 @@ filenames_w_ids = filenames_w_ids[~filenames_w_ids['hup_id'].isin(blacklist)]
 filenames_w_ids = filenames_w_ids[filenames_w_ids['to use'] == 1].reset_index(drop=True)
 
 #find the patients we want (seperate by SOZ)
-
 # load all the SOZ's
 SOZ_list = pd.read_csv('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/soz_locations.csv', index_col = 0)
 
@@ -127,6 +126,16 @@ for index, row in pt_in_soz.iterrows():
     #add patient id
     spike_output_DF['pt_id'] = hup_id
 
+    #add spikerate
+    master_elecs = pd.read_csv('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/master_elecs.csv')
+    sozlist = pd.read_csv('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/all_ptids.csv', index_col=0)
+    #merge hup_id on rid from  onto master_elecs
+    master_elecs = master_elecs.merge(sozlist, left_on='rid', right_on = 'r_id', how='left')
+    master_elecs['name'] = master_elecs['name'].apply(lambda x: decompose_labels(x, hup_id))
+
+    #merge master_elecs on channel_label from spike_output_DF
+    spike_output_DF = spike_output_DF.merge(master_elecs[['spike_rate','engel','hup_id','name']], left_on=['channel_label', 'pt_id'], right_on = ['name','hup_id'], how='left')
+
     #add patient regionality
     spike_output_DF['region'] = SOZ_list[SOZ_list['name'] == hup_id]['region'].values[0]
 
@@ -143,4 +152,4 @@ for index, row in pt_in_soz.iterrows():
     all_spikes = pd.concat([all_spikes, spike_output_DF], ignore_index=True)
 
 #save the new dataframe as a csv
-all_spikes.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/spikes_bySOZ.csv', index=False)
+all_spikes.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/spikes_bySOZ_v2.csv', index=False)
