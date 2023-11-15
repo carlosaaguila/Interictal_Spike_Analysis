@@ -62,7 +62,7 @@ plt.plot(myspike)
 plt.plot(maxima[maxima2], myspike[maxima[maxima2]], 'o')
 """
 # %% function to find a feature
-myspike = SOZ_all_chs_stacked_DF_cleaned.iloc[195].to_numpy() #using a different dataframe
+myspike = SOZ_spikes.iloc[700].to_numpy() #using a different dataframe
 
 #%% function to find a feature
 def morphology_feats_v1(myspike):
@@ -345,13 +345,21 @@ def morphology_feats_v1(myspike):
 #rise_amp, decay_amp, slow_width, slow_amp, rise_slope, decay_slope, average_amp, linelen = morphology_feats_v1(myspike)
 
 #%% code to plot single spike
+plt.rcParams['font.family'] = 'Arial'
+fig = plt.figure(figsize = (7,5))
 plt.plot(myspike)
-plt.plot(peak, myspike[peak],'x')
-plt.plot(left_point, myspike[left_point], 'o')
-plt.plot(right_point, myspike[right_point], 'o')
-plt.plot(slow_end, myspike[slow_end], 'o', color = 'k')
+plt.plot(peak, myspike[peak],'x', label = 'Peak')
+plt.plot(left_point, myspike[left_point], 'o', label = 'Left Point')
+plt.plot(right_point, myspike[right_point], 'o', label = 'Right Point')
+plt.plot(slow_end, myspike[slow_end], 'o', color = 'k', label = "Slow Wave")
+plt.ylabel('Voltage', fontsize = 12)
+plt.xlabel('Samples', fontsize = 12)
+plt.title('Example Feature Extraction', fontsize = 16)
 plt.xlim(700, 1500)
+plt.legend()
+plt.savefig('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/OLD/spike_morph_example/ex1.png', dpi = 300, bbox_inches = 'tight')
 
+#%%
 SOZ_all_chs_stacked_DF_cleaned = soz_w_label.drop(columns = ['spike_rate', 'name', 'id'])
 nonSOZ_all_chs_stacked_DF_cleaned = nonsoz_w_label.drop(columns = ['spike_rate', 'name', 'id'])
 
