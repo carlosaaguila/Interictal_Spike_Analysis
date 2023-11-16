@@ -135,7 +135,7 @@ plt.show()
 # REDO the analysis but this time add color to the plot for each SOZ type
 
 #Initialize the feature of interest, this will generate a heatmap on this feature.
-Feat_of_interest = 'sharpness'
+Feat_of_interest = 'spike_rate'
 take_spike_leads = False
 
 ####################
@@ -258,18 +258,40 @@ plt.show()
 # %%
 #only using the same side electrodes as the SOZ laterality, plot the average sharpness of spikes from 
 
-Feat_of_interest = 'linelen'
+Feat_of_interest = 'spike_rate'
 take_spike_leads = False
 
 ####################
 # 1. Load in data  #
 ####################
 
-if Feat_of_interest == 'spike_rate':
-    all_spikes = pd.read_csv('dataset/spikes_bySOZ_v2.csv')
-else:
-    #load spikes from dataset
-    all_spikes = pd.read_csv('dataset/spikes_bySOZ.csv')
+#load spikes from dataset
+all_spikes = pd.read_csv('dataset/spikes_bySOZ.csv')
+
+#calculate spike rate
+#Add new spike_rate to all_spikes
+spike_count= all_spikes.groupby(['pt_id','channel_label']).count()
+
+#from spike_count, create a dataframe that has pt_id, channel_label, and spike_count
+spike_count = spike_count.reset_index()
+spike_count = spike_count[['pt_id','channel_label','peak']]
+
+#rename peak to spike_count
+spike_count = spike_count.rename(columns={'peak':'spike_count'})
+
+#get the unique count of 'interval number' for each pt_id
+interval_count = all_spikes.groupby(['pt_id'])['interval number'].max()
+interval_count = interval_count.reset_index()
+
+#merge spike_count and interval_count on pt_id
+spike_count = spike_count.merge(interval_count, on='pt_id')
+
+# calulate spike rate by dividing spike_count by interval number
+spike_count['spike_rate'] = spike_count['spike_count']/spike_count['interval number']
+
+#merge spike_count with all_spikes on pt_id and channel_label
+all_spikes = all_spikes.merge(spike_count[['pt_id','channel_label','spike_rate']], on=['pt_id','channel_label'])
+
 
 #flag that says we want spike leaders only
 if take_spike_leads == True:
@@ -359,7 +381,7 @@ import matplotlib.pyplot as plt
 
 #color in all the mesial temporal channels
 plt.figure(figsize=(20,20))
-sns.heatmap(all_spikes_avg, cmap='viridis', alpha = 1)
+sns.heatmap(all_spikes_avg, cmap='viridis', alpha = 1, vmin=0, vmax=10)
 plt.xlabel('Channel Number', fontsize=20)
 plt.ylabel('Patient ID', fontsize=20)
 plt.title(f'Average {Feat_of_interest} by Channel and Patient', fontsize=24)
