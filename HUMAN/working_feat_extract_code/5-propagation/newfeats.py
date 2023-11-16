@@ -1,6 +1,4 @@
 # Code to generate a new spike-rate column, and a new spike timing column called "retention latency"
-
-#%%
 # required packages
 import pandas as pd
 import numpy as np
@@ -26,11 +24,9 @@ from ied_fx_v3 import *
 
 data_directory = ['/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2', '/mnt/leif/littlab/data/Human_Data']
 
-#%%
 # Load data
 all_spikes = pd.read_csv('dataset/spikes_bySOZ.csv')
 
-# %%
 #Add new spike_rate to all_spikes
 spike_count= all_spikes.groupby(['pt_id','channel_label']).count()
 
@@ -54,19 +50,17 @@ spike_count['spike_rate'] = spike_count['spike_count']/spike_count['interval num
 #merge spike_count with all_spikes on pt_id and channel_label
 all_spikes = all_spikes.merge(spike_count[['pt_id','channel_label','spike_rate']], on=['pt_id','channel_label'])
 
-# %%
 #calculate retention_latency
 #for each new_spike_seq, order them by peak_index in ascending order, and then calculate the difference between each peak_index
-
 all_spikes['seq_spike_time_diff'] = all_spikes.groupby(['new_spike_seq','pt_id'])['peak_index_samples'].transform(lambda x: x.sort_values().diff())
-all_spikes[(all_spikes['pt_id'] == "HUP105") & (all_spikes['new_spike_seq'] == 1)].sort_values(by = 'peak_index')[['peak_index','channel_label','new_spike_seq','seq_spike_time_diff','is_spike_leader','pt_id']]
 
-#%%
 #for each new_spike_seq, order them by peak_index in ascending order, and calculate the difference between each peak_index and the first peak_index denoted by is_spike_leader
-all_spikes['recruiment_latency'] = all_spikes.groupby(['new_spike_seq','pt_id'])['peak_index_samples'].transform(lambda x: x.sort_values(by = 'peak_index') - x[x.index[0]])
+all_spikes['recruiment_latency'] = all_spikes.groupby(['new_spike_seq','pt_id'])['peak_index_samples'].transform(lambda x: x.sort_values() - x.sort_values()[x.sort_values().index[0]])
 
-
-# %%
 #if is_spike_leader == 1, change seq_spike_time_diff to 0
 all_spikes.loc[all_spikes['is_spike_leader'] == 1, 'seq_spike_time_diff'] = 0
-# %%
+
+all_spikes.to_csv('dataset/spikes_bySOZ_T-R.csv')
+
+
+#TEST - all_spikes[(all_spikes['pt_id'] == "HUP105") & (all_spikes['new_spike_seq'] == 400)].sort_values(by = 'peak_index')[['peak_index','channel_label','new_spike_seq','seq_spike_time_diff','is_spike_leader','pt_id', 'recruiment_latency']]
