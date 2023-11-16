@@ -258,7 +258,7 @@ plt.show()
 # %%
 #only using the same side electrodes as the SOZ laterality, plot the average sharpness of spikes from 
 
-Feat_of_interest = 'sharpness'
+Feat_of_interest = 'linelen'
 take_spike_leads = False
 
 ####################
@@ -394,3 +394,5 @@ plt.legend(handles=[mesial_patch, temporal_patch, neocort_patch, other_patch], l
 plt.savefig(f'figures/sameside_perSOZ/{Feat_of_interest}_allptsbySOZ.png.png', dpi = 300)
 plt.show()
 
+
+# %%
