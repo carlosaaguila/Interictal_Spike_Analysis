@@ -4,6 +4,7 @@ import numpy as np
 from ieeg.auth import Session
 from resampy import resample
 import re
+import scipy.stats as stats
 
 import warnings
 warnings.filterwarnings('ignore')
@@ -135,7 +136,7 @@ plt.show()
 # REDO the analysis but this time add color to the plot for each SOZ type
 
 #Initialize the feature of interest, this will generate a heatmap on this feature.
-Feat_of_interest = 'spike_rate'
+#Feat_of_interest = ''
 take_spike_leads = False
 
 ####################
@@ -256,9 +257,9 @@ else:
 plt.show()
 
 # %%
-#only using the same side electrodes as the SOZ laterality, plot the average sharpness of spikes from 
+#only using the same side electrodes as the SOZ laterality
 
-Feat_of_interest = 'spike_rate'
+Feat_of_interest = 'sharpness'
 take_spike_leads = False
 
 ####################
@@ -266,32 +267,10 @@ take_spike_leads = False
 ####################
 
 #load spikes from dataset
-all_spikes = pd.read_csv('dataset/spikes_bySOZ.csv')
-
-#calculate spike rate
-#Add new spike_rate to all_spikes
-spike_count= all_spikes.groupby(['pt_id','channel_label']).count()
-
-#from spike_count, create a dataframe that has pt_id, channel_label, and spike_count
-spike_count = spike_count.reset_index()
-spike_count = spike_count[['pt_id','channel_label','peak']]
-
-#rename peak to spike_count
-spike_count = spike_count.rename(columns={'peak':'spike_count'})
-
-#get the unique count of 'interval number' for each pt_id
-interval_count = all_spikes.groupby(['pt_id'])['interval number'].max()
-interval_count = interval_count.reset_index()
-
-#merge spike_count and interval_count on pt_id
-spike_count = spike_count.merge(interval_count, on='pt_id')
-
-# calulate spike rate by dividing spike_count by interval number
-spike_count['spike_rate'] = spike_count['spike_count']/spike_count['interval number']
-
-#merge spike_count with all_spikes on pt_id and channel_label
-all_spikes = all_spikes.merge(spike_count[['pt_id','channel_label','spike_rate']], on=['pt_id','channel_label'])
-
+if ('rate' in Feat_of_interest) | ('latency' in Feat_of_interest) | (Feat_of_interest == 'seq_spike_time_diff'):
+    all_spikes = pd.read_csv('dataset/spikes_bySOZ_T-R.csv', index_col=0)
+else:
+    all_spikes = pd.read_csv('dataset/spikes_bySOZ.csv')
 
 #flag that says we want spike leaders only
 if take_spike_leads == True:
@@ -365,6 +344,11 @@ non_mesial_temp_spikes_avg = non_mesial_temp_spikes_avg.pivot_table(index='pt_id
 mesial_temp_spikes_avg = mesial_temp_spikes_avg.reindex(columns=['1','2','3','4','5','6','7','8','9','10','11','12'])
 non_mesial_temp_spikes_avg = non_mesial_temp_spikes_avg.reindex(columns=['1','2','3','4','5','6','7','8','9','10','11','12'])
 
+#remove 'HUP215' from all_spikes_avg
+if ('latency' in Feat_of_interest) | (Feat_of_interest == 'seq_spike_time_diff'):
+    all_spikes_avg = all_spikes_avg.drop('HUP215')
+    all_spikes_avg = all_spikes_avg.drop('HUP099')
+
 ####################
 # 3. Plot Heatmaps #
 ####################
@@ -381,7 +365,11 @@ import matplotlib.pyplot as plt
 
 #color in all the mesial temporal channels
 plt.figure(figsize=(20,20))
-sns.heatmap(all_spikes_avg, cmap='viridis', alpha = 1, vmin=0, vmax=10)
+if Feat_of_interest == 'spike_rate':
+    sns.heatmap(all_spikes_avg, cmap='viridis', alpha = 1, vmin=0, vmax=10)
+else:
+    sns.heatmap(all_spikes_avg, cmap='viridis', alpha = 1)
+
 plt.xlabel('Channel Number', fontsize=20)
 plt.ylabel('Patient ID', fontsize=20)
 plt.title(f'Average {Feat_of_interest} by Channel and Patient', fontsize=24)
@@ -413,8 +401,88 @@ neocort_patch = mpatches.Patch(color='#00A087FF', label='Temporal Neocortical Pa
 other_patch = mpatches.Patch(color='#7E6148FF', label='Other Cortex Patients')
 plt.legend(handles=[mesial_patch, temporal_patch, neocort_patch, other_patch], loc='upper right')
 
-plt.savefig(f'figures/sameside_perSOZ/{Feat_of_interest}_allptsbySOZ.png.png', dpi = 300)
+# plt.savefig(f'figures/sameside_perSOZ/{Feat_of_interest}_allptsbySOZ.png.png', dpi = 300)
 plt.show()
 
+
+# %%
+
+########################
+# MANUAL PLOTS (STATS) #
+########################
+
+
+#Correlation plot of all_spikes_avg
+plt.figure(figsize = (10,10))
+sns.heatmap(all_spikes_avg.corr(method='spearman'), annot=True, cmap='Blues')
+plt.show()
+
+# %%
+#find the spearman correlation of each row in all_spikes_avg
+#initialize a list to store the spearman correlation
+channel_labels = ['1','2','3','4','5','6','7','8','9','10','11','12']
+spearman_corr = []
+label = []
+for row in range(len(all_spikes_avg)):
+    spearman_corr.append(stats.spearmanr(channel_labels,all_spikes_avg.iloc[row].to_list(), nan_policy='omit'))
+    label.append(all_spikes_avg.index[row])
+
+corr_df = pd.DataFrame(spearman_corr, columns=['correlation', 'p-value'])
+corr_df['SOZ'] = [x[1] for x in label]
+corr_df['pt_id'] = [x[0] for x in label]
+
+# %%
+#run a wilcoxon rank sum test to see if the distribution of correlation is different between mesial temporal and other cortex
+from scipy.stats import ranksums
+mesial_temp = corr_df[corr_df['SOZ'] == 1]['correlation']
+other_cortex = corr_df[corr_df['SOZ'] == 'other cortex']['correlation']
+temporal = corr_df[corr_df['SOZ'] == 'temporal']['correlation']
+neocortical = corr_df[corr_df['SOZ'] == 'temporal neocortical']['correlation']
+
+#run a wilcoxon rank sum test to see if the distribution of correlation is different between mesial temporal and other cortex
+print('Mesial Temporal vs. Other Cortex')
+print(ranksums(mesial_temp, other_cortex, nan_policy='omit'))
+print('Mesial Temporal vs. Temporal')
+print(ranksums(mesial_temp, temporal, nan_policy='omit'))
+print('Mesial Temporal vs. Temporal Neocortical')
+print(ranksums(mesial_temp, neocortical, nan_policy='omit'))
+print('Other Cortex vs. Temporal')
+print(ranksums(other_cortex, temporal, nan_policy='omit'))
+print('Other Cortex vs. Temporal Neocortical')
+print(ranksums(other_cortex, neocortical, nan_policy='omit'))
+print('Temporal vs. Temporal Neocortical')
+print(ranksums(temporal, neocortical, nan_policy='omit'))
+
+# %%
+#create a boxplot comparing the distribution of correlation across SOZ types
+plt.figure(figsize=(10,10))
+my_palette = {1:'#E64B35FF', 'other cortex':'#7E6148FF', 'temporal':'#3C5488FF', 'temporal neocortical':'#00A087FF'}
+#change font to arial
+plt.rcParams['font.family'] = 'Arial'
+sns.boxplot(x='SOZ', y='correlation', data=corr_df, palette=my_palette)
+plt.xlabel('SOZ Type', fontsize=12)
+plt.ylabel('Spearman Correlation', fontsize=12)
+#change the x-tick labels to be more readable
+plt.xticks(np.arange(4), ['Mesial Temporal', 'Other Cortex', 'Temporal', 'Neocortical'], fontsize = 12)
+plt.yticks(fontsize = 12)
+
+#############################################################################################
+#part to change
+plt.title('Distribution of Spearman Correlation by SOZ Type (Feature = Sharpness)', fontsize=16)
+
+#add a significance bar between -
+# # Mesial and Other C
+plt.plot([0, 0, 1, 1], [1.5, 1.7, 1.7, 1.5], lw=1.5, c='k')
+plt.text((0+1)*.5, 1.75, "***", ha='center', va='bottom', color='k')
+# #add a signficance bar between -
+# # mesial temporal and temporal neocorical
+plt.plot([0, 0, 3, 3], [2,2.2,2.2,2], lw=1.5, c='k')
+plt.text((0+3)*.5, 2.25, "***", ha='center', va='bottom', color='k')
+
+# plt.savefig(f'figures/sameside_perSOZ/statistical_test/{Feat_of_interest}-ranksum.png', dpi = 300, bbox_inches='tight')
+
+#############################################################################################
+
+plt.show()
 
 # %%
