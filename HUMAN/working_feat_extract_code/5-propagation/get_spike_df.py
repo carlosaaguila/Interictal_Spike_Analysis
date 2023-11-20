@@ -50,9 +50,11 @@ SOZ_list = SOZ_list[~SOZ_list['region'].isin(['frontal','multifocal','diffuse','
 # remove any nans in 'region' column
 SOZ_list = SOZ_list[~SOZ_list['region'].isna()].reset_index(drop=True)
 
+#only get mesial_temporal
+SOZ_list = SOZ_list[SOZ_list['region'] == 'mesial temporal'].reset_index(drop=True)
+
 #patients in SOZ_list that are in filenames_w_ids
 pt_in_soz = filenames_w_ids[filenames_w_ids['hup_id'].isin(SOZ_list['name'])].reset_index(drop=True)
-
 # %%
 all_spikes = pd.DataFrame()
 
@@ -93,8 +95,30 @@ for index, row in pt_in_soz.iterrows():
     #set the first spike in each spike sequence to be a spike leader, based on smallest peak_index in each group
     spike_output_DF.loc[spike_output_DF.groupby(['new_spike_seq'])['peak_index'].idxmin(),'is_spike_leader'] = 1
 
+
+    # load the patient data
+    if os.path.exists(data_directory[0] + '/pickle_spike/{}_obj.pkl'.format(hup_id)):
+        spike, brain_df, onsetzone, ids = load_ptall(hup_id, data_directory)
+    else:
+        print(f'no pickle file for {hup_id}')
+        print('skipping patient')
+        continue
+
+    # check if brain_df is a dataframe, if not you can skip this patient
+    if isinstance(brain_df, pd.DataFrame) == False:
+        print('brain_df is not a dataframe')
+        continue
+
     #clean labels
     spike_output_DF['channel_label'] = spike_output_DF['channel_label'].apply(lambda x: decompose_labels(x, hup_id))
+    
+    #clean brain_df labels
+    brain_df['key_0'] = brain_df['key_0'].apply(lambda x: decompose_labels(x, hup_id))
+
+    #merge brain_df using "key_0" to spike_output_DF using "channel_label", to get 'final_label' in spike_output_DF
+    spike_output_DF = spike_output_DF.merge(brain_df[['key_0','final_label']], left_on='channel_label', right_on='key_0', how='left')
+    #drop the extra column 'key_0'
+    spike_output_DF = spike_output_DF.drop(columns=['key_0'])
 
     #For each group of new_spike_seq, find the difference between the peak_index_samples between the smallest and largest peak_index_samples of the group
     spike_output_DF['seq_total_dur'] = spike_output_DF.groupby(['new_spike_seq'])['peak_index_samples'].transform(lambda x: x.max() - x.min())
@@ -152,4 +176,4 @@ for index, row in pt_in_soz.iterrows():
     all_spikes = pd.concat([all_spikes, spike_output_DF], ignore_index=True)
 
 #save the new dataframe as a csv
-all_spikes.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/spikes_bySOZ_v2.csv', index=False)
+all_spikes.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/intra_mtle/all_spikes.csv', index=False)
