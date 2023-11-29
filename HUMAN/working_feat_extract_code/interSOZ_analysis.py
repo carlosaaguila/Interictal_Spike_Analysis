@@ -754,7 +754,7 @@ plt.legend(handles=[SOZ,nonSOZ])
 plt.ylabel('log(arbitrary units)')
 plt.show()
 
-##%% ADD HUP IDS TO RID in master_elecs 
+#%% ADD HUP IDS TO RID in master_elecs 
 master_elecs = pd.read_csv('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/master_elecs.csv')
 all_ids = pd.read_csv('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/all_ptids.csv', index_col=0)
 
