@@ -158,7 +158,7 @@ for index, row in pt_in_soz.iterrows():
     master_elecs['name'] = master_elecs['name'].apply(lambda x: decompose_labels(x, hup_id))
 
     #merge master_elecs on channel_label from spike_output_DF
-    spike_output_DF = spike_output_DF.merge(master_elecs[['spike_rate','engel','hup_id','name']], left_on=['channel_label', 'pt_id'], right_on = ['name','hup_id'], how='left')
+    spike_output_DF = spike_output_DF.merge(master_elecs[['engel','hup_id','name','soz']], left_on=['channel_label', 'pt_id'], right_on = ['name','hup_id'], how='left')
 
     #add patient regionality
     spike_output_DF['region'] = SOZ_list[SOZ_list['name'] == hup_id]['region'].values[0]
@@ -167,7 +167,7 @@ for index, row in pt_in_soz.iterrows():
     spike_output_DF['lateralization'] = SOZ_list[SOZ_list['name'] == hup_id]['lateralization'].values[0]
 
     #add patient SOZ
-    spike_output_DF['SOZ'] = spike_output_DF['lateralization'] + '_' + spike_output_DF['region']
+    spike_output_DF['clinic_SOZ'] = spike_output_DF['lateralization'] + '_' + spike_output_DF['region']
 
     #drop region and lateralization
     spike_output_DF = spike_output_DF.drop(columns=['region', 'lateralization'])
@@ -177,3 +177,4 @@ for index, row in pt_in_soz.iterrows():
 
 #save the new dataframe as a csv
 all_spikes.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/intra_mtle/all_spikes.csv', index=False)
+# %%

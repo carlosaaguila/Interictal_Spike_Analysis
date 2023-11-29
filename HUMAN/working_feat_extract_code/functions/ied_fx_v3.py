@@ -341,8 +341,14 @@ def label_fix(pt, data_directory, threshold = 0.20):
         json_labels = data_directory[1] + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-implant01_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.json'.format(rid,rid)
     if path.exists(data_directory[1] + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-clinical01_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.json'.format(rid,rid)) == True:
         json_labels = data_directory[1] + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-clinical01_space-T00mri_atlas-DKTantspynet_radius-2_desc-vox_coordinates.json'.format(rid,rid)
-        
-    workinglabels = pd.read_json(json_labels, lines=True)
+    
+    #try pd.read_json with lines = True, if that doesn't work then do it without it.
+    try: 
+        workinglabels = pd.read_json(json_labels, lines=True)
+    except:
+        print('trying again without lines=True')
+        workinglabels = pd.read_json(json_labels)
+
     empty = (workinglabels[workinglabels['label'] == 'EmptyLabel'])
     empty = unnesting(empty, ['labels_sorted', 'percent_assigned'], axis=0)
     empty = empty[np.isnan(empty['percent_assigned1']) == False]
@@ -363,7 +369,13 @@ def label_fix(pt, data_directory, threshold = 0.20):
     elif path.exists(data_directory[1] + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-clinical01_space-T00mri_atlas-atropos_radius-2_desc-vox_coordinates.json'.format(rid,rid)) == True:
         at_json_labels = data_directory[1] + '/CNT_iEEG_BIDS/{}/derivatives/ieeg_recon/module3/{}_ses-clinical01_space-T00mri_atlas-atropos_radius-2_desc-vox_coordinates.json'.format(rid,rid)
 
-    atropos_labels = pd.read_json(at_json_labels, lines = True)    
+    #try pd.read_json with lines = True, if that doesn't work then do it without it.
+    try: 
+        atropos_labels = pd.read_json(at_json_labels, lines=True)
+    except:
+        print('trying again without lines=True')
+        atropos_labels = pd.read_json(at_json_labels)
+
     atropos_labels = atropos_labels.rename(columns={'labels_sorted': 'AT_labels', 'percent_assigned':'AT_perc'})
     #MERGE ATROPOS AND DKT
     merge_keys = workinglabels.merge(atropos_labels[['AT_labels', 'AT_perc']], left_on = workinglabels['name'], right_on= atropos_labels['name'], how='left')
