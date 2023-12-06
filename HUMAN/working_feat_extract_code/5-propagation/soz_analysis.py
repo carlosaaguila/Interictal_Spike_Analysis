@@ -259,7 +259,7 @@ plt.show()
 # %%
 #only using the same side electrodes as the SOZ laterality
 
-Feat_of_interest = 'sharpness'
+Feat_of_interest = 'slow_width'
 take_spike_leads = False
 
 ####################
@@ -401,7 +401,7 @@ neocort_patch = mpatches.Patch(color='#00A087FF', label='Temporal Neocortical Pa
 other_patch = mpatches.Patch(color='#7E6148FF', label='Other Cortex Patients')
 plt.legend(handles=[mesial_patch, temporal_patch, neocort_patch, other_patch], loc='upper right')
 
-# plt.savefig(f'figures/sameside_perSOZ/{Feat_of_interest}_allptsbySOZ.png.png', dpi = 300)
+plt.savefig(f'figures/sameside_perSOZ/{Feat_of_interest}_allptsbySOZ.png.png', dpi = 300)
 plt.show()
 
 
@@ -410,17 +410,23 @@ plt.show()
 ########################
 # MANUAL PLOTS (STATS) #
 ########################
-
-
-#Correlation plot of all_spikes_avg
+"""
+#Correlation plot of all_spikes_avg (spearman)
 plt.figure(figsize = (10,10))
 sns.heatmap(all_spikes_avg.corr(method='spearman'), annot=True, cmap='Blues')
 plt.show()
+
+#now do the same thing but with pearson correlation
+plt.figure(figsize = (10,10))
+sns.heatmap(all_spikes_avg.corr(method='pearson'), annot=True, cmap='Blues')
+plt.show()
+"""
 
 # %%
 #find the spearman correlation of each row in all_spikes_avg
 #initialize a list to store the spearman correlation
 channel_labels = ['1','2','3','4','5','6','7','8','9','10','11','12']
+channel_labels = [int(x) for x in channel_labels]
 spearman_corr = []
 label = []
 for row in range(len(all_spikes_avg)):
@@ -431,7 +437,65 @@ corr_df = pd.DataFrame(spearman_corr, columns=['correlation', 'p-value'])
 corr_df['SOZ'] = [x[1] for x in label]
 corr_df['pt_id'] = [x[0] for x in label]
 
+# find the pearson correlation of each row in all_spikes_avg
+# initialize a list to store the spearman correlation
+pearson_corr = []
+p_label = []
+for row in range(len(all_spikes_avg)):
+    gradient = all_spikes_avg.iloc[row].to_list()
+    channel_labels = ['1','2','3','4','5','6','7','8','9','10','11','12']
+    channel_labels = [int(x) for x in channel_labels]
+    # for each nan in the graident list, remove the corresponding channel_labels
+    list_to_remove = []
+    for i in range(len(channel_labels)):
+        if np.isnan(gradient[i]):
+            list_to_remove.append(i)
+
+    #remove list_to_remove from channel_labels and gradient
+    channel_labels = [i for j, i in enumerate(channel_labels) if j not in list_to_remove]
+    gradient = [i for j, i in enumerate(gradient) if j not in list_to_remove]
+
+    pearson_corr.append(stats.pearsonr(channel_labels,gradient))
+    p_label.append(all_spikes_avg.index[row])
+
+pearson_df = pd.DataFrame(pearson_corr, columns=['correlation', 'p-value'])
+pearson_df['SOZ'] = [x[1] for x in label]
+pearson_df['pt_id'] = [x[0] for x in label]
+
+#%%
+"""
+row = 10
+gradient = all_spikes_avg.iloc[row].to_list()
+#grab index from gradient
+ptname = all_spikes_avg.index[row][0]
+channel_labels = ['1','2','3','4','5','6','7','8','9','10','11','12']
+channel_labels = [int(x) for x in channel_labels]
+list_to_remove = []
+for i in range(len(channel_labels)):
+    if np.isnan(gradient[i]):
+        list_to_remove.append(i)
+
+#remove list_to_remove from channel_labels and gradient
+channel_labels = [i for j, i in enumerate(channel_labels) if j not in list_to_remove]
+gradient = [i for j, i in enumerate(gradient) if j not in list_to_remove]
+
+#subplot with 2 plots
+fig, ax = plt.subplots(1,2, figsize=(10,5))
+#plot an scatter plot of channel_label vs. gradient, then fit an R squared line
+sns.regplot(x=channel_labels, y=gradient, ci=95, line_kws={'color':'r'}, robust = True, ax=ax[0])
+ax[0].set_title('robust = True - Spearman-like')
+sns.regplot(x=channel_labels, y=gradient, ci=95, line_kws={'color':'r'}, robust = False, ax=ax[1])
+ax[1].set_title('robust = False - Pearson-like')
+plt.show()
+
+#display the spearman correlation and p-value
+print(ptname)
+print('Spearman ---- {}'.format(stats.spearmanr(channel_labels,gradient)))
+print('Pearson ----- {}'.format(stats.pearsonr(channel_labels,gradient)))
+"""
+
 # %%
+#Spearman Correlation STATS
 #run a wilcoxon rank sum test to see if the distribution of correlation is different between mesial temporal and other cortex
 from scipy.stats import ranksums
 mesial_temp = corr_df[corr_df['SOZ'] == 1]['correlation']
@@ -454,6 +518,7 @@ print('Temporal vs. Temporal Neocortical')
 print(ranksums(temporal, neocortical, nan_policy='omit'))
 
 # %%
+#SPEARMAN CORRELATION PLOTS
 #create a boxplot comparing the distribution of correlation across SOZ types
 plt.figure(figsize=(10,10))
 my_palette = {1:'#E64B35FF', 'other cortex':'#7E6148FF', 'temporal':'#3C5488FF', 'temporal neocortical':'#00A087FF'}
@@ -468,21 +533,91 @@ plt.yticks(fontsize = 12)
 
 #############################################################################################
 #part to change
-plt.title('Distribution of Spearman Correlation by SOZ Type (Feature = Sharpness)', fontsize=16)
+plt.title('Distribution of Spearman Correlation by SOZ Type (Feature = Slow Wave Width)', fontsize=16)
 
-#add a significance bar between -
-# # Mesial and Other C
-plt.plot([0, 0, 1, 1], [1.5, 1.7, 1.7, 1.5], lw=1.5, c='k')
-plt.text((0+1)*.5, 1.75, "***", ha='center', va='bottom', color='k')
-# #add a signficance bar between -
+# #add a significance bar between -
+# # # Mesial and Other C
+# plt.plot([0, 0, 1, 1], [1.5, 1.6, 1.6, 1.5], lw=1.5, c='k')
+# plt.text((0+1)*.5, 1.65, "***", ha='center', va='bottom', color='k')
+
+# # add a signficance bar between -
+# # mesial temporal and temporal 
+# plt.plot([0, 0, 2, 2], [1.75,1.85,1.85,1.75], lw=1.5, c='k')
+# plt.text((0+2)*.5, 1.9, "***", ha='center', va='bottom', color='k')
+
+# # add a signficance bar between -
 # # mesial temporal and temporal neocorical
-plt.plot([0, 0, 3, 3], [2,2.2,2.2,2], lw=1.5, c='k')
-plt.text((0+3)*.5, 2.25, "***", ha='center', va='bottom', color='k')
+# plt.plot([0, 0, 3, 3], [2,2.1,2.1,2], lw=1.5, c='k')
+# plt.text((0+3)*.5, 2.15, "***", ha='center', va='bottom', color='k')
 
-# plt.savefig(f'figures/sameside_perSOZ/statistical_test/{Feat_of_interest}-ranksum.png', dpi = 300, bbox_inches='tight')
+plt.savefig(f'figures/sameside_perSOZ/statistical_test/spearman/{Feat_of_interest}-ranksum.png', dpi = 300, bbox_inches='tight')
 
 #############################################################################################
 
 plt.show()
 
+#%%
+#Pearson Correlation STATS
+#run a wilcoxon rank sum test to see if the distribution of correlation is different between mesial temporal and other cortex
+from scipy.stats import ranksums
+mesial_temp = pearson_df[pearson_df['SOZ'] == 1]['correlation']
+other_cortex = pearson_df[pearson_df['SOZ'] == 'other cortex']['correlation']
+temporal = pearson_df[pearson_df['SOZ'] == 'temporal']['correlation']
+neocortical = pearson_df[pearson_df['SOZ'] == 'temporal neocortical']['correlation']
+
+print(Feat_of_interest)
+#run a wilcoxon rank sum test to see if the distribution of correlation is different between mesial temporal and other cortex
+print('Mesial Temporal vs. Other Cortex')
+print(ranksums(mesial_temp, other_cortex, nan_policy='omit'))
+print('Mesial Temporal vs. Temporal')
+print(ranksums(mesial_temp, temporal, nan_policy='omit'))
+
+print('Mesial Temporal vs. Temporal Neocortical')
+print(ranksums(mesial_temp, neocortical, nan_policy='omit'))
+print('Other Cortex vs. Temporal')
+print(ranksums(other_cortex, temporal, nan_policy='omit'))
+print('Other Cortex vs. Temporal Neocortical')
+print(ranksums(other_cortex, neocortical, nan_policy='omit'))
+print('Temporal vs. Temporal Neocortical')
+print(ranksums(temporal, neocortical, nan_policy='omit'))
+
+
+# %%
+#Pearson Correlation PLOTS
+#create a boxplot comparing the distribution of correlation across SOZ types
+plt.figure(figsize=(10,10))
+my_palette = {1:'#E64B35FF', 'other cortex':'#7E6148FF', 'temporal':'#3C5488FF', 'temporal neocortical':'#00A087FF'}
+#change font to arial
+plt.rcParams['font.family'] = 'Arial'
+sns.boxplot(x='SOZ', y='correlation', data=pearson_df, palette=my_palette)
+plt.xlabel('SOZ Type', fontsize=12)
+plt.ylabel('Pearson Correlation', fontsize=12)
+#change the x-tick labels to be more readable
+plt.xticks(np.arange(4), ['Mesial Temporal', 'Other Cortex', 'Temporal', 'Neocortical'], fontsize = 12)
+plt.yticks(fontsize = 12)
+
+#############################################################################################
+#part to change
+plt.title('Distribution of Pearson Correlation by SOZ Type (Feature = Slow Wave Width)', fontsize=16)
+
+#add a significance bar between -
+# # Mesial and Other C
+# plt.plot([0, 0, 1, 1], [1.5, 1.6, 1.6, 1.5], lw=1.5, c='k')
+# plt.text((0+1)*.5, 1.65, "***", ha='center', va='bottom', color='k')
+
+# # add a signficance bar between -
+# # mesial temporal and temporal 
+# plt.plot([0, 0, 2, 2], [1.75,1.85,1.85,1.75], lw=1.5, c='k')
+# plt.text((0+2)*.5, 1.9, "***", ha='center', va='bottom', color='k')
+
+# # add a signficance bar between -
+# # mesial temporal and temporal neocorical
+# plt.plot([0, 0, 3, 3], [2,2.1,2.1,2], lw=1.5, c='k')
+# plt.text((0+3)*.5, 2.15, "***", ha='center', va='bottom', color='k')
+
+plt.savefig(f'figures/sameside_perSOZ/statistical_test/pearson/{Feat_of_interest}-ranksum.png', dpi = 300, bbox_inches='tight')
+
+#############################################################################################
+
+plt.show()
 # %%
