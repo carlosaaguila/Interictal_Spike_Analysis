@@ -40,7 +40,9 @@ filenames_w_ids = filenames_w_ids[filenames_w_ids['to use'] == 1].reset_index(dr
 SOZ_list = pd.read_csv('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/soz_locations.csv', index_col = 0)
 
 # remove rows that have 'diffuse' or 'bilateral' in the 'lateralization' column
-SOZ_list = SOZ_list[~SOZ_list['lateralization'].isin(['diffuse', 'bilateral'])].reset_index(drop=True)
+# SOZ_list = SOZ_list[~SOZ_list['lateralization'].isin(['diffuse', 'bilateral'])].reset_index(drop=True)
+#only keep rows where lateralization is bilateral
+SOZ_list = SOZ_list[SOZ_list['lateralization'] == 'bilateral'].reset_index(drop=True)
 
 # remove any nan's in lateralization
 SOZ_list = SOZ_list[~SOZ_list['lateralization'].isna()].reset_index(drop=True) 
@@ -51,11 +53,12 @@ SOZ_list = SOZ_list[~SOZ_list['region'].isin(['frontal','multifocal','diffuse','
 SOZ_list = SOZ_list[~SOZ_list['region'].isna()].reset_index(drop=True)
 
 #only get mesial_temporal
-SOZ_list = SOZ_list[SOZ_list['region'] == 'mesial temporal'].reset_index(drop=True)
+# SOZ_list = SOZ_list[SOZ_list['region'] == 'mesial temporal'].reset_index(drop=True)
 
 #patients in SOZ_list that are in filenames_w_ids
 pt_in_soz = filenames_w_ids[filenames_w_ids['hup_id'].isin(SOZ_list['name'])].reset_index(drop=True)
-# %%
+
+ # %%
 all_spikes = pd.DataFrame()
 
 for index, row in pt_in_soz.iterrows():
@@ -95,7 +98,7 @@ for index, row in pt_in_soz.iterrows():
     #set the first spike in each spike sequence to be a spike leader, based on smallest peak_index in each group
     spike_output_DF.loc[spike_output_DF.groupby(['new_spike_seq'])['peak_index'].idxmin(),'is_spike_leader'] = 1
 
-
+    """
     # load the patient data
     if os.path.exists(data_directory[0] + '/pickle_spike/{}_obj.pkl'.format(hup_id)):
         spike, brain_df, onsetzone, ids = load_ptall(hup_id, data_directory)
@@ -104,21 +107,23 @@ for index, row in pt_in_soz.iterrows():
         print('skipping patient')
         continue
 
+
     # check if brain_df is a dataframe, if not you can skip this patient
     if isinstance(brain_df, pd.DataFrame) == False:
         print('brain_df is not a dataframe')
         continue
+    """
 
     #clean labels
     spike_output_DF['channel_label'] = spike_output_DF['channel_label'].apply(lambda x: decompose_labels(x, hup_id))
     
     #clean brain_df labels
-    brain_df['key_0'] = brain_df['key_0'].apply(lambda x: decompose_labels(x, hup_id))
+    # brain_df['key_0'] = brain_df['key_0'].apply(lambda x: decompose_labels(x, hup_id))
 
     #merge brain_df using "key_0" to spike_output_DF using "channel_label", to get 'final_label' in spike_output_DF
-    spike_output_DF = spike_output_DF.merge(brain_df[['key_0','final_label']], left_on='channel_label', right_on='key_0', how='left')
+    # spike_output_DF = spike_output_DF.merge(brain_df[['key_0','final_label']], left_on='channel_label', right_on='key_0', how='left')
     #drop the extra column 'key_0'
-    spike_output_DF = spike_output_DF.drop(columns=['key_0'])
+    # spike_output_DF = spike_output_DF.drop(columns=['key_0'])
 
     #For each group of new_spike_seq, find the difference between the peak_index_samples between the smallest and largest peak_index_samples of the group
     spike_output_DF['seq_total_dur'] = spike_output_DF.groupby(['new_spike_seq'])['peak_index_samples'].transform(lambda x: x.max() - x.min())
@@ -158,7 +163,7 @@ for index, row in pt_in_soz.iterrows():
     master_elecs['name'] = master_elecs['name'].apply(lambda x: decompose_labels(x, hup_id))
 
     #merge master_elecs on channel_label from spike_output_DF
-    spike_output_DF = spike_output_DF.merge(master_elecs[['engel','hup_id','name','soz']], left_on=['channel_label', 'pt_id'], right_on = ['name','hup_id'], how='left')
+    spike_output_DF = spike_output_DF.merge(master_elecs[['engel','hup_id','name','soz', 'spike_rate']], left_on=['channel_label', 'pt_id'], right_on = ['name','hup_id'], how='left')
 
     #add patient regionality
     spike_output_DF['region'] = SOZ_list[SOZ_list['name'] == hup_id]['region'].values[0]
@@ -176,5 +181,5 @@ for index, row in pt_in_soz.iterrows():
     all_spikes = pd.concat([all_spikes, spike_output_DF], ignore_index=True)
 
 #save the new dataframe as a csv
-all_spikes.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/intra_mtle/all_spikes.csv', index=False)
+all_spikes.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/bilateral_MTLE_all_spikes.csv', index=False)
 # %%
