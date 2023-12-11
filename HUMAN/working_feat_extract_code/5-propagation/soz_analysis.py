@@ -259,7 +259,7 @@ plt.show()
 # %%
 #only using the same side electrodes as the SOZ laterality
 
-Feat_of_interest = 'slow_width'
+Feat_of_interest = 'decay_amp'
 take_spike_leads = False
 
 ####################
@@ -401,9 +401,10 @@ neocort_patch = mpatches.Patch(color='#00A087FF', label='Temporal Neocortical Pa
 other_patch = mpatches.Patch(color='#7E6148FF', label='Other Cortex Patients')
 plt.legend(handles=[mesial_patch, temporal_patch, neocort_patch, other_patch], loc='upper right')
 
-plt.savefig(f'figures/sameside_perSOZ/{Feat_of_interest}_allptsbySOZ.png.png', dpi = 300)
+# plt.savefig(f'figures/sameside_perSOZ/{Feat_of_interest}_allptsbySOZ.png.png', dpi = 300)
 plt.show()
 
+# all_spikes_avg.to_csv(f'/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/gradient_data/{Feat_of_interest}.csv')
 
 # %%
 
@@ -463,8 +464,8 @@ pearson_df['SOZ'] = [x[1] for x in label]
 pearson_df['pt_id'] = [x[0] for x in label]
 
 #%%
-"""
-row = 10
+
+row = 54
 gradient = all_spikes_avg.iloc[row].to_list()
 #grab index from gradient
 ptname = all_spikes_avg.index[row][0]
@@ -492,7 +493,7 @@ plt.show()
 print(ptname)
 print('Spearman ---- {}'.format(stats.spearmanr(channel_labels,gradient)))
 print('Pearson ----- {}'.format(stats.pearsonr(channel_labels,gradient)))
-"""
+
 
 # %%
 #Spearman Correlation STATS
