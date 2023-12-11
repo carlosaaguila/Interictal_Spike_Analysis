@@ -400,9 +400,8 @@ other_patch = mpatches.Patch(color='#7E6148FF', label='Other Cortex Patients')
 temporal_patch = mpatches.Patch(color='#00A087FF', label='Temporal Patients')
 neocort_patch = mpatches.Patch(color='#3C5488FF', label='Temporal Neocortical Patients')
 
-plt.legend(handles=[mesial_patch, temporal_patch, neocort_patch, other_patch], loc='upper right')
-
-# plt.savefig(f'figures/sameside_perSOZ/{Feat_of_interest}_allptsbySOZ.png.png', dpi = 300)
+plt.legend(handles=[mesial_patch, other_patch, temporal_patch, neocort_patch], loc='upper right')
+plt.savefig(f'figures/sameside_perSOZ/{Feat_of_interest}_allptsbySOZ.png.png', dpi = 300)
 plt.show()
 
 # all_spikes_avg.to_csv(f'/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/gradient_data/{Feat_of_interest}.csv')
@@ -566,10 +565,11 @@ for ytick, color in zip(plt.gca().get_yticklabels(), colors):
 #add a legend that has red == mesial temporal patients and black == non-mesial temporal patients
 import matplotlib.patches as mpatches
 mesial_patch = mpatches.Patch(color='#E64B35FF', label='Mesial Temporal Patients')
-temporal_patch = mpatches.Patch(color='#3C5488FF', label='Temporal Patients')
-neocort_patch = mpatches.Patch(color='#00A087FF', label='Temporal Neocortical Patients')
 other_patch = mpatches.Patch(color='#7E6148FF', label='Other Cortex Patients')
-plt.legend(handles=[mesial_patch, temporal_patch, neocort_patch, other_patch], loc='upper right')
+temporal_patch = mpatches.Patch(color='#00A087FF', label='Temporal Patients')
+neocort_patch = mpatches.Patch(color='#3C5488FF', label='Temporal Neocortical Patients')
+
+plt.legend(handles=[mesial_patch, other_patch, temporal_patch, neocort_patch], loc='upper right')
 
 plt.savefig(f'figures/sameside_perSOZ/bilateral/{Feat_of_interest}_allptsbySOZ.png.png', dpi = 300)
 plt.show()
