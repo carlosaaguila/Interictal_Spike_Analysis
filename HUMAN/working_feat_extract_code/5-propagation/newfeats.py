@@ -26,6 +26,7 @@ data_directory = ['/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/m
 
 # Load data
 all_spikes = pd.read_csv('dataset/bilateral_MTLE_all_spikes.csv')
+all_spikes = all_spikes.drop(['engel','hup_id','name','spike_rate'], axis=1)
 
 #Add new spike_rate to all_spikes
 spike_count= all_spikes.groupby(['pt_id','channel_label']).count()
