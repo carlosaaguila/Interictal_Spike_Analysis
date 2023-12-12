@@ -302,7 +302,7 @@ plt.ylabel("True Label")
 
 #ONLY SPIKE RATE
 
-all_feats = spearman_df[['SOZ','pt_id','sharpness_spearman_corr']]
+all_feats = pearson_df[['SOZ','pt_id','spike_rate_pearson_corr']]
 
 #Split the data according to IDs 
 #from all_feats dataframe, get the unique id's
@@ -337,7 +337,7 @@ for train_ix, test_ix in LOO.split(unique_ids):
 
     # fit model
     # rfc = RandomForestClassifier(n_estimators = 100, random_state = 42, max_depth = None).fit(X_train, y_train)
-    rfc = LogisticRegression().fit(X_train, y_train)
+    rfc = LogisticRegression(penalty = 'l2', solver = 'liblinear', l1_ratio = 0.5).fit(X_train, y_train)
 
     # evaluate model
     yhat = rfc.predict(X_test)

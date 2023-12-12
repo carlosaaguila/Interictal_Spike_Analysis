@@ -259,7 +259,7 @@ plt.show()
 # %%
 #only using the same side electrodes as the SOZ laterality
 
-Feat_of_interest = 'decay_amp'
+Feat_of_interest = 'spike_rate'
 take_spike_leads = False
 
 ####################
@@ -401,7 +401,7 @@ temporal_patch = mpatches.Patch(color='#00A087FF', label='Temporal Patients')
 neocort_patch = mpatches.Patch(color='#3C5488FF', label='Temporal Neocortical Patients')
 
 plt.legend(handles=[mesial_patch, other_patch, temporal_patch, neocort_patch], loc='upper right')
-plt.savefig(f'figures/sameside_perSOZ/{Feat_of_interest}_allptsbySOZ.png.png', dpi = 300)
+plt.savefig(f'figures/sameside_perSOZ/{Feat_of_interest}_allptsbySOZ.png', dpi = 300)
 plt.show()
 
 # all_spikes_avg.to_csv(f'/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/gradient_data/{Feat_of_interest}.csv')
@@ -430,7 +430,6 @@ bilateral_spikes = bilateral_spikes.drop(['engel','hup_id','name','spike_rate'],
 bilateral_spikes = bilateral_spikes.rename(columns={'clinic_SOZ':'SOZ'})
 
 all_spikes = pd.concat([all_spikes, bilateral_spikes], axis=0).reset_index(drop=True)
-
 
 #flag that says we want spike leaders only
 if take_spike_leads == True:
@@ -511,7 +510,6 @@ if ('latency' in Feat_of_interest) | (Feat_of_interest == 'seq_spike_time_diff')
     all_spikes_avg = all_spikes_avg.drop('HUP215')
     all_spikes_avg = all_spikes_avg.drop('HUP099')
 
-#%%
 ####################
 # 3. Plot Heatmaps #
 ####################
@@ -571,7 +569,7 @@ neocort_patch = mpatches.Patch(color='#3C5488FF', label='Temporal Neocortical Pa
 
 plt.legend(handles=[mesial_patch, other_patch, temporal_patch, neocort_patch], loc='upper right')
 
-plt.savefig(f'figures/sameside_perSOZ/bilateral/{Feat_of_interest}_allptsbySOZ.png.png', dpi = 300)
+plt.savefig(f'figures/sameside_perSOZ/bilateral/{Feat_of_interest}_allptsbySOZ.png', dpi = 300)
 plt.show()
 
 
