@@ -25,9 +25,13 @@ from ied_fx_v3 import *
 data_directory = ['/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2', '/mnt/leif/littlab/data/Human_Data']
 
 # %%
+
 #only using the same side electrodes as the SOZ laterality
 
-Feat_of_interest = ['slow_width', 'slow_max', 'spike_rate','rise_amp','decay_amp','linelen','sharpness']
+# ADD BILATERAL PATIENTS
+# LOOK AT MESIAL TEMPORAL VS. OTHER
+
+Feat_of_interest = ['spike_rate','slow_width', 'slow_max','rise_amp','decay_amp','linelen','sharpness']
 take_spike_leads = False
 
 pearson_feat_df = list()
@@ -38,12 +42,22 @@ for feat in Feat_of_interest:
     ####################
     # 1. Load in data  #
     ####################
+    #load spikes from dataset   
 
-    #load spikes from dataset
     if ('rate' in feat) | ('latency' in feat) | (feat == 'seq_spike_time_diff'):
         all_spikes = pd.read_csv('dataset/spikes_bySOZ_T-R.csv', index_col=0)
+        bilateral_spikes = pd.read_csv('dataset/bilateral_spikes_bySOZ_T-R.csv', index_col=0)
+        bilateral_spikes = bilateral_spikes.drop(['engel','hup_id','name'], axis=1)
+
     else:
         all_spikes = pd.read_csv('dataset/spikes_bySOZ.csv')
+        bilateral_spikes = pd.read_csv('dataset/bilateral_MTLE_all_spikes.csv')
+        bilateral_spikes = bilateral_spikes.drop(['engel','hup_id','name','spike_rate'], axis=1)
+
+    #rename 'clinic_SOZ' to 'SOZ'
+    bilateral_spikes = bilateral_spikes.rename(columns={'clinic_SOZ':'SOZ'})
+
+    all_spikes = pd.concat([all_spikes, bilateral_spikes], axis=0).reset_index(drop=True)
 
     #flag that says we want spike leaders only
     if take_spike_leads == True:
@@ -65,8 +79,14 @@ for feat in Feat_of_interest:
     right_spikes = all_spikes[all_spikes['SOZ'].str.contains('right')].reset_index(drop=True)
     right_spikes_tokeep = right_spikes[~right_spikes['channel_label'].str.contains('L')].reset_index(drop=True)
 
+    bilateral_spikes = all_spikes[all_spikes['SOZ'].str.contains('bilateral')].reset_index(drop=True)
+
     #concat them back into all_spikes
-    all_spikes = pd.concat([left_spikes_tokeep, right_spikes_tokeep], axis =0).reset_index(drop=True)
+    all_spikes = pd.concat([left_spikes_tokeep, right_spikes_tokeep, bilateral_spikes], axis =0).reset_index(drop=True)
+    #alternative without bilateral
+    # all_spikes = pd.concat([left_spikes_tokeep, right_spikes_tokeep], axis =0).reset_index(drop=True)
+
+
 
     #get only the spikes that contain 'mesial temporal' in the SOZ column
     mesial_temp_spikes = all_spikes[all_spikes['SOZ'].str.contains('mesial')].reset_index(drop=True)
@@ -164,8 +184,6 @@ for feat in Feat_of_interest:
     pearson_feat_df.append(pearson_df)
     spearman_feat_df.append(corr_df)
 
-
-# %%
 Feat_of_interest = ['slow_width', 'slow_max', 'spike_rate','rise_amp','decay_amp','linelen','sharpness']
 
 #for each column naked correlation, change it to its corresponding feature
@@ -188,20 +206,22 @@ spearman_df = spearman_df.loc[:,~spearman_df.columns.str.contains('p-value')]
 pearson_df = pearson_df[['SOZ', 'pt_id'] + [c for c in pearson_df if c not in ['SOZ', 'pt_id']]]
 spearman_df = spearman_df[['SOZ', 'pt_id'] + [c for c in spearman_df if c not in ['SOZ', 'pt_id']]]
 
-# %%
 #change patients with SOZ == 1 to 'mesial'
 pearson_df.loc[pearson_df['SOZ'] == 1, 'SOZ'] = 'mesial'
 spearman_df.loc[spearman_df['SOZ'] == 1, 'SOZ'] = 'mesial'
 
 #keep patients with either 'mesial' or 'neocortical' in SOZ
-pearson_df = pearson_df[pearson_df['SOZ'].str.contains('mesial|neocortical')].reset_index(drop=True)
-spearman_df = spearman_df[spearman_df['SOZ'].str.contains('mesial|neocortical')].reset_index(drop=True)
+pearson_df = pearson_df[pearson_df['SOZ'].str.contains('mesial|neocortical|cortex')].reset_index(drop=True)
+spearman_df = spearman_df[spearman_df['SOZ'].str.contains('mesial|neocortical|cortex')].reset_index(drop=True)
 
 #change 'mesial' to 1 and 'neocortical' to 0
 pearson_df.loc[pearson_df['SOZ'] == 'mesial', 'SOZ'] = 1
 pearson_df.loc[pearson_df['SOZ'] == 'temporal neocortical', 'SOZ'] = 0
+pearson_df.loc[pearson_df['SOZ'] == 'other cortex', 'SOZ'] = 0
+
 spearman_df.loc[spearman_df['SOZ'] == 'mesial', 'SOZ'] = 1
 spearman_df.loc[spearman_df['SOZ'] == 'temporal neocortical', 'SOZ'] = 0
+spearman_df.loc[spearman_df['SOZ'] == 'other cortex', 'SOZ'] = 0
 
 #make sure SOZ is an integer
 pearson_df['SOZ'] = pearson_df['SOZ'].astype(int)
@@ -209,12 +229,14 @@ spearman_df['SOZ'] = spearman_df['SOZ'].astype(int)
 
 # %%
 
+pearson_df = pd.read_csv('dataset/ML_data/pearson_ML.csv', index_col=0)
+spearman_df = pd.read_csv('dataset/ML_data/spearman_ML.csv', index_col=0)
+
 ########################
 # LEAVE ONE OUT - Logistic Regression
 # ########################
 
-
-all_feats = pearson_df
+all_feats = pearson_df.merge(spearman_df, on=['SOZ', 'pt_id'])
 
 #Split the data according to IDs 
 #from all_feats dataframe, get the unique id's
@@ -294,6 +316,7 @@ sns.heatmap(rfc_conf_mat_df, cmap='GnBu', annot=True, fmt = "g")
 plt.title("Confusion Matrix for LR test set predictions (all features)")
 plt.xlabel("Predicted Label")
 plt.ylabel("True Label")
+
 # %%
 
 ########################
@@ -302,7 +325,7 @@ plt.ylabel("True Label")
 
 #ONLY SPIKE RATE
 
-all_feats = pearson_df[['SOZ','pt_id','spike_rate_pearson_corr']]
+all_feats = all_feats[['SOZ','pt_id','spike_rate_spearman_corr', 'spike_rate_pearson_corr']]
 
 #Split the data according to IDs 
 #from all_feats dataframe, get the unique id's

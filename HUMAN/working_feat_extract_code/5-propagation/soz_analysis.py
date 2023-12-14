@@ -410,7 +410,7 @@ plt.show()
 # ADD BILATERAL PATIENTS
 # KEEP THE SAME SIDE, PLUS FOR BILATERAL TAKE BOTH SIDES
 
-Feat_of_interest = 'decay_amp'
+Feat_of_interest = 'sharpness'
 take_spike_leads = False
 
 ####################
@@ -420,12 +420,13 @@ take_spike_leads = False
 #load spikes from dataset
 if ('rate' in Feat_of_interest) | ('latency' in Feat_of_interest) | (Feat_of_interest == 'seq_spike_time_diff'):
     all_spikes = pd.read_csv('dataset/spikes_bySOZ_T-R.csv', index_col=0)
+    bilateral_spikes = pd.read_csv('dataset/bilateral_spikes_bySOZ_T-R.csv', index_col=0)
 else:
     all_spikes = pd.read_csv('dataset/spikes_bySOZ.csv')
+    bilateral_spikes = pd.read_csv('dataset/bilateral_MTLE_all_spikes.csv')
+    bilateral_spikes = bilateral_spikes.drop(['engel','hup_id','name','spike_rate'], axis=1)
 
-bilateral_spikes = pd.read_csv('dataset/bilateral_MTLE_all_spikes.csv')
-#remove 'engel','hup_id','name','spike_rate' columns
-bilateral_spikes = bilateral_spikes.drop(['engel','hup_id','name','spike_rate'], axis=1)
+
 #rename 'clinic_SOZ' to 'SOZ'
 bilateral_spikes = bilateral_spikes.rename(columns={'clinic_SOZ':'SOZ'})
 
@@ -510,6 +511,7 @@ if ('latency' in Feat_of_interest) | (Feat_of_interest == 'seq_spike_time_diff')
     all_spikes_avg = all_spikes_avg.drop('HUP215')
     all_spikes_avg = all_spikes_avg.drop('HUP099')
 
+#%%
 ####################
 # 3. Plot Heatmaps #
 ####################
@@ -523,19 +525,20 @@ import matplotlib.pyplot as plt
 # plt.figure(figsize=(10,10))
 # sns.heatmap(non_mesial_temp_spikes_avg, cmap='viridis')
 # plt.show()
-
+plt.clf()
 #color in all the mesial temporal channels
 plt.figure(figsize=(20,20))
-if Feat_of_interest == 'spike_rate':
-    sns.heatmap(all_spikes_avg, cmap='viridis', alpha = 1, vmin=0, vmax=10)
-if Feat_of_interest == 'sharpness':
-    sns.heatmap(all_spikes_avg, cmap='viridis', alpha = 1, vmin=0, vmax=200)
-if Feat_of_interest == 'linelen':
-    sns.heatmap(all_spikes_avg, cmap='viridis', alpha = 1, vmin=0, vmax=4300)
-if Feat_of_interest == 'slow_max':
-    sns.heatmap(all_spikes_avg, cmap='viridis', alpha = 1, vmin=0, vmax=900)
-else:
-    sns.heatmap(all_spikes_avg, cmap='viridis', alpha = 1)
+
+# if Feat_of_interest == 'spike_rate':
+#     sns.heatmap(all_spikes_avg, cmap='viridis', alpha = 1, vmin=0, vmax=15)
+# if Feat_of_interest == 'sharpness':
+#     sns.heatmap(all_spikes_avg, cmap='viridis', alpha = 1, vmin=0, vmax=200)
+# if Feat_of_interest == 'linelen':
+#     sns.heatmap(all_spikes_avg, cmap='viridis', alpha = 1, vmin=0, vmax=4300)
+# if Feat_of_interest == 'slow_max':
+#     sns.heatmap(all_spikes_avg, cmap='viridis', alpha = 1, vmin=0, vmax=900)
+# else:
+sns.heatmap(all_spikes_avg, cmap='viridis', alpha = 1, vmin=0, vmax=200)
 
 plt.xlabel('Channel Number', fontsize=20)
 plt.ylabel('Patient ID', fontsize=20)
@@ -680,7 +683,7 @@ print(ranksums(other_cortex, neocortical, nan_policy='omit'))
 print('Temporal vs. Temporal Neocortical')
 print(ranksums(temporal, neocortical, nan_policy='omit'))
 
-# %%
+ # %%
 
 ########################
 # MANUAL PLOTS (STATS) #
@@ -701,24 +704,27 @@ plt.yticks(fontsize = 12)
 
 #############################################################################################
 #part to change
-plt.title('Distribution of Spearman Correlation by SOZ Type (Feature = Decay Amplitude)', fontsize=16)
+plt.title('Distribution of Spearman Correlation by SOZ Type (Feature = Spike Rate)', fontsize=16)
 
 # add a significance bar between -
 # Mesial and Other C
-plt.plot([0, 0, 1, 1], [1.5, 1.6, 1.6, 1.5], lw=1.5, c='k')
-plt.text((0+1)*.5, 1.65, "***", ha='center', va='bottom', color='k')
+# plt.plot([0, 0, 1, 1], [1.5, 1.6, 1.6, 1.5], lw=1.5, c='k')
+# plt.text((0+1)*.5, 1.65, "***", ha='center', va='bottom', color='k')
+plt.plot([0, 0, 1, 1], [2,2.1,2.1,2], lw=1.5, c='k')
+plt.text((0+1)*.5, 2.15, "***", ha='center', va='bottom', color='k')
+
 
 # add a signficance bar between -
 # mesial temporal and temporal 
-plt.plot([0, 0, 2, 2], [1.75,1.85,1.85,1.75], lw=1.5, c='k')
-plt.text((0+2)*.5, 1.9, "***", ha='center', va='bottom', color='k')
+# plt.plot([0, 0, 2, 2], [1.75,1.85,1.85,1.75], lw=1.5, c='k')
+# plt.text((0+2)*.5, 1.9, "***", ha='center', va='bottom', color='k')
 
-# add a signficance bar between -
-# mesial temporal and temporal neocorical
-plt.plot([0, 0, 3, 3], [2,2.1,2.1,2], lw=1.5, c='k')
-plt.text((0+3)*.5, 2.15, "***", ha='center', va='bottom', color='k')
+# # add a signficance bar between -
+# # mesial temporal and temporal neocorical
+# plt.plot([0, 0, 3, 3], [2,2.1,2.1,2], lw=1.5, c='k')
+# plt.text((0+3)*.5, 2.15, "***", ha='center', va='bottom', color='k')
 
-plt.savefig(f'figures/sameside_perSOZ/bilateral/statistical_test/contact_control/spearman/{Feat_of_interest}-ranksum.png', dpi = 300, bbox_inches='tight')
+plt.savefig(f'figures/sameside_perSOZ/bilateral/statistical_test/spearman/{Feat_of_interest}-ranksum.png', dpi = 300, bbox_inches='tight')
 
 #############################################################################################
 
@@ -771,7 +777,7 @@ plt.yticks(fontsize = 12)
 
 #############################################################################################
 #part to change
-plt.title('Distribution of Pearson Correlation by SOZ Type (Feature = Decay Amplitude)', fontsize=16)
+plt.title('Distribution of Pearson Correlation by SOZ Type (Feature = Spike Rate)', fontsize=16)
 
 # add a significance bar between -
 # Mesial and Other C
@@ -780,18 +786,15 @@ plt.text((0+1)*.5, 1.65, "***", ha='center', va='bottom', color='k')
 
 # add a signficance bar between -
 # mesial temporal and temporal 
-# plt.plot([0, 0, 2, 2], [1.75,1.85,1.85,1.75], lw=1.5, c='k')
-# plt.text((0+2)*.5, 1.9, "***", ha='center', va='bottom', color='k')
-
-plt.plot([0, 0, 2, 2], [2,2.1,2.1,2], lw=1.5, c='k')
-plt.text((0+2)*.5, 2.15, "***", ha='center', va='bottom', color='k')
+plt.plot([0, 0, 2, 2], [1.75,1.85,1.85,1.75], lw=1.5, c='k')
+plt.text((0+2)*.5, 1.9, "***", ha='center', va='bottom', color='k')
 
 # # add a signficance bar between -
 # # mesial temporal and temporal neocorical
-# plt.plot([0, 0, 3, 3], [2,2.1,2.1,2], lw=1.5, c='k')
-# plt.text((0+3)*.5, 2.15, "***", ha='center', va='bottom', color='k')
+plt.plot([0, 0, 3, 3], [2,2.1,2.1,2], lw=1.5, c='k')
+plt.text((0+3)*.5, 2.15, "***", ha='center', va='bottom', color='k')
 
-plt.savefig(f'figures/sameside_perSOZ/bilateral/statistical_test/contact_control/pearson/{Feat_of_interest}-ranksum.png', dpi = 300, bbox_inches='tight')
+plt.savefig(f'figures/sameside_perSOZ/bilateral/statistical_test/pearson/{Feat_of_interest}-ranksum.png', dpi = 300, bbox_inches='tight')
 
 #############################################################################################
 
