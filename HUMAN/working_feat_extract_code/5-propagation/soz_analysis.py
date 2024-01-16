@@ -410,7 +410,7 @@ plt.show()
 # ADD BILATERAL PATIENTS
 # KEEP THE SAME SIDE, PLUS FOR BILATERAL TAKE BOTH SIDES
 
-Feat_of_interest = 'sharpness'
+Feat_of_interest = 'rise_amp'
 take_spike_leads = False
 
 ####################
@@ -572,7 +572,7 @@ neocort_patch = mpatches.Patch(color='#3C5488FF', label='Temporal Neocortical Pa
 
 plt.legend(handles=[mesial_patch, other_patch, temporal_patch, neocort_patch], loc='upper right')
 
-plt.savefig(f'figures/sameside_perSOZ/bilateral/{Feat_of_interest}_allptsbySOZ.png', dpi = 300)
+# plt.savefig(f'figures/sameside_perSOZ/bilateral/{Feat_of_interest}_allptsbySOZ.png', dpi = 300)
 plt.show()
 
 
@@ -708,10 +708,11 @@ plt.title('Distribution of Spearman Correlation by SOZ Type (Feature = Spike Rat
 
 # add a significance bar between -
 # Mesial and Other C
-# plt.plot([0, 0, 1, 1], [1.5, 1.6, 1.6, 1.5], lw=1.5, c='k')
-# plt.text((0+1)*.5, 1.65, "***", ha='center', va='bottom', color='k')
-plt.plot([0, 0, 1, 1], [2,2.1,2.1,2], lw=1.5, c='k')
-plt.text((0+1)*.5, 2.15, "***", ha='center', va='bottom', color='k')
+plt.plot([0, 0, 1, 1], [1.5, 1.6, 1.6, 1.5], lw=1.5, c='k')
+plt.text((0+1)*.5, 1.65, "***", ha='center', va='bottom', color='k')
+
+plt.plot([0, 0, 2, 2], [2,2.1,2.1,2], lw=1.5, c='k')
+plt.text((0+2)*.5, 2.15, "***", ha='center', va='bottom', color='k')
 
 
 # add a signficance bar between -
@@ -724,7 +725,7 @@ plt.text((0+1)*.5, 2.15, "***", ha='center', va='bottom', color='k')
 # plt.plot([0, 0, 3, 3], [2,2.1,2.1,2], lw=1.5, c='k')
 # plt.text((0+3)*.5, 2.15, "***", ha='center', va='bottom', color='k')
 
-plt.savefig(f'figures/sameside_perSOZ/bilateral/statistical_test/spearman/{Feat_of_interest}-ranksum.png', dpi = 300, bbox_inches='tight')
+plt.savefig(f'figures/sameside_perSOZ/bilateral/statistical_test/contact_control/spearman/{Feat_of_interest}-ranksum.png', dpi = 300, bbox_inches='tight')
 
 #############################################################################################
 
@@ -786,15 +787,18 @@ plt.text((0+1)*.5, 1.65, "***", ha='center', va='bottom', color='k')
 
 # add a signficance bar between -
 # mesial temporal and temporal 
-plt.plot([0, 0, 2, 2], [1.75,1.85,1.85,1.75], lw=1.5, c='k')
-plt.text((0+2)*.5, 1.9, "***", ha='center', va='bottom', color='k')
+# plt.plot([0, 0, 2, 2], [1.75,1.85,1.85,1.75], lw=1.5, c='k')
+# plt.text((0+2)*.5, 1.9, "***", ha='center', va='bottom', color='k')
+plt.plot([0, 0, 2, 2], [2,2.1,2.1,2], lw=1.5, c='k')
+plt.text((0+2)*.5, 2.15, "***", ha='center', va='bottom', color='k')
+
 
 # # add a signficance bar between -
 # # mesial temporal and temporal neocorical
-plt.plot([0, 0, 3, 3], [2,2.1,2.1,2], lw=1.5, c='k')
-plt.text((0+3)*.5, 2.15, "***", ha='center', va='bottom', color='k')
+# plt.plot([0, 0, 3, 3], [2,2.1,2.1,2], lw=1.5, c='k')
+# plt.text((0+3)*.5, 2.15, "***", ha='center', va='bottom', color='k')
 
-plt.savefig(f'figures/sameside_perSOZ/bilateral/statistical_test/pearson/{Feat_of_interest}-ranksum.png', dpi = 300, bbox_inches='tight')
+plt.savefig(f'figures/sameside_perSOZ/bilateral/statistical_test/contact_control/pearson/{Feat_of_interest}-ranksum.png', dpi = 300, bbox_inches='tight')
 
 #############################################################################################
 
