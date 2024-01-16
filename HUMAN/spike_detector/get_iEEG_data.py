@@ -102,7 +102,7 @@ def get_iEEG_data(
         data = ds.get_data(start_time_usec, duration, channel_ids)
     except:
         # clip is probably too big, pull chunks and concatenate
-        clip_size = 60 * 1e6
+        clip_size = 0.5 * 1e6
         clip_start = start_time_usec
         data = None
         while clip_start + clip_size < stop_time_usec:

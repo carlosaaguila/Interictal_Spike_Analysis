@@ -25,12 +25,27 @@ filenames_w_ids = pd.read_csv('/mnt/leif/littlab/users/aguilac/Projects/FC_toolb
 #load the list of patients to exclude
 blacklist = ['HUP101' ,'HUP112','HUP115','HUP119','HUP124','HUP144','HUP147','HUP149','HUP155','HUP176',
              'HUP193','HUP194','HUP195','HUP198','HUP208','HUP212','HUP216','HUP217','HUP064','HUP071',
-             'HUP072','HUP073','HUP085','HUP094', 'HUP173', 'HUP211','HUP224'] #check why HUP173/HUP211/HUP224 didn't make it through the pipeline
+             'HUP072','HUP073','HUP085','HUP094']# 'HUP173', 'HUP211','HUP224'] #check why HUP173/HUP211/HUP224 didn't make it through the pipeline
 
 # remove the patients in the blacklist from filenames_w_ids
 filenames_w_ids = filenames_w_ids[~filenames_w_ids['hup_id'].isin(blacklist)]
 #only keep rows where the column "to use" is a 1
 filenames_w_ids = filenames_w_ids[filenames_w_ids['to use'] == 1].reset_index(drop=True)
+
+#load in nina's list of patients to use
+nina_pts = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/spike_detector/filenames_w_ids_nina.csv')
+#drop na
+nina_pts = nina_pts.dropna()
+#make to_use_nina into int
+nina_pts['to_use_nina'] = nina_pts['to_use_nina'].astype(int)
+#keep rows where to_use_nina is 1
+nina_pts = nina_pts[nina_pts['to_use_nina'] == 1]
+
+pt_filenames = ['HUP224_phaseII','HUP211_phaseII', 'HUP168_phaseII_D01'] 
+#keep only these filenames in filenames_w_ids
+nina_pts = nina_pts[nina_pts['filename'].isin(pt_filenames)]
+
+
 #%%
 """
 #%%
@@ -51,7 +66,7 @@ spike_output_DF.columns = ['peak_index', 'channel_index', 'channel_label', 'spik
 #%%
 #for each dataframe, add a column with a unique tag for each spike_sequence and interval number
 #this will be used to identify each spike sequence and interval when we combine all the dataframes
-spike_output_DF['new_spike_seq'] = spike_output_DF.groupby(['interval number','spike_sequence']).ngroup()
+spike_output_DF['new_spike_seq'] = spike_output_DF.groupby(['interval number','spike _sequence']).ngroup()
 
 #sort by new_spike_seq, drop all rows with NaN values
 spike_output_DF = spike_output_DF.sort_values(by=['new_spike_seq']).dropna()
@@ -127,19 +142,26 @@ spike_output_DF_leads['decay_duration'] = spike_output_DF_leads['right_point']-s
 #create a loop to go through each patient and concatenate all the spike_output_DF_leads
 #initialize a dataframe
 spike_output_DF_leads_all = pd.DataFrame()
+missing = []
 #loop through each row in filenames_w_ids
-for index, row in filenames_w_ids.iterrows():
+# for index, row in filenames_w_ids.iterrows():
+for index, row in nina_pts.iterrows():  
     hup_id = row['hup_id']
     filename = row['filename']
     print('hup_id: ', hup_id)
     print('filename: ', filename)
 
     #load the data
-    spike_output_DF = pd.read_csv(f'{data_directory[0]}/spike_leaders/{filename}_spike_output.csv').dropna()
-    spike_output_DF.columns = ['peak_index', 'channel_index', 'channel_label', 'spike_sequence', 'peak',
-                            'left_point', 'right_point','slow_end','slow_max','rise_amp','decay_amp',
-                            'slow_width','slow_amp','rise_slope','decay_slope','average_amp','linelen',
-                            'interval number', 'peak_index_samples', 'peak_time_usec']
+    if os.path.exists(f'{data_directory[0]}/spike_leaders/{filename}_spike_output.csv') == True:
+        spike_output_DF = pd.read_csv(f'{data_directory[0]}/spike_leaders/{filename}_spike_output.csv').dropna()
+        spike_output_DF.columns = ['peak_index', 'channel_index', 'channel_label', 'spike_sequence', 'peak',
+                                'left_point', 'right_point','slow_end','slow_max','rise_amp','decay_amp',
+                                'slow_width','slow_amp','rise_slope','decay_slope','average_amp','linelen',
+                                'interval number', 'peak_index_samples', 'peak_time_usec']
+    else: 
+        print('no spike_output.csv file')
+        missing.append(filename)
+        continue
     
     # check if the first row column 'peak_index' is equal to 'peak_index', if so drop the row
     if spike_output_DF['peak_index'].iloc[0] == 'peak_index':
@@ -164,30 +186,30 @@ for index, row in filenames_w_ids.iterrows():
     #set the first spike in each spike sequence to be a spike leader, based on smallest peak_index in each group
     spike_output_DF.loc[spike_output_DF.groupby(['new_spike_seq'])['peak_index'].idxmin(),'is_spike_leader'] = 1
 
-    # load the patient data
-    if os.path.exists(data_directory[0] + '/pickle_spike/{}_obj.pkl'.format(hup_id)):
-        spike, brain_df, onsetzone, ids = load_ptall(hup_id, data_directory)
-    else:
-        print(f'no pickle file for {hup_id}')
-        print('skipping patient')
-        continue
+    # # load the patient data
+    # if os.path.exists(data_directory[0] + '/pickle_spike/{}_obj.pkl'.format(hup_id)):
+    #     spike, brain_df, onsetzone, ids = load_ptall(hup_id, data_directory)
+    # else:
+    #     print(f'no pickle file for {hup_id}')
+    #     print('skipping patient')
+    #     continue
 
     # check if brain_df is a dataframe, if not you can skip this patient
-    if isinstance(brain_df, pd.DataFrame) == False:
-        print('brain_df is not a dataframe')
-        continue
+    # if isinstance(brain_df, pd.DataFrame) == False:
+    #     print('brain_df is not a dataframe')
+    #     continue
 
     #clean labels
     spike_output_DF['channel_label'] = spike_output_DF['channel_label'].apply(lambda x: decompose_labels(x, hup_id))
     
-    #clean brain_df labels
-    brain_df['key_0'] = brain_df['key_0'].apply(lambda x: decompose_labels(x, hup_id))
+    # #clean brain_df labels
+    # brain_df['key_0'] = brain_df['key_0'].apply(lambda x: decompose_labels(x, hup_id))
 
 
-    #merge brain_df using "key_0" to spike_output_DF using "channel_label", to get 'final_label' in spike_output_DF
-    spike_output_DF = spike_output_DF.merge(brain_df[['key_0','final_label']], left_on='channel_label', right_on='key_0', how='left')
-    #drop the extra column 'key_0'
-    spike_output_DF = spike_output_DF.drop(columns=['key_0'])
+    # #merge brain_df using "key_0" to spike_output_DF using "channel_label", to get 'final_label' in spike_output_DF
+    # spike_output_DF = spike_output_DF.merge(brain_df[['key_0','final_label']], left_on='channel_label', right_on='key_0', how='left')
+    # #drop the extra column 'key_0'
+    # spike_output_DF = spike_output_DF.drop(columns=['key_0'])
 
     #For each group of new_spike_seq, find the difference between the peak_index_samples between the smallest and largest peak_index_samples of the group
     spike_output_DF['seq_total_dur'] = spike_output_DF.groupby(['new_spike_seq'])['peak_index_samples'].transform(lambda x: x.max() - x.min())
@@ -212,6 +234,7 @@ for index, row in filenames_w_ids.iterrows():
 
     #add patient id
     spike_output_DF_leads['pt_id'] = hup_id
+    spike_output_DF_leads['filename'] = filename
 
     #calculate spike_width
     spike_output_DF_leads['spike_width'] = spike_output_DF_leads['right_point']-spike_output_DF_leads['left_point']
@@ -229,6 +252,9 @@ for index, row in filenames_w_ids.iterrows():
     spike_output_DF_leads_all = spike_output_DF_leads_all.append(spike_output_DF_leads)
 
 #save spike_output_DF_leads_all 
-spike_output_DF_leads_all.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/clean_spikeleads/spike_output_DF_leads_all_v3', index=False)
+spike_output_DF_leads_all.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/clean_spikeleads/nina_spikeleads_v2.csv', index=False)
 
+#save all the filenames that were missing or didn't get saved
+missing_df = pd.DataFrame(missing)
+missing_df.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/clean_spikeleads/nina_missing_v2.csv', index=False)
 # %%

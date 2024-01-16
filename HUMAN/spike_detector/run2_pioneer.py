@@ -25,9 +25,18 @@ blacklist = ['HUP101' ,'HUP112','HUP115','HUP119','HUP124','HUP144','HUP147','HU
 filenames_w_ids = filenames_w_ids[~filenames_w_ids['hup_id'].isin(blacklist)]
 #only keep rows where the column "to use" is a 1
 filenames_w_ids = filenames_w_ids[filenames_w_ids['to use'] == 1]
-
+#load in nina's patients
+nina_pts = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/spike_detector/filenames_w_ids_nina.csv')
+#drop na
+nina_pts = nina_pts.dropna()
+#make to_use_nina into int
+nina_pts['to_use_nina'] = nina_pts['to_use_nina'].astype(int)
+#keep rows where to_use_nina is 1
+nina_pts = nina_pts[nina_pts['to_use_nina'] == 1]
+#keep only rows where toUse is 0 and to_use_nina is 1
+nina_pts = nina_pts[nina_pts['toUse'] == 0]
 #split filenames_w_ids dataframe into 7 dataframes
-pt_files_split = np.array_split(filenames_w_ids, 2)
+pt_files_split = np.array_split(nina_pts, 2)
 
 #%% load the session
 #use Carlos's Session

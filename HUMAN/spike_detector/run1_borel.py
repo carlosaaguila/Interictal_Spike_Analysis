@@ -25,11 +25,26 @@ filenames_w_ids = pd.read_csv('/mnt/leif/littlab/users/aguilac/Projects/FC_toolb
 blacklist = ['HUP101' ,'HUP112','HUP115','HUP119','HUP124','HUP144','HUP147','HUP149','HUP155','HUP176','HUP193','HUP194','HUP195','HUP198','HUP208','HUP212','HUP216','HUP217','HUP064','HUP071','HUP072','HUP073','HUP085','HUP094']
 # remove the patients in the blacklist from filenames_w_ids
 filenames_w_ids = filenames_w_ids[~filenames_w_ids['hup_id'].isin(blacklist)]
-#only keep rows where the column "to use" is a 1
-filenames_w_ids = filenames_w_ids[filenames_w_ids['to use'] == 1]
+# #only keep rows where the column "to use" is a 1
+# filenames_w_ids = filenames_w_ids[filenames_w_ids['to use'] == 1]
+# #load in nina's list of patients to use
+# nina_pts = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/spike_detector/filenames_w_ids_nina.csv')
+# #drop na
+# nina_pts = nina_pts.dropna()
+# #make to_use_nina into int
+# nina_pts['to_use_nina'] = nina_pts['to_use_nina'].astype(int)
+# #keep rows where to_use_nina is 1
+# nina_pts = nina_pts[nina_pts['to_use_nina'] == 1]
+# #keep only rows where toUe is 0 and to_use_nina is 1
+# nina_pts = nina_pts[nina_pts['toUse'] == 0]
+
+#patients to use
+pt_filenames = ['HUP224_phaseII','HUP211_phaseII', 'HUP168_phaseII_D01'] 
+#keep only these filenames in filenames_w_ids
+filenames_w_ids = filenames_w_ids[filenames_w_ids['filename'].isin(pt_filenames)]
 
 #split filenames_w_ids dataframe into 7 dataframes
-pt_files_split = np.array_split(filenames_w_ids, 2)
+pt_files_split = np.array_split(filenames_w_ids, 1)
 
 #%% load the session
 #use Carlos's Session
@@ -73,6 +88,8 @@ for index, row in pt_files.iterrows():
     random_intervals = [np.random.randint(i[0], i[1] - 60) for i in intervals]
     #create a list of tuples where each tuple is a start and stop time +- 30 seconds from the random interval
     random_intervals = [(i - 30, i + 30) for i in random_intervals]
+    #make sure the first interval is >0
+    random_intervals[0] = (150, 210)
     correct_i = 0
 
     #check to see if save file exists:
