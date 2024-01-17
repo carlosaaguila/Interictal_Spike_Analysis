@@ -43,12 +43,9 @@ for feat in Feat_of_interest:
     # 1. Load in data  #
     ####################
     #load spikes from dataset   
-
-    if ('rate' in feat) | ('latency' in feat) | (feat == 'seq_spike_time_diff'):
+    if ('rate' in Feat_of_interest) | ('latency' in Feat_of_interest) | (Feat_of_interest == 'seq_spike_time_diff'):
         all_spikes = pd.read_csv('dataset/spikes_bySOZ_T-R.csv', index_col=0)
         bilateral_spikes = pd.read_csv('dataset/bilateral_spikes_bySOZ_T-R.csv', index_col=0)
-        bilateral_spikes = bilateral_spikes.drop(['engel','hup_id','name'], axis=1)
-
     else:
         all_spikes = pd.read_csv('dataset/spikes_bySOZ.csv')
         bilateral_spikes = pd.read_csv('dataset/bilateral_MTLE_all_spikes.csv')
