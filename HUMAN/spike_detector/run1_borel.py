@@ -77,8 +77,8 @@ for index, row in pt_files.iterrows():
     correct_i = 0
 
     #check to see if save file exists:
-    if os.path.exists(f'{data_directory[0]}/spike_leaders/{dataset_name}_spike_output.csv'):
-        print(f"------{hup_id}_{dataset_name}_spike_output.csv already exists------")
+    if os.path.exists(f'{data_directory[0]}/spike_leaders/stim_pts/{dataset_name}_spike_output.csv'):
+        print(f"------{dataset_name}_spike_output.csv already exists------")
 
         #load the file
         spike_output_DF = pd.read_csv(f'{data_directory[0]}/spike_leaders/{dataset_name}_spike_output.csv', header=None)

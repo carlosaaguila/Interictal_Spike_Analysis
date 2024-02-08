@@ -33,17 +33,15 @@ filenames_w_ids = filenames_w_ids[~filenames_w_ids['hup_id'].isin(blacklist)]
 filenames_w_ids = filenames_w_ids[filenames_w_ids['to use'] == 1].reset_index(drop=True)
 
 #load in nina's list of patients to use
-nina_pts = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/spike_detector/filenames_w_ids_nina.csv')
+nina_pts = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/spike_detector/will_stim_pts.csv')
 #drop na
 nina_pts = nina_pts.dropna()
 #make to_use_nina into int
 nina_pts['to_use_nina'] = nina_pts['to_use_nina'].astype(int)
 #keep rows where to_use_nina is 1
 nina_pts = nina_pts[nina_pts['to_use_nina'] == 1]
-
-pt_filenames = ['HUP224_phaseII','HUP211_phaseII', 'HUP168_phaseII_D01'] 
 #keep only these filenames in filenames_w_ids
-nina_pts = nina_pts[nina_pts['filename'].isin(pt_filenames)]
+nina_pts = nina_pts[nina_pts['filename']
 
 
 #%%
