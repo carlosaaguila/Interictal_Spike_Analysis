@@ -1,4 +1,4 @@
-#%% required packages
+#%%
 import pandas as pd
 import numpy as np
 from ieeg.auth import Session
@@ -37,6 +37,16 @@ nina_pts = nina_pts[~nina_pts['hup_id'].isin(blacklist)]
 nina_pts['to_use_nina'] = nina_pts['to_use_nina'].astype(int)
 #keep rows where to_use_nina is 1
 nina_pts = nina_pts[nina_pts['to_use_nina'] == 1]
+# nina_pts = nina_pts[nina_pts['hup_id'] == 'HUP214']
+
+#%% function for fill_missing_values
+
+def fill_missing_values(dict, total_length):
+    filled_dict = dict.copy()
+    for key in range(0, total_length):
+        if key not in filled_dict:
+            filled_dict[key] = 0
+    return filled_dict
 
 # %%
 counts_per_time_all = pd.DataFrame()
@@ -77,52 +87,65 @@ for index, row in nina_pts.iterrows():
     counts_per_time['hup_id'] = hup_id
     counts_per_time['filename'] = filename
 
-    counts_per_time_all = counts_per_time_all.append(counts_per_time)
+    #fix count_per_time
 
-counts_per_time_all.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/clean_spikeleads/counts_per_time_all.csv', index=False)
+    password_bin_filepath = "/mnt/leif/littlab/users/aguilac/tools/agu_ieeglogin.bin"
+    with open(password_bin_filepath, "r") as f:
+        session = Session("aguilac", f.read())
+    dataset = session.open_dataset(filename)
+
+    all_channel_labels = np.array(dataset.get_channel_labels())
+    channel_labels_to_download = all_channel_labels[
+        electrode_selection(all_channel_labels)
+    ]
+
+    duration_usec = dataset.get_time_series_details(
+        channel_labels_to_download[0]
+    ).duration
+    duration_secs = duration_usec / 1e6
+
+    #create a range spanning from 0 to duration_secs in 600 second intervals   
+    intervals = np.arange(0, duration_secs, 600)
+    #create a list of tuples where each tuple is a start and stop time for each interval
+    intervals = list(zip(intervals[:-1], intervals[1:]))
+    # for each tuple range, pick a random 60 second interval
+    random_intervals = [np.random.randint(i[0], i[1] - 60) for i in intervals]
+    #create a list of tuples where each tuple is a start and stop time +- 30 seconds from the random interval
+    random_intervals = [(i - 30, i + 30) for i in random_intervals]
+    #make sure the first interval is >0
+    random_intervals[0] = (150, 210)
+
+    #find how long the filename structure should be:
+    total = len(random_intervals)
+    #find total count
+    count1 = counts_per_time.groupby('interval number').sum().reset_index()
+
+    intnum1 = np.array(count1['interval number'])
+    count1_array = np.array(count1['count'])
+    
+    dict1 = dict(zip(intnum1, count1_array))
+    dict1_fixed = fill_missing_values(dict1, total_length = total)
+    dict1_sorted = sorted(dict1_fixed.items())
+    x = [x[0] for x in dict1_sorted]
+    y = [y[1] for y in dict1_sorted]
+
+    new_counts = pd.DataFrame(columns = ['HUP_id','filename', 'interval_number', 'total_count'])
+    new_counts['total_count'] = y
+    new_counts['interval_number'] = x
+    new_counts['filename'] = filename
+    new_counts['HUP_id'] = hup_id
+    new_counts['interval_length'] = total
+     
+    counts_per_time_all = counts_per_time_all.append(new_counts)
+
+# counts_per_time_all.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/clean_spikeleads/counts_per_time_all_v2.csv', index=False)
+    
+clean_counts = pd.DataFrame()
+for id_group in counts_per_time_all.groupby('HUP_id'):
+    id_group_df = id_group[1]
+    id_group_df['interval_number'] = range(0, len(id_group_df))
+    clean_counts = pd.concat([clean_counts, id_group_df])
+
+clean_counts.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/clean_spikeleads/counts_per_time_all_v2.csv', index=False)
 
 # %%
-#which filenames from counts_per_time_all are not in nina_pts filenames list
-counts_per_time_all_not_in_nina = nina_pts[~nina_pts['filename'].isin(counts_per_time_all['filename'])]
-# %%
-
-
-counts = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/clean_spikeleads/counts_per_time_all.csv')
-#filter by hup_id and separate files
-counts = counts[counts['filename'].str.contains('HUP201')]
-phase1 = counts[counts['filename'].str.contains('D01')]
-phase2 = counts[counts['filename'].str.contains('D02')]
-
-#get counts by interval number
-phase1.groupby('interval number').sum()
-phase2.groupby('interval number').sum()
-
-count1 = phase1.groupby('interval number').sum().reset_index()
-count2 = phase2.groupby('interval number').sum().reset_index()
-
-#turn to lists
-intnum1 = np.array(count1['interval number'])
-count1_array = np.array(count1['count'])
-
-intnum2 = np.array(count2['interval number'])
-count2_array = np.array(count2['count'])
-
-#combine them into pairs (a python thing)
-dict1 = zip(intnum1, count1_array)
-dict2 = zip(intnum2, count2_array)
-
-#fill in the missing values
-dict1_fixed = fill_missing_values(dict1, total_length = total1, default_value = 0)
-dict2_fixed = fill_missing_values(dict2, total_length = total2, default_value = 0)
-
-#shift the second file by the total1, which is the number of intervals of 1st file
-dict2_shifted = shift_keys(dict2_fixed, total1)
-all_dict = concatenate_dicts(dict1_fixed,dict2_shifted)
-all_sorted = sorted(all_dict.items())
-x = [x[0] for x in all_sorted]
-y = [y[1] for y in all_sorted]
-plt.figure(figsize = (10,5))
-plt.plot(x,y)
-plt.xlabel('interval')
-plt.ylabel('counts')
-plt.title('HUP201')
