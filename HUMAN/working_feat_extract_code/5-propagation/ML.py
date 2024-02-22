@@ -30,7 +30,7 @@ data_directory = ['/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/m
 
 # ADD BILATERAL PATIENTS
 # LOOK AT MESIAL TEMPORAL VS. OTHER
-
+"""
 Feat_of_interest = ['spike_rate','slow_width', 'slow_max','rise_amp','decay_amp','linelen','sharpness']
 take_spike_leads = False
 
@@ -43,7 +43,7 @@ for feat in Feat_of_interest:
     # 1. Load in data  #
     ####################
     #load spikes from dataset   
-    if ('rate' in Feat_of_interest) | ('latency' in Feat_of_interest) | (Feat_of_interest == 'seq_spike_time_diff'):
+    if ('rate' in feat) | ('latency' in feat) | (feat == 'seq_spike_time_diff'):
         all_spikes = pd.read_csv('dataset/spikes_bySOZ_T-R.csv', index_col=0)
         bilateral_spikes = pd.read_csv('dataset/bilateral_spikes_bySOZ_T-R.csv', index_col=0)
     else:
@@ -147,7 +147,7 @@ for feat in Feat_of_interest:
         spearman_corr.append(stats.spearmanr(channel_labels,all_spikes_avg.iloc[row].to_list(), nan_policy='omit'))
         label.append(all_spikes_avg.index[row])
 
-    corr_df = pd.DataFrame(spearman_corr, columns=['correlation', 'p-value'])
+    corr_df = pd.DataFrame(spearman_corr, columns=[f'{feat}_correlation', f'{feat}_p-value'])
     corr_df['SOZ'] = [x[1] for x in label]
     corr_df['pt_id'] = [x[0] for x in label]
 
@@ -172,7 +172,7 @@ for feat in Feat_of_interest:
         pearson_corr.append(stats.pearsonr(channel_labels,gradient))
         p_label.append(all_spikes_avg.index[row])
 
-    pearson_df = pd.DataFrame(pearson_corr, columns=['correlation', 'p-value'])
+    pearson_df = pd.DataFrame(pearson_corr, columns=[f'{feat}_correlation', f'{feat}_p-value'])
     pearson_df['SOZ'] = [x[1] for x in label]
     pearson_df['pt_id'] = [x[0] for x in label]
 
@@ -181,12 +181,6 @@ for feat in Feat_of_interest:
     pearson_feat_df.append(pearson_df)
     spearman_feat_df.append(corr_df)
 
-Feat_of_interest = ['slow_width', 'slow_max', 'spike_rate','rise_amp','decay_amp','linelen','sharpness']
-
-#for each column naked correlation, change it to its corresponding feature
-for i in range(len(pearson_feat_df)):
-    pearson_feat_df[i].columns = [Feat_of_interest[i] + '_pearson_corr', Feat_of_interest[i] + '_p-value', 'SOZ', 'pt_id']
-    spearman_feat_df[i].columns = [Feat_of_interest[i] + '_spearman_corr', Feat_of_interest[i] + 'p-value', 'SOZ', 'pt_id']
 
 pearson_df = pd.concat(pearson_feat_df, axis=1)
 spearman_df = pd.concat(spearman_feat_df, axis=1)
@@ -224,10 +218,14 @@ spearman_df.loc[spearman_df['SOZ'] == 'other cortex', 'SOZ'] = 0
 pearson_df['SOZ'] = pearson_df['SOZ'].astype(int)
 spearman_df['SOZ'] = spearman_df['SOZ'].astype(int)
 
+pearson_df.to_csv('dataset/ML_data/pearson_ML_v2.csv')
+spearman_df.to_csv('dataset/ML_data/spearman_ML_v2.csv')
+
+"""
 # %%
 
-pearson_df = pd.read_csv('dataset/ML_data/pearson_ML.csv', index_col=0)
-spearman_df = pd.read_csv('dataset/ML_data/spearman_ML.csv', index_col=0)
+pearson_df = pd.read_csv('dataset/ML_data/pearson_ML_v2.csv', index_col=0)
+spearman_df = pd.read_csv('dataset/ML_data/spearman_ML_v2.csv', index_col=0)
 
 ########################
 # LEAVE ONE OUT - Logistic Regression
@@ -314,6 +312,20 @@ plt.title("Confusion Matrix for LR test set predictions (all features)")
 plt.xlabel("Predicted Label")
 plt.ylabel("True Label")
 
+
+TP = rfc_confusion[1,1]
+TN = rfc_confusion[0,0]
+FN = rfc_confusion[1,0]
+FP = rfc_confusion[0,1]
+
+sensitivity= TP / (TP + FN) 
+specificity = TN / (TN + FP) 
+bal_accuracy = (sensitivity + specificity) / 2
+print("Balanced Accuracy:", bal_accuracy)
+
+
+
+
 # %%
 
 ########################
@@ -322,7 +334,7 @@ plt.ylabel("True Label")
 
 #ONLY SPIKE RATE
 
-all_feats = all_feats[['SOZ','pt_id','spike_rate_spearman_corr', 'spike_rate_pearson_corr']]
+all_feats = all_feats[['SOZ','pt_id','spike_rate_correlation_x', 'spike_rate_correlation_y']]
 
 #Split the data according to IDs 
 #from all_feats dataframe, get the unique id's
@@ -385,6 +397,7 @@ print('Accuracy: %.3f' % acc)
 from sklearn.metrics import roc_curve
 from sklearn.metrics import RocCurveDisplay
 from sklearn.metrics import auc
+from sklearn.metrics import precision_recall_fscore_support
 
 RocCurveDisplay.from_predictions(y_true_clean, y_predprob_clean)
 plt.plot(np.linspace(0,1,100), np.linspace(0,1,100), '--', color='black')
@@ -402,4 +415,16 @@ sns.heatmap(rfc_conf_mat_df, cmap='GnBu', annot=True, fmt = "g")
 plt.title("Confusion Matrix for LR test set predictions (spike rate)")
 plt.xlabel("Predicted Label")
 plt.ylabel("True Label")
+
+TP = rfc_confusion[1,1]
+TN = rfc_confusion[0,0]
+FN = rfc_confusion[1,0]
+FP = rfc_confusion[0,1]
+
+sensitivity= TP / (TP + FN) 
+specificity = TN / (TN + FP) 
+bal_accuracy = (sensitivity + specificity) / 2
+print("Balanced Accuracy:", bal_accuracy)
+
+
 # %%
