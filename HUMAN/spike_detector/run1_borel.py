@@ -23,12 +23,19 @@ data_directory = ['/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/m
 blacklist = ['HUP101' ,'HUP112','HUP115','HUP119','HUP124','HUP144','HUP147','HUP149','HUP155','HUP176','HUP193','HUP194','HUP195','HUP198','HUP208','HUP212','HUP216','HUP217','HUP064','HUP071','HUP072','HUP073','HUP085','HUP094']
 
 #load all the filenames (long form IEEG filenames)
-will_stim_pts = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/spike_detector/will_stim_pts.csv')
+# will_stim_pts = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/spike_detector/will_stim_pts.csv')
 
 # remove the patients in the blacklist from filenames_w_ids
-filenames_w_ids = will_stim_pts[~will_stim_pts['hup_id'].isin(blacklist)]
+# filenames_w_ids = will_stim_pts[~will_stim_pts['hup_id'].isin(blacklist)]
 
-pt_files_split = np.array_split(filenames_w_ids, 1)
+
+MUSC_pts = pd.read_excel('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/MUSC_Emory_LEN_SOZ_type.xlsx')
+MUSC_pts_cleaned = MUSC_pts[MUSC_pts['Site_1MUSC_2Emory'] == 1]
+# MUSC_pts_cleaned2 = MUSC_pts_cleaned[((MUSC_pts_cleaned['MTL'] == 1) & (MUSC_pts_cleaned['Neo'] == 0))| ((MUSC_pts_cleaned['MTL'] == 0) & (MUSC_pts_cleaned['Neo'] == 1))]
+
+filenames_w_ids = MUSC_pts_cleaned
+pt_files_split = np.array_split(filenames_w_ids, 2)
+type = 'MUSC' #stim_pts
 
 #%% load the session
 #use Carlos's Session
@@ -77,11 +84,11 @@ for index, row in pt_files.iterrows():
     correct_i = 0
 
     #check to see if save file exists:
-    if os.path.exists(f'{data_directory[0]}/spike_leaders/stim_pts/{dataset_name}_spike_output.csv'):
+    if os.path.exists(f'{data_directory[0]}/spike_leaders/{type}/{dataset_name}_spike_output.csv'):
         print(f"------{dataset_name}_spike_output.csv already exists------")
 
         #load the file
-        spike_output_DF = pd.read_csv(f'{data_directory[0]}/spike_leaders/{dataset_name}_spike_output.csv', header=None)
+        spike_output_DF = pd.read_csv(f'{data_directory[0]}/spike_leaders/{type}/{dataset_name}_spike_output.csv', header=None)
         #set the column names
         spike_output_DF.columns = ['peak_index', 'channel_index', 'channel_label', 'spike_sequence', 'peak', 'left_point', 'right_point','slow_end','slow_max','rise_amp','decay_amp','slow_width','slow_amp','rise_slope','decay_slope','average_amp','linelen', 'interval number', 'peak_index_samples', 'peak_time_usec']
         #get the number of intervals already processed
@@ -242,7 +249,7 @@ for index, row in pt_files.iterrows():
 
         if i == 0: 
             #save spike_output_DF as a new csv file
-            spike_output_DF.to_csv(f'{data_directory[0]}/spike_leaders/stim_pts/{dataset_name}_spike_output.csv', index = False)
+            spike_output_DF.to_csv(f'{data_directory[0]}/spike_leaders/{type}/{dataset_name}_spike_output.csv', index = False)
         else: 
             #save spike_output_DF, append to existing csv file
-            spike_output_DF.to_csv(f'{data_directory[0]}/spike_leaders/stim_pts/{dataset_name}_spike_output.csv', index = False, header = False, mode = 'a')
+            spike_output_DF.to_csv(f'{data_directory[0]}/spike_leaders/{type}/{dataset_name}_spike_output.csv', index = False, header = False, mode = 'a')

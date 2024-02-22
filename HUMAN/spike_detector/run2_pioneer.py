@@ -5,39 +5,37 @@ from ieeg.auth import Session
 from resampy import resample
 
 # Import custom functions
+import sys, os
+code_v2_path = os.path.dirname('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/spike_detector/')
+sys.path.append(code_v2_path)
 from get_iEEG_data import *
 from spike_detector import *
 from iEEG_helper_functions import *
 from spike_morphology_v2 import *
 
-import sys, os
 code_path = os.path.dirname('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/functions/')
 sys.path.append(code_path)
 from ied_fx_v3 import *
 
 data_directory = ['/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2', '/mnt/leif/littlab/data/Human_Data']
 
-#load all the filenames (long form IEEG filenames)
-filenames_w_ids = pd.read_csv('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/filenames_w_ids.csv')
 #load the list of patients to exclude
 blacklist = ['HUP101' ,'HUP112','HUP115','HUP119','HUP124','HUP144','HUP147','HUP149','HUP155','HUP176','HUP193','HUP194','HUP195','HUP198','HUP208','HUP212','HUP216','HUP217','HUP064','HUP071','HUP072','HUP073','HUP085','HUP094']
-# remove the patients in the blacklist from filenames_w_ids
-filenames_w_ids = filenames_w_ids[~filenames_w_ids['hup_id'].isin(blacklist)]
-#only keep rows where the column "to use" is a 1
-filenames_w_ids = filenames_w_ids[filenames_w_ids['to use'] == 1]
-#load in nina's patients
-nina_pts = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/spike_detector/filenames_w_ids_nina.csv')
-#drop na
-nina_pts = nina_pts.dropna()
-#make to_use_nina into int
-nina_pts['to_use_nina'] = nina_pts['to_use_nina'].astype(int)
-#keep rows where to_use_nina is 1
-nina_pts = nina_pts[nina_pts['to_use_nina'] == 1]
-#keep only rows where toUse is 0 and to_use_nina is 1
-nina_pts = nina_pts[nina_pts['toUse'] == 0]
-#split filenames_w_ids dataframe into 7 dataframes
-pt_files_split = np.array_split(nina_pts, 2)
 
+#load all the filenames (long form IEEG filenames)
+# will_stim_pts = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/spike_detector/will_stim_pts.csv')
+
+# remove the patients in the blacklist from filenames_w_ids
+# filenames_w_ids = will_stim_pts[~will_stim_pts['hup_id'].isin(blacklist)]
+
+
+MUSC_pts = pd.read_excel('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/MUSC_Emory_LEN_SOZ_type.xlsx')
+MUSC_pts_cleaned = MUSC_pts[MUSC_pts['Site_1MUSC_2Emory'] == 1]
+# MUSC_pts_cleaned2 = MUSC_pts_cleaned[((MUSC_pts_cleaned['MTL'] == 1) & (MUSC_pts_cleaned['Neo'] == 0))| ((MUSC_pts_cleaned['MTL'] == 0) & (MUSC_pts_cleaned['Neo'] == 1))]
+
+filenames_w_ids = MUSC_pts_cleaned
+pt_files_split = np.array_split(filenames_w_ids, 2)
+type = 'MUSC' #stim_pts
 #%% load the session
 #use Carlos's Session
 password_bin_filepath = "/mnt/leif/littlab/users/aguilac/tools/agu_ieeglogin.bin"
@@ -80,16 +78,18 @@ for index, row in pt_files.iterrows():
     random_intervals = [np.random.randint(i[0], i[1] - 60) for i in intervals]
     #create a list of tuples where each tuple is a start and stop time +- 30 seconds from the random interval
     random_intervals = [(i - 30, i + 30) for i in random_intervals]
+    #make sure the first interval is >0
+    random_intervals[0] = (150, 210)
     correct_i = 0
 
     #check to see if save file exists:
-    if os.path.exists(f'{data_directory[0]}/spike_leaders/{dataset_name}_spike_output.csv'):
-        print(f"------{hup_id}_{dataset_name}_spike_output.csv already exists------")
+    if os.path.exists(f'{data_directory[0]}/spike_leaders/{type}/{dataset_name}_spike_output.csv'):
+        print(f"------{dataset_name}_spike_output.csv already exists------")
 
         #load the file
-        spike_output_DF = pd.read_csv(f'{data_directory[0]}/spike_leaders/{dataset_name}_spike_output.csv', header = None)
+        spike_output_DF = pd.read_csv(f'{data_directory[0]}/spike_leaders/{type}/{dataset_name}_spike_output.csv', header=None)
+        #set the column names
         spike_output_DF.columns = ['peak_index', 'channel_index', 'channel_label', 'spike_sequence', 'peak', 'left_point', 'right_point','slow_end','slow_max','rise_amp','decay_amp','slow_width','slow_amp','rise_slope','decay_slope','average_amp','linelen', 'interval number', 'peak_index_samples', 'peak_time_usec']
-
         #get the number of intervals already processed
         num_intervals = spike_output_DF['interval number'].max()
 
@@ -185,7 +185,7 @@ for index, row in pt_files.iterrows():
         spike_output_to_save[:, :] = np.NaN  # Fill with NaNs
 
         sequence_to_skip = None
-
+        
         for z, spike in enumerate(spike_output):
             peak_index = int(spike[0])
             channel_index = int(spike[1])
@@ -248,7 +248,7 @@ for index, row in pt_files.iterrows():
 
         if i == 0: 
             #save spike_output_DF as a new csv file
-            spike_output_DF.to_csv(f'{data_directory[0]}/spike_leaders/{dataset_name}_spike_output.csv', index = False)
+            spike_output_DF.to_csv(f'{data_directory[0]}/spike_leaders/{type}/{dataset_name}_spike_output.csv', index = False)
         else: 
             #save spike_output_DF, append to existing csv file
-            spike_output_DF.to_csv(f'{data_directory[0]}/spike_leaders/{dataset_name}_spike_output.csv', index = False, header = False, mode = 'a')
+            spike_output_DF.to_csv(f'{data_directory[0]}/spike_leaders/{type}/{dataset_name}_spike_output.csv', index = False, header = False, mode = 'a')
