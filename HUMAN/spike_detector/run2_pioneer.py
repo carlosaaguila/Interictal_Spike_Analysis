@@ -42,14 +42,19 @@ password_bin_filepath = "/mnt/leif/littlab/users/aguilac/tools/agu_ieeglogin.bin
 with open(password_bin_filepath, "r") as f:
     session = Session("aguilac", f.read())
 
+sz_times = pd.read_excel('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/MUSC_seizure_times.xlsx')
+
 #%% loop through each patient
 #pick a split dataframe from the 7 from pt_files_split to process       #CHANGE IN THE FUTURE FOR DIFFERENT BATCHES
 pt_files = pt_files_split[1]
 
 #loop through each patient
 for index, row in pt_files.iterrows():
-    hup_id = row['hup_id']
-    dataset_name = row['filename']
+    hup_id = row['ParticipantID'] #['hup_id']
+    dataset_name = row['filename'] #['filename']
+
+    sz_time_file = sz_times[sz_times['File'] == dataset_name]
+
 
     print("\n")
     print(f"------Processing HUP {hup_id} with dataset {dataset_name}------")
@@ -81,6 +86,16 @@ for index, row in pt_files.iterrows():
     #make sure the first interval is >0
     random_intervals[0] = (150, 210)
     correct_i = 0
+
+    # Iterate over each interval and check for overlap with events
+    for i, interval in enumerate(random_intervals):
+        for _, row in sz_time_file.iterrows():
+            if (row['Onset time']-(60*30) <= interval[0]) & (interval[-1] <= row['Offset time']+(60*30)): #give about a 30 minute padding
+                # Interval overlaps with an event, mark for removal
+                random_intervals[i] = None
+                break
+
+    random_intervals = [x for x in random_intervals if x is not None]
 
     #check to see if save file exists:
     if os.path.exists(f'{data_directory[0]}/spike_leaders/{type}/{dataset_name}_spike_output.csv'):
