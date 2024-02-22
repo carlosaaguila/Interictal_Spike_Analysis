@@ -26,7 +26,6 @@ data_directory = ['/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/m
 
 #%%
 #load in the outcome data
-
 redcap = pd.read_excel('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/Erin_Carlos_RedCAP_data.xlsx')
 
 #create our 2 search queries. We want to look down LOCATION and SURGERY NOTES to get Mesial Temporal targets
@@ -35,11 +34,15 @@ outcomes_2 = redcap[~redcap['Surgery NOTES'].isna()]
 
 #grab only mesial temporal structure targetted interventions
 outcomes = outcomes[outcomes['Location?'].str.contains('Mesial|mesial|Hippo|hippo|amygd|Amygd')]
+outcomes = outcomes[~outcomes['Procedure?'].str.contains('Resection|resection')]
+outcomes = outcomes[outcomes['Location?'].str.contains('Mesial Temporal')]
+
 #do the same but across outcomes_2
-outcomes_2 = outcomes_2[outcomes_2['Surgery NOTES'].str.contains('Mesial|mesial|Hippo|hippo|amygd|Amygd')]
+# outcomes_2 = outcomes_2[outcomes_2['Surgery NOTES'].str.contains('Mesial|mesial|Hippo|hippo|amygd|Amygd')]
 
 #now merge them to see what we have
-mesial_pts = pd.concat([outcomes, outcomes_2])
+# mesial_pts = pd.concat([outcomes, outcomes_2])
+mesial_pts = outcomes
 mesial_pts = mesial_pts.drop_duplicates().reset_index(drop = True)
 mesial_pts = mesial_pts[~mesial_pts['Outcomes?'].isna()]
 mesial_pts = mesial_pts[~mesial_pts['Outcomes?'].str.contains('NONE|OTHER|None')]
@@ -64,9 +67,10 @@ pts_oi = mesial_pts[['HUP_id','G/O v1','G/O v2']]
 # %%  ADD BILATERAL PATIENTS
 # KEEP THE SAME SIDE, PLUS FOR BILATERAL TAKE BOTH SIDES
 
-Feat_of_interest = 'spike_rate'
+Feat_of_interest = 'linelen' #recruiment_latency
 GO_version = 'G/O v2'
 take_spike_leads = False
+remove_other_pts = True
 
 ####################
 # 1. Load in data  #
@@ -170,8 +174,10 @@ non_mesial_temp_spikes_avg = non_mesial_temp_spikes_avg.reindex(columns=['1','2'
 
 #remove 'HUP215' from all_spikes_avg
 if ('latency' in Feat_of_interest) | (Feat_of_interest == 'seq_spike_time_diff'):
-    all_spikes_avg = all_spikes_avg.drop('HUP215')
-    all_spikes_avg = all_spikes_avg.drop('HUP099')
+    if 'HUP215' in all_spikes_avg.index:
+        all_spikes_avg = all_spikes_avg.drop('HUP215')
+    if 'HUP099' in all_spikes_avg.index:
+        all_spikes_avg = all_spikes_avg.drop('HUP099')
 
 #%%
 ####################
@@ -293,6 +299,12 @@ pearson_df['pt_id'] = [x[0] for x in label]
 pearson_df['G/O'] = [x[2] for x in label]
 
 #%%
+if remove_other_pts == True:
+    # here we want to only keep the patients who have mTLE so that we analyze within group (lets try with sharpness)
+    corr_df = corr_df[corr_df['SOZ'] == 1]
+    pearson_df = pearson_df[pearson_df['SOZ'] == 1]
+
+#%%
 #Spearman Correlation STATS
 #run a wilcoxon rank sum test to see if the distribution of correlation is different between mesial temporal and other cortex
 from scipy.stats import ranksums
@@ -302,6 +314,18 @@ bad_outcome = corr_df[corr_df['G/O'] == 0]['correlation']
 #run a wilcoxon rank sum test to see if the distribution of correlation is different between mesial temporal and other cortex
 print('Good Outcome vs. Bad Outcome')
 print(ranksums(good_outcome, bad_outcome, nan_policy='omit'))
+
+
+# Get Cohen's D
+#correct if the population S.D. is expected to be equal for the two groups.
+def cohend(x,y):
+    nx = len(x)
+    ny = len(y)
+    dof = nx + ny - 2
+    return (np.mean(x) - np.mean(y)) / np.sqrt(((nx-1)*np.std(x, ddof=1) ** 2 + (ny-1)*np.std(y, ddof=1) ** 2) / dof)
+
+cohend_spearman = cohend(good_outcome, bad_outcome)
+print('cohen d for spearman', cohend_spearman )
 
 ########################
 # MANUAL PLOTS (STATS) #
@@ -318,7 +342,10 @@ sns.boxplot(x='G/O', y='correlation', data=corr_df, palette=my_palette)
 plt.xlabel('Outcome Type', fontsize=12)
 plt.ylabel('Spearman Correlation', fontsize=12)
 #change the x-tick labels to be more readable
-plt.xticks(np.arange(2), ['ILAE 3+', 'ILAE 1/1a/2'], fontsize = 12)
+if GO_version == 'G/O v1':
+    plt.xticks(np.arange(2), ['ILAE 2+', 'ILAE 1/1a'], fontsize = 12)
+if GO_version == 'G/O v2':
+    plt.xticks(np.arange(2), ['ILAE 3+', 'ILAE 1/1a/2'], fontsize = 12)
 plt.yticks(fontsize = 12)
 
 #############################################################################################
@@ -348,11 +375,14 @@ bad_outcome = pearson_df[pearson_df['G/O'] == 0]['correlation']
 print('Good Outcome vs. Bad Outcome')
 print(ranksums(good_outcome, bad_outcome, nan_policy='omit'))
 
+cohend_pearson = cohend(good_outcome, bad_outcome)
+print('cohen d for spearman', cohend_pearson )
+
 ########################
 # MANUAL PLOTS (STATS) #
 ########################
 
-#SPEARMAN CORRELATION PLOTS
+#Pearson CORRELATION PLOTS
 #create a boxplot comparing the distribution of correlation across SOZ types
 plt.figure(figsize=(10,10))
 # my_palette = {1:'#E64B35FF', 'other cortex':'#7E6148FF', 'temporal':'#3C5488FF', 'temporal neocortical':'#00A087FF'}
@@ -363,7 +393,10 @@ sns.boxplot(x='G/O', y='correlation', data=pearson_df, palette=my_palette)
 plt.xlabel('Outcome Type', fontsize=12)
 plt.ylabel('Pearson Correlation', fontsize=12)
 #change the x-tick labels to be more readable
-plt.xticks(np.arange(2), ['ILAE 3+', 'ILAE 1/1a/2'], fontsize = 12)
+if GO_version == 'G/O v1':
+    plt.xticks(np.arange(2), ['ILAE 2+', 'ILAE 1/1a'], fontsize = 12)
+if GO_version == 'G/O v2':
+    plt.xticks(np.arange(2), ['ILAE 3+', 'ILAE 1/1a/2'], fontsize = 12)
 plt.yticks(fontsize = 12)
 
 #############################################################################################
@@ -383,3 +416,34 @@ plt.title(f'Distribution of Pearson Correlation by Outcome (Feature = {Feat_of_i
 # plt.savefig(f'figures/sameside_perSOZ/bilateral/statistical_test/contact_control/spearman/{Feat_of_interest}-ranksum.png', dpi = 300, bbox_inches='tight')
 
 
+#%%
+value_columns = ['1','2','3','4','5','6','7','8','9','10','11','12']
+
+# Iterate through the rows of the pivot table
+for idx, row in all_spikes_avg.iterrows():
+    # Extract the index levels
+    pt_id, soz, go_v1 = idx
+    # Plot the line with colors based on the value of 'G/O v1'
+    row = row.dropna()
+    x = np.arange(1,len(row.dropna())+1,1)
+    if go_v1 == 1:
+        color = 'r' 
+        # plt.plot(range(len(value_columns)), row.values, color=color)
+
+        # Calculate linear regression line
+        # slope, intercept = np.polyfit(x, row.values, 2)
+        # plt.plot(x, slope*x + intercept, linestyle='--', color=color)
+        params = np.polyfit(x, row.values, 3)
+        polynomial = np.poly1d(params)
+        plt.plot(x, polynomial(x), linestyle='--', color=color, label = 'GOOD')
+    else:
+        color = 'b'
+        # plt.plot(range(len(value_columns)), row.values, color=color)
+
+        # Calculate linear regression line
+        # slope, intercept = np.polyfit(x, row.values, 2)
+        # plt.plot(x, slope*x + intercept, linestyle='--', color=color)
+        params = np.polyfit(x, row.values, 3)
+        polynomial = np.poly1d(params)
+        plt.plot(x, polynomial(x), linestyle='--', color=color, label = "BAD")
+plt.legend()
