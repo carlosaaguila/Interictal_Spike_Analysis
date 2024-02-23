@@ -36,6 +36,7 @@ MUSC_pts_cleaned = MUSC_pts[MUSC_pts['Site_1MUSC_2Emory'] == 1]
 filenames_w_ids = MUSC_pts_cleaned
 pt_files_split = np.array_split(filenames_w_ids, 2)
 type = 'MUSC' #stim_pts
+
 #%% load the session
 #use Carlos's Session
 password_bin_filepath = "/mnt/leif/littlab/users/aguilac/tools/agu_ieeglogin.bin"

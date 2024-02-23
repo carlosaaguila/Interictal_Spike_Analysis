@@ -49,6 +49,8 @@ with open(password_bin_filepath, "r") as f:
 #pick a split dataframe from the 7 from pt_files_split to process       #CHANGE IN THE FUTURE FOR DIFFERENT BATCHES
 pt_files = pt_files_split[0]
 
+pt_files = pt_files.iloc[14:]
+
 #loop through each patient
 for index, row in pt_files.iterrows():
     hup_id = row['ParticipantID'] #['hup_id']
@@ -70,11 +72,13 @@ for index, row in pt_files.iterrows():
     channel_labels_to_download = all_channel_labels[
         electrode_selection(all_channel_labels)
     ]
-
-    duration_usec = dataset.get_time_series_details(
-        channel_labels_to_download[0]
-    ).duration
-    duration_secs = duration_usec / 1e6
+    if channel_labels_to_download:
+        duration_usec = dataset.get_time_series_details(
+            channel_labels_to_download[0]
+        ).duration
+        duration_secs = duration_usec / 1e6
+    else:
+        continue
 
     #create a range spanning from 0 to duration_secs in 600 second intervals   
     intervals = np.arange(0, duration_secs, 600)
