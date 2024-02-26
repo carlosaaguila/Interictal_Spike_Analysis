@@ -72,7 +72,7 @@ for index, row in pt_files.iterrows():
     channel_labels_to_download = all_channel_labels[
         electrode_selection(all_channel_labels)
     ]
-    if channel_labels_to_download:
+    if channel_labels_to_download.size > 0:
         duration_usec = dataset.get_time_series_details(
             channel_labels_to_download[0]
         ).duration
