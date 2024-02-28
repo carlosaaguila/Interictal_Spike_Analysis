@@ -49,7 +49,7 @@ with open(password_bin_filepath, "r") as f:
 #pick a split dataframe from the 7 from pt_files_split to process       #CHANGE IN THE FUTURE FOR DIFFERENT BATCHES
 pt_files = pt_files_split[0]
 
-pt_files = pt_files.iloc[14:]
+pt_files = pt_files.iloc[29:]
 
 #loop through each patient
 for index, row in pt_files.iterrows():
