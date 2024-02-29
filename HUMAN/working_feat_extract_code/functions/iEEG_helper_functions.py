@@ -1,38 +1,11 @@
 # This file should not use pandas
 
 import numpy as np
-import pandas as pd
-from scipy.signal import butter, filtfilt, iirnotch, hilbert
+from scipy.signal import butter, filtfilt, iirnotch, iirfilter
 
 
-def calculate_synchrony(time_series):
-    """
-    Calculate the Kuramoto order parameter for a set of time series
-    Args:
-        time_series (np.array): 2D array where each row is a time series
-    Returns:
-        np.array: Kuramoto order parameter for each time point
-    """
-    # Extract the number of time series and the number of time points
-    N, _ = time_series.shape
-    # Apply the Hilbert Transform to get an analytical signal
-    analytical_signals = hilbert(time_series)
-    assert analytical_signals.shape == time_series.shape
-    # Extract the instantaneous phase for each time series using np.angle
-    phases = np.angle(analytical_signals, deg=False)
-    assert phases.shape == time_series.shape
-    # Compute the Kuramoto order parameter for each time point
-    # 1j*1j == -1
-    r_t = np.abs(np.sum(np.exp(1j * phases), axis=0)) / N
-    R = np.mean(r_t)
-    return r_t, R
-
-
-def notch_filter(data, low_cut, high_cut, fs, order=4):
-    nyq = 0.5 * fs
-    low = low_cut / nyq
-    high = high_cut / nyq
-    b, a = iirnotch(w0=(low + high) / 2, Q=30, fs=fs)
+def notch_filter(data, hz, fs):
+    b, a = iirnotch(hz, Q=30, fs=fs)
     y = filtfilt(b, a, data, axis=0)
     return y
 
@@ -126,6 +99,8 @@ def electrode_selection(labels):
             if "O1" in set(
                 labels
             ):  # if hemiscalp, should not have odd; if ieeg, should have O1
+                select[i] = 1
+            else:
                 select[i] = 0
     return select
 
@@ -198,10 +173,16 @@ def detect_bad_channels_optimized(values, fs):
         freqs = freqs[:-1]
         P = P[: int(np.ceil(len(P) / 2))]
         freqs = freqs[: int(np.ceil(len(freqs) / 2))]
-        P_60Hz = np.sum(P[(freqs > 58) & (freqs < 62)]) / np.sum(P)
-        if P_60Hz > percent_60_hz:
+        total_power = np.sum(P)
+        if total_power == 0:
             bad.add(ich)
-            noisy_ch.append(ich)
+            high_var_ch.append(ich)
+            continue
+        else:
+            P_60Hz = np.sum(P[(freqs > 58) & (freqs < 62)]) / total_power
+            if P_60Hz > percent_60_hz:
+                bad.add(ich)
+                noisy_ch.append(ich)
 
     # Combine all bad channels
     bad = bad.union(higher_std)
@@ -218,6 +199,7 @@ def detect_bad_channels_optimized(values, fs):
     channel_mask = [i for i in which_chs if i not in bad]
 
     return channel_mask, details
+
 
 def automatic_bipolar_montage(data, data_columns):
     """This function returns the data in bipolar montage using the channel names
@@ -253,12 +235,6 @@ def automatic_bipolar_montage(data, data_columns):
 
     return np.array(dfBipolar), np.array(dfBipolar.columns)
 
-"""
-butter_bp_filter
-"""
-from scipy.signal import filtfilt, butter
-
-
 def butter_bp_filter(data, lowcut, highcut, fs, order=3):
     """This function bandpasses data
 
@@ -276,3 +252,123 @@ def butter_bp_filter(data, lowcut, highcut, fs, order=3):
     signal_bp = filtfilt(bandpass_b, bandpass_a, data, axis=0)
     return signal_bp
 
+def new_bandpass_filt(data, lowcut, highcut, fs, order = 4):
+
+    if fs == 1024:
+        b = [0.0342089439540094, 0, -0.0684178879080189, 0, 0.0342089439540094]
+        a = [1, -3.40837438183729, 4.36773330454651, -2.50912852732152, 0.549774904492375]
+        signal_bp = filtfilt(b, a, data, axis=0)
+
+    elif fs == 512:
+        b = [0.110341876092030, 0, -0.220683752184059, 0, 0.110341876092030]
+        a = [1, -2.84999684509203, 3.01525532511459, -1.47261949410732, 0.307429302286222]
+        signal_bp = filtfilt(b, a, data, axis=0)
+
+    elif fs == 256:
+        b = [0.329773746685091, 0, -0.659547493370182, 0, 0.329773746685091]
+        a = [0.175233821173555, -0.200810082151730, 0.830452461803929, -1.80406441093276, 1]
+        signal_bp = filtfilt(b, a, data, axis=0)
+
+    elif fs == 500:
+        b = [0.114657122916782, 0, -0.229314245833564, 0, 0.114657122916782]
+        a = [1, -2.82405915548544, 2.95589050957282, -1.43119381095927, 0.299436856070785]
+        signal_bp = filtfilt(b, a, data, axis=0)
+
+    elif fs == 1000:
+        b = [0.0356639677619672, 0, -0.0713279355239343, 0, 0.0356639677619672]
+        a = [1, -3.39453926569963, 4.33233599727022, -2.47975692956295, 0.541965991567219]
+        signal_bp = filtfilt(b, a, data, axis=0)
+
+    elif fs == 250:
+        b = [0.342416923871813, 0, -0.684833847743626, 0, 0.342416923871813]
+        a = [1, -1.75428158626788, 0.736712673740108, -0.159617332038591, 0.178069768015428]
+        signal_bp = filtfilt(b, a, data, axis=0)
+
+    else:
+        print("Sampling Frequency is not covered by this function, this is the best approximation")
+        print("Spike rates/counts will not be affected by more than 5 percent of the original value")
+        bandpass_b, bandpass_a = butter(order, [lowcut, highcut], btype='bandpass', fs=fs)
+        signal_bp = filtfilt(bandpass_b, bandpass_a, data, axis=0)
+
+    return signal_bp
+
+import re
+
+#clean labels
+def decompose_labels(chLabel, name):
+    """
+    clean the channel labels, one at a time.
+    """
+    clean_label = []
+    elec = []
+    number = []
+    label = chLabel
+
+    if isinstance(label, str):
+        label_str = label
+    else:
+        label_str = label[0]
+
+    # Remove leading zero
+    label_num_idx = re.search(r'\d', label_str)
+    if label_num_idx:
+        label_non_num = label_str[:label_num_idx.start()]
+        label_num = label_str[label_num_idx.start():]
+
+        if label_num.startswith('0'):
+            label_num = label_num[1:]
+
+        label_str = label_non_num + label_num
+
+    # Remove 'EEG '
+    eeg_text = 'EEG '
+    if eeg_text in label_str:
+        label_str = label_str.replace(eeg_text, '')
+
+    # Remove '-Ref'
+    ref_text = '-Ref'
+    if ref_text in label_str:
+        label_str = label_str.replace(ref_text, '')
+
+    # Remove spaces
+    label_str = label_str.replace(' ', '')
+
+    # Remove '-'
+    label_str = label_str.replace('-', '')
+
+    # Remove CAR
+    label_str = label_str.replace('CAR', '')
+
+    # Switch HIPP to DH, AMY to DA
+    label_str = label_str.replace('HIPP', 'DH')
+    label_str = label_str.replace('AMY', 'DA')
+
+    # Dumb fixes specific to individual patients
+    if name == 'HUP099':
+        if label_str.startswith('R'):
+            label_str = label_str[1:]
+
+    if name == 'HUP189':
+        label_str = label_str.replace('Gr', 'G')
+
+    if name == 'HUP106':
+        label_str = label_str.replace('LDA', 'LA')
+        label_str = label_str.replace('LDH', 'LH')
+        label_str = label_str.replace('RDA', 'RA')
+        label_str = label_str.replace('RDH', 'RH')
+
+    if (name == 'HUP086') | (name == 'HUP078'):
+        label_str = label_str.replace('Grid', 'LG')
+
+    if name == 'HUP075':
+        label_str = label_str.replace('Grid', 'G')
+
+    clean_label = label_str
+
+    if 'Fp1' in label_str.lower():
+        clean_label = 'Fp1'
+
+    if 'Fp2' in label_str.lower():
+        clean_label = 'Fp2'
+
+    return clean_label
