@@ -34,7 +34,6 @@ bilateral_spikes = bilateral_spikes.drop(['engel','hup_id','name','spike_rate'],
 bilateral_spikes = bilateral_spikes.rename(columns={'clinic_SOZ':'SOZ'})
 spikes = pd.concat([all_spikes, bilateral_spikes], axis=0).reset_index(drop=True)
 
-
 #load filenames_w_ids.csv 
 filenamescsv = pd.read_csv('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/filenames_w_ids.csv')
 filenamescsv = filenamescsv[filenamescsv['to use'] == 1]
@@ -43,15 +42,15 @@ pt_ids = filenamescsv[~filenamescsv['hup_id'].isin(multi_file)]
 
 #%%
 
-rows = 7
-cols = 2
-num_plots = rows * cols
-fig, axes = plt.subplots(rows, cols, figsize=(15,20)) 
-
 with open("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/error_log.txt", "a") as log_file:
     for index, row in pt_ids.iterrows():
         pt_id = row['hup_id']
         filename = row['filename']
+
+        rows = 7
+        cols = 2
+        num_plots = rows * cols
+        fig, axes = plt.subplots(rows, cols, figsize=(15,20)) 
 
         try:
             for i in range(num_plots):
@@ -138,6 +137,5 @@ with open("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/worki
         plt.subplots_adjust(top = 0.95)
         # plt.show()
 
-        plt.savefig(f'/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/supplemental_figs/random_detects_and_morph/{pt_id}_spikes.svg', dpi = 300, bbox_inches = 'tight')
+        plt.savefig(f'/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/supplemental_figs/random_detects_and_morph/{pt_id}_spikes.svg')
 
-# %%
