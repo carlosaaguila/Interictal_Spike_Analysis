@@ -137,5 +137,5 @@ with open("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/worki
         plt.subplots_adjust(top = 0.95)
         # plt.show()
 
-        plt.savefig(f'/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/supplemental_figs/random_detects_and_morph/{pt_id}_spikes.svg')
+        plt.savefig(f'/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/supplemental_figs/random_detects_and_morph/{pt_id}_spikes.png', dpi = 600)
 
