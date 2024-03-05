@@ -30,10 +30,12 @@ blacklist = ['HUP101' ,'HUP112','HUP115','HUP119','HUP124','HUP144','HUP147','HU
              'HUP193','HUP194','HUP195','HUP198','HUP208','HUP212','HUP216','HUP217','HUP064','HUP071',
              'HUP072','HUP073','HUP085','HUP094', 'HUP173', 'HUP211','HUP224'] #check why HUP173/HUP211/HUP224 didn't make it through the pipeline
 
+"""
 # remove the patients in the blacklist from filenames_w_ids
 filenames_w_ids = filenames_w_ids[~filenames_w_ids['hup_id'].isin(blacklist)]
 #only keep rows where the column "to use" is a 1
 filenames_w_ids = filenames_w_ids[filenames_w_ids['to use'] == 1].reset_index(drop=True)
+
 
 #find the patients we want (seperate by SOZ)
 # load all the SOZ's
@@ -57,6 +59,24 @@ SOZ_list = SOZ_list[~SOZ_list['region'].isna()].reset_index(drop=True)
 
 #patients in SOZ_list that are in filenames_w_ids
 pt_in_soz = filenames_w_ids[filenames_w_ids['hup_id'].isin(SOZ_list['name'])].reset_index(drop=True)
+"""
+
+#filenames for MUSC patients
+MUSC_pts = pd.read_excel('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/MUSC_Emory_LEN_SOZ_type.xlsx')
+MUSC_pts_cleaned = MUSC_pts[MUSC_pts['Site_1MUSC_2Emory'] == 1]
+# MUSC_pts_cleaned2 = MUSC_pts_cleaned[((MUSC_pts_cleaned['MTL'] == 1) & (MUSC_pts_cleaned['Neo'] == 0))| ((MUSC_pts_cleaned['MTL'] == 0) & (MUSC_pts_cleaned['Neo'] == 1))]
+pt_in_soz = MUSC_pts_cleaned
+def soz_assigner(row):
+    if row['MTL'] == 1 and row['Neo'] == 0:
+        return 1
+    elif row['MTL'] == 0 and row['Neo'] == 1:
+        return 2
+    elif row['MTL'] == 1 and row['Neo'] == 1:
+        return 3
+    else:
+        return None
+    
+pt_in_soz['SOZ'] = pt_in_soz.apply(soz_assigner, axis = 1)
 
  # %%
 all_spikes = pd.DataFrame()
@@ -66,10 +86,10 @@ for index, row in pt_in_soz.iterrows():
     print(f'{index} out of {len(pt_in_soz)}')
 
     filename = row['filename']
-    hup_id = row['hup_id']
+    hup_id = row['ParticipantID']
 
     # load the data
-    spike_output_DF = pd.read_csv(f'{data_directory[0]}/spike_leaders/{filename}_spike_output.csv').dropna()
+    spike_output_DF = pd.read_csv(f'{data_directory[0]}/spike_leaders/MUSC/{filename}_spike_output.csv').dropna()
     spike_output_DF.columns = ['peak_index', 'channel_index', 'channel_label', 'spike_sequence', 'peak',
                             'left_point', 'right_point','slow_end','slow_max','rise_amp','decay_amp',
                             'slow_width','slow_amp','rise_slope','decay_slope','average_amp','linelen',
@@ -117,13 +137,15 @@ for index, row in pt_in_soz.iterrows():
     #clean labels
     spike_output_DF['channel_label'] = spike_output_DF['channel_label'].apply(lambda x: decompose_labels(x, hup_id))
     
+    """
     #clean brain_df labels
-    # brain_df['key_0'] = brain_df['key_0'].apply(lambda x: decompose_labels(x, hup_id))
+    brain_df['key_0'] = brain_df['key_0'].apply(lambda x: decompose_labels(x, hup_id))
 
     #merge brain_df using "key_0" to spike_output_DF using "channel_label", to get 'final_label' in spike_output_DF
-    # spike_output_DF = spike_output_DF.merge(brain_df[['key_0','final_label']], left_on='channel_label', right_on='key_0', how='left')
+    spike_output_DF = spike_output_DF.merge(brain_df[['key_0','final_label']], left_on='channel_label', right_on='key_0', how='left')
     #drop the extra column 'key_0'
-    # spike_output_DF = spike_output_DF.drop(columns=['key_0'])
+    spike_output_DF = spike_output_DF.drop(columns=['key_0'])
+    """
 
     #For each group of new_spike_seq, find the difference between the peak_index_samples between the smallest and largest peak_index_samples of the group
     spike_output_DF['seq_total_dur'] = spike_output_DF.groupby(['new_spike_seq'])['peak_index_samples'].transform(lambda x: x.max() - x.min())
@@ -155,6 +177,14 @@ for index, row in pt_in_soz.iterrows():
     #add patient id
     spike_output_DF['pt_id'] = hup_id
 
+    #add SOZ
+    spike_output_DF['region'] = row['SOZ']
+
+    #add laterality
+    spike_output_DF['lateralization_left'] = row['Left']
+    spike_output_DF['lateralization_right'] = row['Right']
+
+    """
     #add spikerate
     master_elecs = pd.read_csv('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/master_elecs.csv')
     sozlist = pd.read_csv('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/all_ptids.csv', index_col=0)
@@ -176,10 +206,10 @@ for index, row in pt_in_soz.iterrows():
 
     #drop region and lateralization
     spike_output_DF = spike_output_DF.drop(columns=['region', 'lateralization'])
-
+    """
     #concat spike_output_DF to all_spikes
     all_spikes = pd.concat([all_spikes, spike_output_DF], ignore_index=True)
 
 #save the new dataframe as a csv
-all_spikes.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/bilateral_MTLE_all_spikes.csv', index=False)
+all_spikes.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/MUSC_allspikes.csv', index=False)
 # %%
