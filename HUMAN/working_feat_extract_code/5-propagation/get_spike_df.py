@@ -66,12 +66,15 @@ MUSC_pts = pd.read_excel('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/re
 MUSC_pts_cleaned = MUSC_pts[MUSC_pts['Site_1MUSC_2Emory'] == 1]
 # MUSC_pts_cleaned2 = MUSC_pts_cleaned[((MUSC_pts_cleaned['MTL'] == 1) & (MUSC_pts_cleaned['Neo'] == 0))| ((MUSC_pts_cleaned['MTL'] == 0) & (MUSC_pts_cleaned['Neo'] == 1))]
 pt_in_soz = MUSC_pts_cleaned
+
 def soz_assigner(row):
-    if row['MTL'] == 1 and row['Neo'] == 0:
+    if row['MTL'] == 1:
         return 1
-    elif row['MTL'] == 0 and row['Neo'] == 1:
+    elif row['Neo'] == 1:
         return 2
-    elif row['MTL'] == 1 and row['Neo'] == 1:
+    elif row['Temporal']:
+        return 4
+    elif row['Other']:
         return 3
     else:
         return None
