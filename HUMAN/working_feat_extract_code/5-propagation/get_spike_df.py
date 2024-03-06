@@ -89,11 +89,15 @@ for index, row in pt_in_soz.iterrows():
     hup_id = row['ParticipantID']
 
     # load the data
-    spike_output_DF = pd.read_csv(f'{data_directory[0]}/spike_leaders/MUSC/{filename}_spike_output.csv').dropna()
-    spike_output_DF.columns = ['peak_index', 'channel_index', 'channel_label', 'spike_sequence', 'peak',
-                            'left_point', 'right_point','slow_end','slow_max','rise_amp','decay_amp',
-                            'slow_width','slow_amp','rise_slope','decay_slope','average_amp','linelen',
-                            'interval number', 'peak_index_samples', 'peak_time_usec']
+    try:
+        spike_output_DF = pd.read_csv(f'{data_directory[0]}/spike_leaders/MUSC/{filename}_spike_output.csv').dropna()
+        spike_output_DF.columns = ['peak_index', 'channel_index', 'channel_label', 'spike_sequence', 'peak',
+                                'left_point', 'right_point','slow_end','slow_max','rise_amp','decay_amp',
+                                'slow_width','slow_amp','rise_slope','decay_slope','average_amp','linelen',
+                                'interval number', 'peak_index_samples', 'peak_time_usec']
+    except:
+        print(f"{filename} does not exist")
+        continue
 
     # check if the first row column 'peak_index' is equal to 'peak_index', if so drop the row
     if spike_output_DF['peak_index'].iloc[0] == 'peak_index':
