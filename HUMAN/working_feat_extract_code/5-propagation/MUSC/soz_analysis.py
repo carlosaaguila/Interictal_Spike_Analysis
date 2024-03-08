@@ -140,6 +140,7 @@ for Feat_of_interest in list_of_feats:
     import seaborn as sns
     import matplotlib.pyplot as plt
 
+    sns.set_theme(font = "Verdana")
     plt.clf()
     #color in all the mesial temporal channels
     plt.figure(figsize=(20,20))
@@ -238,7 +239,7 @@ for Feat_of_interest in list_of_feats:
     #where 1, is MTL, 2 is NEO, and 3 is Other
     my_palette = {1:'#E64B35FF', 2:'#3C5488FF', 3:'#7E6148FF'}
     #change font to arial
-    plt.rcParams['font.family'] = 'Arial'
+    plt.rcParams['font.family'] = 'Verdana'
 
     pairs=[(1, 2), (2,3), (1,3)]
     order = [1,2,3]
@@ -265,7 +266,7 @@ for Feat_of_interest in list_of_feats:
     plt.figure(figsize=(10,10))
     my_palette = {1:'#E64B35FF', 2:'#3C5488FF', 3:'#7E6148FF'}
     #change font to arial
-    plt.rcParams['font.family'] = 'Arial'
+    plt.rcParams['font.family'] = 'Verdana'
     pairs=[(1, 2), (2,3), (1,3)]
     order = [1,2,3]
     ax = sns.boxplot(x='SOZ', y='correlation', data=pearson_df, palette=my_palette, order=order, showfliers = False)
