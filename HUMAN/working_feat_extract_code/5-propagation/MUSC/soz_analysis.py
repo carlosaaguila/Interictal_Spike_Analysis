@@ -140,7 +140,7 @@ for Feat_of_interest in list_of_feats:
     import seaborn as sns
     import matplotlib.pyplot as plt
 
-    sns.set_theme(font = "Verdana")
+    sns.set(font = 'Verdana')
     plt.clf()
     #color in all the mesial temporal channels
     plt.figure(figsize=(20,20))
