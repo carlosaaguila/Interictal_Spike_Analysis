@@ -177,7 +177,7 @@ for Feat_of_interest in list_of_feats:
 
     plt.legend(handles=[mesial_patch, neocort_patch, other_patch], loc='upper right')
 
-    plt.savefig(f'../figures/MUSC/soz_analysis/{Feat_of_interest}_allptsbySOZ.svg')
+    plt.savefig(f'../figures/MUSC/soz_analysis/{Feat_of_interest}_allptsbySOZ.pdf')
     plt.show()
 
     #########################
@@ -259,7 +259,7 @@ for Feat_of_interest in list_of_feats:
     #part to change
     plt.title(f'Distribution of Spearman Correlation by SOZ Type (Feature = {Feat_of_interest})', fontsize=16)
 
-    plt.savefig(f'../figures/MUSC/stat_test/spearman/{Feat_of_interest}-ranksum.svg')
+    plt.savefig(f'../figures/MUSC/stat_test/spearman/{Feat_of_interest}-ranksum.pdf')
 
     #Pearson Correlation PLOTS
     #create a boxplot comparing the distribution of correlation across SOZ types
@@ -284,4 +284,4 @@ for Feat_of_interest in list_of_feats:
     #part to change
     plt.title(f'Distribution of Pearson Correlation by SOZ Type (Feature = {Feat_of_interest})', fontsize=16)
 
-    plt.savefig(f'../figures/MUSC/stat_test/pearson/{Feat_of_interest}-ranksum.svg')
+    plt.savefig(f'../figures/MUSC/stat_test/pearson/{Feat_of_interest}-ranksum.pdf')
