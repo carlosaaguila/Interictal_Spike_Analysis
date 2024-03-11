@@ -41,6 +41,45 @@ multi_file = filenamescsv[filenamescsv['hup_id'].duplicated()]['hup_id'].unique(
 pt_ids = filenamescsv[~filenamescsv['hup_id'].isin(multi_file)]
 
 #%%
+def plot_train(train, eeg_data):
+    """
+    This function will take a train dataframe that contains all the information about a spike train & eeg_data, which is a cleaned common avergae refence dataframe.
+    It will return a plot of the spike train, in order of peaks.
+    """
+    #make it 2 seconds before spike train starts
+    lower_bound_idx = 30*fs - int(0.25*fs)
+    #make it 2 seconds AFTER spike trains last onset
+    upper_bound_idx = np.shape(CAR_data)[0] - (30*fs) + int(0.25*fs)
+    
+    #shape of the subplots we might want to plot on
+    rows = train.shape[0]
+    cols = 1
+    fig, axs = plt.subplots(rows, cols, figsize=(8, 15), sharex=True)
+
+    #line them up 
+    train = train.sort_values(by = 'order_of_sorting', ascending = True).reset_index(drop=True)
+    
+    first_spike = train['order_of_sorting'].min()
+
+    for i, SS in train.iterrows():
+        ch_to_plot = SS['channel_label']
+        if ch_to_plot in eeg_data.columns.to_list():
+            diff_from_first = SS['order_of_sorting'] - first_spike
+            PEAK = (30*fs) + diff_from_first
+            RIGHT = PEAK + SS['new_right']
+            LEFT = PEAK + SS['new_left']
+            print("this is the x-value of the peak:",PEAK)
+            axs[i].plot(range(lower_bound_idx, upper_bound_idx), eeg_data[ch_to_plot].iloc[lower_bound_idx:upper_bound_idx])
+            axs[i].get_xaxis().set_visible(False)
+            axs[i].plot(PEAK, eeg_data[ch_to_plot].iloc[PEAK], 'x', color = 'r')
+            axs[i].plot(LEFT, eeg_data[ch_to_plot].iloc[LEFT], 'x', color = 'r')
+            axs[i].plot(RIGHT, eeg_data[ch_to_plot].iloc[RIGHT], 'x', color = 'r')
+
+        else:
+            print(f'{ch_to_plot} is a BAD CHANNEL')
+        plt.subplots_adjust(hspace=0.1)
+
+#%%
 #get a patient row.
 row = pt_ids.iloc[2]
 pt_id = row['hup_id']
@@ -105,63 +144,21 @@ CAR_data = common_average_montage(ieeg_data)
 CAR_data_filt = new_bandpass_filt(CAR_data, 1, 70, fs, order=4)
 CAR_data = pd.DataFrame(CAR_data_filt, columns = good_channel_labels)
 
-
-# %%
-def plot_train(train, eeg_data):
-    """
-    This function will take a train dataframe that contains all the information about a spike train & eeg_data, which is a cleaned common avergae refence dataframe.
-    It will return a plot of the spike train, in order of peaks.
-    """
-    #make it 2 seconds before spike train starts
-    lower_bound_idx = 30*fs - int(0.25*fs)
-    #make it 2 seconds AFTER spike trains last onset
-    upper_bound_idx = np.shape(CAR_data)[0] - (30*fs) + int(0.25*fs)
-    
-    #shape of the subplots we might want to plot on
-    rows = train.shape[0]
-    cols = 1
-    fig, axs = plt.subplots(rows, cols, figsize=(8, 15), sharex=True)
-
-    #line them up 
-    train = train.sort_values(by = 'order_of_sorting', ascending = True).reset_index(drop=True)
-    
-    first_spike = train['order_of_sorting'].min()
-
-    for i, SS in train.iterrows():
-        ch_to_plot = SS['channel_label']
-        if ch_to_plot in eeg_data.columns.to_list():
-            diff_from_first = SS['order_of_sorting'] - first_spike
-            PEAK = (30*fs) + diff_from_first
-            RIGHT = PEAK + SS['new_right']
-            LEFT = PEAK + SS['new_left']
-            print("this is the x-value of the peak:",PEAK)
-            axs[i].plot(range(lower_bound_idx, upper_bound_idx), eeg_data[ch_to_plot].iloc[lower_bound_idx:upper_bound_idx])
-            axs[i].get_xaxis().set_visible(False)
-            axs[i].plot(PEAK, eeg_data[ch_to_plot].iloc[PEAK], 'x', color = 'r')
-            axs[i].plot(LEFT, eeg_data[ch_to_plot].iloc[LEFT], 'x', color = 'r')
-            axs[i].plot(RIGHT, eeg_data[ch_to_plot].iloc[RIGHT], 'x', color = 'r')
-
-        else:
-            print(f'{ch_to_plot} is a BAD CHANNEL')
-        plt.subplots_adjust(hspace=0.1)
 # %%
 plot_train(train, CAR_data)
-# %%
-#make it 2 seconds before spike train starts
-lower_bound_idx = 30*fs - int(0.25*fs)
-#make it 2 seconds AFTER spike trains last onset
-upper_bound_idx = np.shape(CAR_data)[0] - (30*fs) + int(0.25*fs)
+# # %%
+# #make it 2 seconds before spike train starts
+# lower_bound_idx = 30*fs - int(0.25*fs)
+# #make it 2 seconds AFTER spike trains last onset
+# upper_bound_idx = np.shape(CAR_data)[0] - (30*fs) + int(0.25*fs)
 
-#line them up 
-train['order_of_sorting'] = train['peak_index'] + train['new_peak']
-train = train.sort_values(by = 'order_of_sorting', ascending = True).reset_index(drop=True)
+# #line them up 
+# train['order_of_sorting'] = train['peak_index'] + train['new_peak']
+# train = train.sort_values(by = 'order_of_sorting', ascending = True).reset_index(drop=True)
 
-first_spike = train['order_of_sorting'].min()
+# first_spike = train['order_of_sorting'].min()
 
-SS = train.iloc[0]
-ch_to_plot = SS['channel_label']
-plt.plot(range(lower_bound_idx,upper_bound_idx), CAR_data[ch_to_plot].iloc[lower_bound_idx:upper_bound_idx])
+# SS = train.iloc[0]
+# ch_to_plot = SS['channel_label']
+# plt.plot(range(lower_bound_idx,upper_bound_idx), CAR_data[ch_to_plot].iloc[lower_bound_idx:upper_bound_idx])
 
-
-
-# %%
