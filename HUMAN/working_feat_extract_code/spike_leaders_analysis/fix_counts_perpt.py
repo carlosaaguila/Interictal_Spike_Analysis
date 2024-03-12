@@ -28,16 +28,15 @@ blacklist = ['HUP101' ,'HUP112','HUP115','HUP119','HUP124','HUP144','HUP147','HU
              'HUP072','HUP073','HUP085','HUP094']
 
 #load in nina's list of patients to use
-nina_pts = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/spike_detector/filenames_w_ids_nina.csv')
+will_pts = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/spike_detector/will_stim_pts.csv')
 #drop na
-nina_pts = nina_pts.dropna()
+nina_pts = will_pts.dropna()
 #remove patients in blacklist
 nina_pts = nina_pts[~nina_pts['hup_id'].isin(blacklist)]
 #make to_use_nina into int
-nina_pts['to_use_nina'] = nina_pts['to_use_nina'].astype(int)
+# nina_pts['to_use_nina'] = nina_pts['to_use_nina'].astype(int)
 #keep rows where to_use_nina is 1
-nina_pts = nina_pts[nina_pts['to_use_nina'] == 1]
-# nina_pts = nina_pts[nina_pts['hup_id'] == 'HUP214']
+# nina_pts = nina_pts[nina_pts['To_use'] == 1]
 
 #%% function for fill_missing_values
 
@@ -60,8 +59,8 @@ for index, row in nina_pts.iterrows():
     print('filename: ', filename)
 
     #load the data
-    if os.path.exists(f'{data_directory[0]}/spike_leaders/{filename}_spike_output.csv') == True:
-        spike_output_DF = pd.read_csv(f'{data_directory[0]}/spike_leaders/{filename}_spike_output.csv').dropna()
+    if os.path.exists(f'{data_directory[0]}/spike_leaders/stim_pts/{filename}_spike_output.csv') == True:
+        spike_output_DF = pd.read_csv(f'{data_directory[0]}/spike_leaders/stim_pts/{filename}_spike_output.csv').dropna()
         spike_output_DF.columns = ['peak_index', 'channel_index', 'channel_label', 'spike_sequence', 'peak',
                                 'left_point', 'right_point','slow_end','slow_max','rise_amp','decay_amp',
                                 'slow_width','slow_amp','rise_slope','decay_slope','average_amp','linelen',
@@ -146,6 +145,6 @@ for id_group in counts_per_time_all.groupby('HUP_id'):
     id_group_df['interval_number'] = range(0, len(id_group_df))
     clean_counts = pd.concat([clean_counts, id_group_df])
 
-clean_counts.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/working features/clean_spikeleads/counts_per_time_all_v2.csv', index=False)
+clean_counts.to_csv(f'{data_directory[0]}/spike_leaders/stim_pts/{filename}_counts_perinterval.csv', index=False)
 
 # %%
