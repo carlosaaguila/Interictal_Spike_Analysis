@@ -45,7 +45,7 @@ all_spikes = pd.DataFrame()
 
 for index, row in nina_pts.iterrows():
     print(f'Processing {row["filename"]}')
-    print(f'{index} out of {len(nina_pts)}')
+    # print(f'{index} out of {len(nina_pts)}')
 
     filename = row['filename']
     hup_id = row['hup_id']
@@ -80,7 +80,7 @@ for index, row in nina_pts.iterrows():
     spike_output_DF['seq_total_dur'] = spike_output_DF.groupby(['new_spike_seq'])['peak_index_samples'].transform(lambda x: x.max() - x.min())
 
     #For each group of new_spike_seq, sort the values by peak_index_sample and find the difference between each peak_index_samples
-    spike_output_DF['intra_spike_timediff'] = spike_output_DF.groupby(['new_spike_seq'])['peak_index_samples'].transform(lambda x: x.sort_values().diff())
+    spike_output_DF['intraspike_interval'] = spike_output_DF.groupby(['new_spike_seq'])['peak_index_samples'].transform(lambda x: x.sort_values().diff())
 
     #sort by new_spike_seq, drop all rows with NaN values
     spike_output_DF = spike_output_DF.sort_values(by=['new_spike_seq']).dropna()
@@ -118,9 +118,6 @@ for index, row in nina_pts.iterrows():
                                        'peak','peak_time_usec', 'peak_index_samples',
                                        'new_spike_seq','seq_total_dur','intraspike_interval',
                                        'interval number', 'is_spike_leader']]
-    
-    #sequence count (number of spikes)
-    spike_output_DF['num_spikes_per_seq'] = spike_output_DF
 
     # Get the last value of each group
     last_values = spike_output_DF.groupby('new_spike_seq')['peak_index_samples'].last()
