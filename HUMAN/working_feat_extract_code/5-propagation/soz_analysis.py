@@ -25,6 +25,7 @@ from ied_fx_v3 import *
 data_directory = ['/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2', '/mnt/leif/littlab/data/Human_Data']
 
 #%% 
+"""
 # Analysis to look at the average sharpness of spikes from MTLE vs. TLE patients
 
 ####################
@@ -128,7 +129,7 @@ red_patch = mpatches.Patch(color='red', label='Mesial Temporal')
 black_patch = mpatches.Patch(color='black', label='Non-Mesial Temporal')
 plt.legend(handles=[red_patch, black_patch], loc='upper right')
 
-plt.savefig(f'figures/{Feat_of_interest}_allptsbySOZ.png.png', dpi = 300)
+plt.savefig(f'figures/{Feat_of_interest}_allptsbySOZ.pdf', dpi = 300)
 plt.show()
 
 
@@ -250,9 +251,9 @@ other_patch = mpatches.Patch(color='#7E6148FF', label='Other Cortex Patients')
 plt.legend(handles=[mesial_patch, temporal_patch, neocort_patch, other_patch], loc='upper right')
 
 if take_spike_leads == True:
-    plt.savefig(f'figures/perSOZ_leads/{Feat_of_interest}_allptsbySOZ.png.png', dpi = 300)
+    plt.savefig(f'figures/perSOZ_leads/{Feat_of_interest}_allptsbySOZ.pdf', dpi = 300)
 else: 
-    plt.savefig(f'figures/perSOZ/add_OC/{Feat_of_interest}_allptsbySOZ.png.png', dpi = 300)
+    plt.savefig(f'figures/perSOZ/add_OC/{Feat_of_interest}_allptsbySOZ.pdf', dpi = 300)
 
 plt.show()
 
@@ -401,16 +402,16 @@ temporal_patch = mpatches.Patch(color='#00A087FF', label='Temporal Patients')
 neocort_patch = mpatches.Patch(color='#3C5488FF', label='Temporal Neocortical Patients')
 
 plt.legend(handles=[mesial_patch, other_patch, temporal_patch, neocort_patch], loc='upper right')
-plt.savefig(f'figures/sameside_perSOZ/{Feat_of_interest}_allptsbySOZ.png', dpi = 300)
+plt.savefig(f'figures/sameside_perSOZ/{Feat_of_interest}_allptsbySOZ.pdf', dpi = 300)
 plt.show()
 
 # all_spikes_avg.to_csv(f'/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/gradient_data/{Feat_of_interest}.csv')
-
+"""
 # %%
 # ADD BILATERAL PATIENTS
 # KEEP THE SAME SIDE, PLUS FOR BILATERAL TAKE BOTH SIDES
 
-Feat_of_interest = 'rise_amp'
+Feat_of_interest = 'decay_amp'
 take_spike_leads = False
 
 ####################
@@ -530,7 +531,7 @@ plt.clf()
 plt.figure(figsize=(20,20))
 
 # if Feat_of_interest == 'spike_rate':
-#     sns.heatmap(all_spikes_avg, cmap='viridis', alpha = 1, vmin=0, vmax=15)
+    # sns.heatmap(all_spikes_avg, cmap='viridis', alpha = 1, vmin=0, vmax=15)
 # if Feat_of_interest == 'sharpness':
 #     sns.heatmap(all_spikes_avg, cmap='viridis', alpha = 1, vmin=0, vmax=200)
 # if Feat_of_interest == 'linelen':
@@ -538,7 +539,7 @@ plt.figure(figsize=(20,20))
 # if Feat_of_interest == 'slow_max':
 #     sns.heatmap(all_spikes_avg, cmap='viridis', alpha = 1, vmin=0, vmax=900)
 # else:
-sns.heatmap(all_spikes_avg, cmap='viridis', alpha = 1, vmin=0, vmax=200)
+sns.heatmap(all_spikes_avg, cmap='viridis', alpha = 1)#, vmin=0, vmax=200)
 
 plt.xlabel('Channel Number', fontsize=20)
 plt.ylabel('Patient ID', fontsize=20)
@@ -572,7 +573,7 @@ neocort_patch = mpatches.Patch(color='#3C5488FF', label='Temporal Neocortical Pa
 
 plt.legend(handles=[mesial_patch, other_patch, temporal_patch, neocort_patch], loc='upper right')
 
-# plt.savefig(f'figures/sameside_perSOZ/bilateral/{Feat_of_interest}_allptsbySOZ.png', dpi = 300)
+plt.savefig(f'figures/sameside_perSOZ/bilateral/{Feat_of_interest}_allptsbySOZ.pdf')
 plt.show()
 
 
@@ -658,7 +659,7 @@ print(ptname)
 print('Spearman ---- {}'.format(stats.spearmanr(channel_labels,gradient)))
 print('Pearson ----- {}'.format(stats.pearsonr(channel_labels,gradient)))
 """
-
+"""
 # %%
 
 #Spearman Correlation STATS
@@ -725,7 +726,7 @@ plt.text((0+2)*.5, 2.15, "***", ha='center', va='bottom', color='k')
 # plt.plot([0, 0, 3, 3], [2,2.1,2.1,2], lw=1.5, c='k')
 # plt.text((0+3)*.5, 2.15, "***", ha='center', va='bottom', color='k')
 
-plt.savefig(f'figures/sameside_perSOZ/bilateral/statistical_test/contact_control/spearman/{Feat_of_interest}-ranksum.png', dpi = 300, bbox_inches='tight')
+plt.savefig(f'figures/sameside_perSOZ/bilateral/statistical_test/spearman/{Feat_of_interest}-ranksum.png', dpi = 300, bbox_inches='tight')
 
 #############################################################################################
 
@@ -798,9 +799,97 @@ plt.text((0+2)*.5, 2.15, "***", ha='center', va='bottom', color='k')
 # plt.plot([0, 0, 3, 3], [2,2.1,2.1,2], lw=1.5, c='k')
 # plt.text((0+3)*.5, 2.15, "***", ha='center', va='bottom', color='k')
 
-plt.savefig(f'figures/sameside_perSOZ/bilateral/statistical_test/contact_control/pearson/{Feat_of_interest}-ranksum.png', dpi = 300, bbox_inches='tight')
+plt.savefig(f'figures/sameside_perSOZ/bilateral/statistical_test/pearson/{Feat_of_interest}-ranksum.png', dpi = 300, bbox_inches='tight')
 
 #############################################################################################
 
+plt.show()
+"""
+# %%
+#remove the temporal patients for this plot (corr_df and pearson_df)
+# corr_df = corr_df[corr_df['SOZ'] != 'temporal']
+# pearson_df = pearson_df[pearson_df['SOZ'] != 'temporal']
+
+def soz_assigner(row):
+    if row['SOZ'] == 'temporal neocortical':
+        return int(2)
+    elif row['SOZ'] == 'other cortex':
+        return int(2)
+    elif row['SOZ'] == 1:
+        return int(1)
+    else:
+        return None
+
+corr_df['SOZ'] = corr_df.apply(soz_assigner, axis = 1)
+pearson_df['SOZ'] = pearson_df.apply(soz_assigner, axis = 1)
+
+#%%
+
+from statannotations.Annotator import Annotator
+
+#SPEARMAN CORRELATION PLOTS
+#create a boxplot comparing the distribution of correlation across SOZ types
+plt.figure(figsize=(10,10))
+#where 1, is MTL, 2 is NEO, and 3 is Other
+#change font to arial
+plt.rcParams['font.family'] = 'Arial'
+
+my_palette = {1:'#E64B35FF', 'other cortex':'#7E6148FF', 'temporal neocortical':'#00A087FF'} #'temporal':'#3C5488FF'
+pairs=[(1, 'temporal neocortical'), ('temporal neocortical','other cortex'), (1,'other cortex')]
+order = [1,'temporal neocortical','other cortex']
+
+my_palette = {1:'#E64B35FF', 2:'#7E6148FF'}
+pairs=[(1, 2)]
+order = [1,2]
+
+ax = sns.boxplot(x='SOZ', y='correlation', data=corr_df, palette=my_palette, order = order, showfliers = False)
+sns.stripplot(x="SOZ", y="correlation", data=corr_df, color="black", alpha=0.5)
+annotator = Annotator(ax, pairs, data=corr_df, x="SOZ", y="correlation", order=order)
+annotator.configure(test='Mann-Whitney', text_format='star', loc='inside', verbose = True)
+annotator.apply_and_annotate()
+
+
+plt.xlabel('SOZ Type', fontsize=12)
+plt.ylabel('Spearman Correlation', fontsize=12)
+#change the x-tick labels to be more readable
+# plt.xticks(np.arange(3), ['Mesial Temporal', 'Neocortical', 'Other Cortex'], fontsize = 12)
+plt.xticks(np.arange(2), ['Mesial Temporal', 'Other'], fontsize = 12)
+plt.yticks(fontsize = 12)
+
+#part to change
+plt.title(f'Distribution of Spearman Correlation by SOZ Type (Feature = {Feat_of_interest})', fontsize=16)
+
+plt.savefig(f'figures/sameside_perSOZ/bilateral/statistical_test/spearman/{Feat_of_interest}-ranksum.pdf')
+plt.show()
+
+#Pearson Correlation PLOTS
+#create a boxplot comparing the distribution of correlation across SOZ types
+plt.figure(figsize=(10,10))
+#change font to arial
+plt.rcParams['font.family'] = 'Arial'
+my_palette = {1:'#E64B35FF', 'other cortex':'#7E6148FF', 'temporal neocortical':'#00A087FF'} #'temporal':'#3C5488FF'
+pairs=[(1, 'temporal neocortical'), ('temporal neocortical','other cortex'), (1,'other cortex')]
+order = [1,'temporal neocortical','other cortex']
+
+my_palette = {1:'#E64B35FF', 2:'#7E6148FF'}
+pairs=[(1, 2)]
+order = [1,2]
+ax = sns.boxplot(x='SOZ', y='correlation', data=pearson_df, palette=my_palette, order=order, showfliers = False)
+sns.stripplot(x="SOZ", y="correlation", data=pearson_df, color="black", alpha=0.5)
+annotator = Annotator(ax, pairs, data=pearson_df, x="SOZ", y="correlation", order=order)
+annotator.configure(test='Mann-Whitney', text_format='star', loc='inside', verbose = True)
+annotator.apply_and_annotate()
+
+plt.xlabel('SOZ Type', fontsize=12)
+plt.ylabel('Pearson Correlation', fontsize=12)
+#change the x-tick labels to be more readable
+# plt.xticks(np.arange(3), ['Mesial Temporal', 'Neocortical', 'Other Cortex'], fontsize = 12)
+plt.xticks(np.arange(2), ['Mesial Temporal', 'Other'], fontsize = 12)
+plt.yticks(fontsize = 12)
+
+#part to change
+plt.title(f'Distribution of Pearson Correlation by SOZ Type (Feature = {Feat_of_interest})', fontsize=16)
+
+plt.savefig(f'figures/sameside_perSOZ/bilateral/statistical_test/pearson/{Feat_of_interest}-ranksum.pdf')
 plt.show()
 # %%

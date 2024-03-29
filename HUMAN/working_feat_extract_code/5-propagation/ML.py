@@ -295,10 +295,13 @@ from sklearn.metrics import roc_curve
 from sklearn.metrics import RocCurveDisplay
 from sklearn.metrics import auc
 
+plt.figure(figsize = (8,8))
+plt.rcParams['font.family'] = 'Arial'
 RocCurveDisplay.from_predictions(y_true_clean, y_predprob_clean)
 plt.plot(np.linspace(0,1,100), np.linspace(0,1,100), '--', color='black')
 plt.grid()
 plt.title('FPR vs. TPR ROC Curve of LR Testing Performance (all features)')
+plt.savefig('figures/ML/all_feats_ROC.pdf')
 
 ################ Confusion Matrix
 from sklearn.metrics import confusion_matrix as C_M
@@ -306,11 +309,12 @@ import seaborn as sns
 
 rfc_confusion = C_M(y_true_clean, y_pred_clean)
 rfc_conf_mat_df = pd.DataFrame(rfc_confusion)
-plt.figure(figsize=(6,4))
+plt.figure(figsize=(8,8))
 sns.heatmap(rfc_conf_mat_df, cmap='GnBu', annot=True, fmt = "g")
 plt.title("Confusion Matrix for LR test set predictions (all features)")
 plt.xlabel("Predicted Label")
 plt.ylabel("True Label")
+plt.savefig('figures/ML/all_feats_confusion.pdf')
 
 
 TP = rfc_confusion[1,1]
@@ -399,10 +403,12 @@ from sklearn.metrics import RocCurveDisplay
 from sklearn.metrics import auc
 from sklearn.metrics import precision_recall_fscore_support
 
+plt.figure(figsize = (8,8))
 RocCurveDisplay.from_predictions(y_true_clean, y_predprob_clean)
 plt.plot(np.linspace(0,1,100), np.linspace(0,1,100), '--', color='black')
 plt.grid()
 plt.title('FPR vs. TPR ROC Curve of LR Testing Performance (spike rate)')
+plt.savefig('figures/ML/rate_only_roc.pdf')
 
 ################ Confusion Matrix
 from sklearn.metrics import confusion_matrix as C_M
@@ -410,11 +416,12 @@ import seaborn as sns
 
 rfc_confusion = C_M(y_true_clean, y_pred_clean)
 rfc_conf_mat_df = pd.DataFrame(rfc_confusion)
-plt.figure(figsize=(6,4))
+plt.figure(figsize=(8,8))
 sns.heatmap(rfc_conf_mat_df, cmap='GnBu', annot=True, fmt = "g")
 plt.title("Confusion Matrix for LR test set predictions (spike rate)")
 plt.xlabel("Predicted Label")
 plt.ylabel("True Label")
+plt.savefig('figures/ML/rate_only_confusion.pdf')
 
 TP = rfc_confusion[1,1]
 TN = rfc_confusion[0,0]
