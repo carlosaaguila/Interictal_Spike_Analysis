@@ -65,16 +65,19 @@ pt_in_soz = filenames_w_ids[filenames_w_ids['hup_id'].isin(SOZ_list['name'])].re
 MUSC_pts = pd.read_excel('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/MUSC_Emory_LEN_SOZ_type.xlsx')
 MUSC_pts_cleaned = MUSC_pts[MUSC_pts['Site_1MUSC_2Emory'] == 1]
 # MUSC_pts_cleaned2 = MUSC_pts_cleaned[((MUSC_pts_cleaned['MTL'] == 1) & (MUSC_pts_cleaned['Neo'] == 0))| ((MUSC_pts_cleaned['MTL'] == 0) & (MUSC_pts_cleaned['Neo'] == 1))]
-pt_in_soz = MUSC_pts_cleaned
+pt_in_soz = MUSC_pts_cleaned[['ParticipantID','filename']]
+new_sozs = pd.read_excel('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/MUSC-soz-corrections.xlsx')
+new_sozs = new_sozs.drop(columns = ['Unnamed: 10','Unnamed: 11','Unnamed: 12','Unnamed: 13','Unnamed: 14'])
+pt_in_soz = pt_in_soz.merge(new_sozs, how = 'inner', on = 'ParticipantID')
 
 def soz_assigner(row):
     if row['MTL'] == 1:
         return 1
     elif row['Neo'] == 1:
         return 2
-    elif row['Temporal']:
+    elif row['Temporal'] == 1:
         return 4
-    elif row['Other']:
+    elif row['Other'] == 1:
         return 3
     else:
         return None
@@ -183,6 +186,8 @@ for index, row in pt_in_soz.iterrows():
 
     #add patient id
     spike_output_DF['pt_id'] = hup_id
+    spike_output_DF['filename'] = filename
+
 
     #add SOZ
     spike_output_DF['region'] = row['SOZ']
@@ -218,5 +223,5 @@ for index, row in pt_in_soz.iterrows():
     all_spikes = pd.concat([all_spikes, spike_output_DF], ignore_index=True)
 
 #save the new dataframe as a csv
-all_spikes.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/MUSC_allspikes.csv', index=False)
+all_spikes.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/MUSC_allspikes_v3.csv', index=False)
 # %%

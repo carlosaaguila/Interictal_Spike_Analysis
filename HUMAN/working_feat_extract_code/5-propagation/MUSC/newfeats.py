@@ -76,7 +76,7 @@ all_spikes.loc[all_spikes.groupby(['new_spike_seq','pt_id'])['peak_index_samples
 #if is_spike_leader == 1, change seq_spike_time_diff to 0
 all_spikes.loc[all_spikes['is_spike_leader'] == 1, 'seq_spike_time_diff'] = 0
 
-all_spikes.to_csv('../dataset/MUSC_allspikes_v2.csv')
+all_spikes.to_csv('../dataset/MUSC_allspikes_v4.csv')
 
 
 #TEST - all_spikes[(all_spikes['pt_id'] == "HUP105") & (all_spikes['new_spike_seq'] == 400)].sort_values(by = 'peak_index')[['peak_index','channel_label','new_spike_seq','seq_spike_time_diff','is_spike_leader','pt_id', 'recruiment_latency']]
