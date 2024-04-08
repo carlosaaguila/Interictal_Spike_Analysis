@@ -45,7 +45,7 @@ MUSC_spikes = MUSC_spikes[~MUSC_spikes['pt_id'].isin(pts_to_remove)]
 # KEEP THE SAME SIDE, PLUS FOR BILATERAL TAKE BOTH SIDES
 
 vs_other = True #CHANGE if you want to compare 2 groups, or 3. [False: you compare mtle, tle, other] [True: you compare mtle vs. other]
-side = 'same' #CHANGE if you want to look at the same-side as laterality ('same'), or 'contra' to get the other side of the SOZ.
+side = 'contra' #CHANGE if you want to look at the same-side as laterality ('same'), or 'contra' to get the other side of the SOZ.
 
 list_of_feats = ['spike_rate', 'rise_amp','decay_amp','sharpness','linelen','recruiment_latency','spike_width','slow_width','slow_amp']
 for Feat_of_interest in list_of_feats:
