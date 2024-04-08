@@ -26,7 +26,8 @@ from iEEG_helper_functions import *
 data_directory = ['/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2', '/mnt/leif/littlab/data/Human_Data']
 
 ## load the spike data
-MUSC_spikes = pd.read_csv('../dataset/MUSC_allspikes_v4.csv', index_col=0)
+# MUSC_spikes = pd.read_csv('../dataset/MUSC_allspikes_v4.csv', index_col=0)
+MUSC_spikes = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/MUSC_allspikes_v4.csv', index_col = 0) #change to abs path for terminal use.
 
 #load SOZ corrections
 MUSC_sozs = pd.read_excel('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/MUSC-soz-corrections.xlsx')
