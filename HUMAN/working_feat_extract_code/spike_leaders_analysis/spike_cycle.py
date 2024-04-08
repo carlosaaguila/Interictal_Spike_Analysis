@@ -27,6 +27,10 @@ for pt in unique_pts:
     plt.imshow(np.abs(coefficients), extent=[min(time), max(time), min(frequencies), max(frequencies)], cmap='jet', aspect='auto')
     plt.colorbar(label='Magnitude')
     plt.subplot(3,1,3)
+    plt.plot(frequencies, np.mean(coefficients, axis = 1))
+    plt.show() 
+"""
+    plt.subplot(3,1,3)
 
     power_spectrum = (np.abs(coefficients)) ** 2
     # Compute derivative of the periodogram
@@ -36,9 +40,27 @@ for pt in unique_pts:
 
     reconstructed_signal = pywt.waverec(coefficients, wavelet)
     plt.plot(time, reconstructed_signal)
-
+"""
 
 
 
 
  # %%
+# hilbert transform and get the angle. sampling frequency to 1/6000? (60*10mins)
+
+pt = unique_pts[0]
+subset = stim_spikecounts[stim_spikecounts['filename'] == pt]
+subset = subset.sort_values('interval_number', ascending = True)
+data = subset['total_count'].to_list()
+
+time = range(1, len(data)+1)
+
+plt.plot(time, data)
+plt.xlabel('10 Minute Increments')
+plt.ylabel('Spike Count')
+
+widths = 
+coefficients, frequencies = pywt.cwt(data, scales = widths, wavelet = wavelet, sampling_period = sampling_frequencies)
+
+
+# %%
