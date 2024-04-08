@@ -46,7 +46,7 @@ MUSC_spikes = MUSC_spikes[~MUSC_spikes['pt_id'].isin(pts_to_remove)]
 
 #%%
 spikes = MUSC_spikes
-to_plot = MUSC_spikes['filename'].unique()[0:10]
+to_plot = MUSC_spikes['filename'].unique()[0:10] #change if you want more filenames to look @.
 
 with open("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/error_log.txt", "a") as log_file:
     for index, row in MUSC_spikes.iterrows():
