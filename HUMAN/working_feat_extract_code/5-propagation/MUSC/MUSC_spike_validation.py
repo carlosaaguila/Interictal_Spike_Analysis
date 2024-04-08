@@ -28,7 +28,6 @@ data_directory = ['/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/m
 ## load the spike data
 MUSC_spikes = pd.read_csv('../dataset/MUSC_allspikes_v4.csv', index_col=0)
 
-
 #load SOZ corrections
 MUSC_sozs = pd.read_excel('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/MUSC-soz-corrections.xlsx')
 MUSC_sozs = MUSC_sozs[MUSC_sozs['Site_1MUSC_2Emory'] == 1]
@@ -37,7 +36,6 @@ MUSC_sozs = MUSC_sozs.drop(columns = ['Unnamed: 10','Unnamed: 11' ,'Unnamed: 12'
 #fix SOZ and laterality
 MUSC_spikes = MUSC_spikes.merge(MUSC_sozs, left_on = 'pt_id', right_on = 'ParticipantID', how = 'inner')
 MUSC_spikes = MUSC_spikes.drop(columns=['ParticipantID','Site_1MUSC_2Emory','IfNeocortical_Location','Correction Notes','lateralization_left','lateralization_right','region'])
-
 
 nonnan_mask = MUSC_spikes.dropna()
 pts_to_remove = nonnan_mask[nonnan_mask['Correction Notes'].str.contains('null')]['ParticipantID'].array
@@ -146,5 +144,5 @@ with open("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/worki
         else:
             continue
 
-        plt.savefig(f'/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/supplemental_figs/random_detects_and_morph/{filename}_spikes.pdf')
+        plt.savefig(f'/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/supplemental_figs/MUSC_rand_spikes/{filename}_spikes.pdf')
 
