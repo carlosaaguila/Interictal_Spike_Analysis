@@ -9,6 +9,10 @@ from scipy import signal as sig
 #change pathway to Volumes if you use that.
 stim_spikecounts = pd.read_csv('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/spike_leaders/stim_pts/stim_counts_perinterval.csv')
 
+
+## remove 2 hours before and after the approximate onset of the seizure (in IEEG seconds). This is on the google sheet that Will shared.
+
+
 unique_pts = stim_spikecounts['filename'].unique()
 def z_score_normalization(data):
     # Calculate mean and standard deviation
