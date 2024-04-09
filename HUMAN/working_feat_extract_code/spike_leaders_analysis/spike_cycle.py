@@ -4,63 +4,57 @@ import numpy as np
 import pywt
 from pywt._doc_utils import boundary_mode_subplot
 import matplotlib.pyplot as plt
+from scipy import signal as sig
 
-data_directory = ['/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2', '/mnt/leif/littlab/data/Human_Data']
-
+#change pathway to Volumes if you use that.
 stim_spikecounts = pd.read_csv('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/spike_leaders/stim_pts/stim_counts_perinterval.csv')
+
 unique_pts = stim_spikecounts['filename'].unique()
+def z_score_normalization(data):
+    # Calculate mean and standard deviation
+    mean = np.mean(data)
+    std_dev = np.std(data)
+    
+    # Z-score normalization
+    normalized_data = (data - mean) / std_dev
+    return normalized_data
+
 
 for pt in unique_pts:
     subset = stim_spikecounts[stim_spikecounts['filename'] == pt]
     subset = subset.sort_values('interval_number', ascending = True)
     data = subset['total_count'].to_list()
 
-    time = range(1, len(data)+1)
-    widths = range(1, int(len(data)/4))
-    sampling_frequencies = 1
+    norm_data = z_score_normalization(data)
+
+    time = np.linspace(0, len(norm_data)/(6*24), len(norm_data))
+
+    fs = 1/(60*10) #Hz 1 / (60 seconds * 10 mins)
+    dt = 1/fs
+    scales = range(1, int(len(norm_data)/4)+1)
     wavelet = 'morl'
-    coefficients, frequencies = pywt.cwt(data, widths, wavelet, sampling_period=sampling_frequencies)
-    fig = plt.figure(figsize=(10,10))
-    plt.subplot(3,1,1)
-    plt.plot(time, data)
-    plt.subplot(3,1,2)
-    plt.imshow(np.abs(coefficients), extent=[min(time), max(time), min(frequencies), max(frequencies)], cmap='jet', aspect='auto')
-    plt.colorbar(label='Magnitude')
-    plt.subplot(3,1,3)
-    plt.plot(frequencies, np.mean(coefficients, axis = 1))
-    plt.show() 
-"""
-    plt.subplot(3,1,3)
+    sampling_frequencies = 1
+    coefficients, frequencies = pywt.cwt(norm_data, scales = scales, wavelet = wavelet, sampling_period = dt)
 
-    power_spectrum = (np.abs(coefficients)) ** 2
-    # Compute derivative of the periodogram
-    periodogram_derivative = np.gradient(power_spectrum)
-    # Find peaks based on positive-to-negative zero crossings
-    peaks_indices = np.where(np.diff(np.sign(periodogram_derivative)))[0]
-
-    reconstructed_signal = pywt.waverec(coefficients, wavelet)
-    plt.plot(time, reconstructed_signal)
-"""
+    freq_to_hour = 1/frequencies * (1/60) * (1/60)
+    ind = np.where((freq_to_hour <= 24+8) & (freq_to_hour >= 24-8))[0]
 
 
+    band_mean = np.mean(coefficients[ind,:], axis = 0)
+
+    hilb = sig.hilbert(coefficients[ind,:])
+    hilb = np.mean(hilb, axis = 0)
+    phase = np.angle((hilb))
+    amp = (np.abs(hilb))
 
 
- # %%
-# hilbert transform and get the angle. sampling frequency to 1/6000? (60*10mins)
-
-pt = unique_pts[0]
-subset = stim_spikecounts[stim_spikecounts['filename'] == pt]
-subset = subset.sort_values('interval_number', ascending = True)
-data = subset['total_count'].to_list()
-
-time = range(1, len(data)+1)
-
-plt.plot(time, data)
-plt.xlabel('10 Minute Increments')
-plt.ylabel('Spike Count')
-
-widths = 
-coefficients, frequencies = pywt.cwt(data, scales = widths, wavelet = wavelet, sampling_period = sampling_frequencies)
-
+    plt.figure(figsize=(10, 5))
+    plt.title(f'pt: {pt}')
+    plt.plot(time, norm_data, 'k', label = 'real signal')
+    # plt.plot(time, amp, 'r', alpha = 0.8, label = '24hr $\pm$ 3hr')
+    plt.plot(time, phase, 'b', linestyle = '--', alpha = 0.8, label = 'phase')
+    plt.plot(time, hilb, 'r', alpha = 0.8, label = '24hr $\pm$ 3hr')
+    plt.legend()
+    plt.show()
 
 # %%
