@@ -411,7 +411,7 @@ plt.show()
 # ADD BILATERAL PATIENTS
 # KEEP THE SAME SIDE, PLUS FOR BILATERAL TAKE BOTH SIDES
 
-Feat_of_interest = 'decay_amp'
+Feat_of_interest = 'spike_rate'
 take_spike_leads = False
 
 ####################
@@ -590,9 +590,9 @@ channel_labels = [int(x) for x in channel_labels]
 spearman_corr = []
 label = []
 for row in range(len(all_spikes_avg)):
-    #if the row has less than 8 channels, omit from analysis
-    if len(all_spikes_avg.iloc[row].dropna()) < 8:
-        continue
+    # #if the row has less than 8 channels, omit from analysis
+    # if len(all_spikes_avg.iloc[row].dropna()) < 8:
+    #     continue
     spearman_corr.append(stats.spearmanr(channel_labels,all_spikes_avg.iloc[row].to_list(), nan_policy='omit'))
     label.append(all_spikes_avg.index[row]) 
 
@@ -605,9 +605,9 @@ corr_df['pt_id'] = [x[0] for x in label]
 pearson_corr = []
 p_label = []
 for row in range(len(all_spikes_avg)):
-    #if the row has less than 8 channels, omit from analysis
-    if len(all_spikes_avg.iloc[row].dropna()) < 8:
-        continue
+    # #if the row has less than 8 channels, omit from analysis
+    # if len(all_spikes_avg.iloc[row].dropna()) < 8:
+    #     continue
     gradient = all_spikes_avg.iloc[row].to_list()
     channel_labels = ['1','2','3','4','5','6','7','8','9','10','11','12']
     channel_labels = [int(x) for x in channel_labels]
@@ -627,6 +627,40 @@ for row in range(len(all_spikes_avg)):
 pearson_df = pd.DataFrame(pearson_corr, columns=['correlation', 'p-value'])
 pearson_df['SOZ'] = [x[1] for x in label]
 pearson_df['pt_id'] = [x[0] for x in label]
+
+### New METRIC
+coeff_5 = []
+coeff_10 = []
+firstonly = []
+m_label = []
+for row in range(len(all_spikes_avg)):
+    # #if the row has less than 8 channels, omit from analysis
+    # if len(all_spikes_avg.iloc[row].dropna()) < 8:
+    #     continue
+    gradient = all_spikes_avg.iloc[row].to_list()
+    channel_labels = ['1','2','3','4','5','6','7','8','9','10','11','12']
+    channel_labels = [int(x) for x in channel_labels]
+    # for each nan in the graident list, remove the corresponding channel_labels
+    list_to_remove = []
+    for i in range(len(channel_labels)):
+        if np.isnan(gradient[i]):
+            list_to_remove.append(i)
+
+    #remove list_to_remove from channel_labels and gradient
+    channel_labels = [i for j, i in enumerate(channel_labels) if j not in list_to_remove]
+    gradient = [i for j, i in enumerate(gradient) if j not in list_to_remove]
+    m_label.append(all_spikes_avg.index[row])
+
+    # coeff_5.append((gradient[4]-gradient[0])/len(gradient[0:5]))
+    coeff_10.append((gradient[-1]-gradient[0])/len(gradient))
+    firstonly.append(gradient[0])
+
+slope_df = pd.DataFrame(data = coeff_5, columns = ['coef5'])
+slope_df['coef10'] = coeff_10
+slope_df['first_value'] = firstonly
+slope_df['SOZ'] = [x[1] for x in m_label]
+slope_df['pt_id'] = [x[0] for x in m_label]
+
 
 #%%
 """
@@ -822,6 +856,7 @@ def soz_assigner(row):
 
 corr_df['SOZ'] = corr_df.apply(soz_assigner, axis = 1)
 pearson_df['SOZ'] = pearson_df.apply(soz_assigner, axis = 1)
+slope_df['SOZ'] = slope_df.apply(soz_assigner, axis = 1)
 
 #%%
 
@@ -892,4 +927,75 @@ plt.title(f'Distribution of Pearson Correlation by SOZ Type (Feature = {Feat_of_
 
 plt.savefig(f'figures/sameside_perSOZ/bilateral/statistical_test/pearson/{Feat_of_interest}-ranksum.pdf')
 plt.show()
+
+# #SLOPE COEFFICIENT PLOTS for first 5
+# #create a boxplot comparing the distribution of correlation across SOZ types
+# plt.figure(figsize=(10,10))
+# my_palette = {1:'#E64B35FF', 2:'#7E6148FF'}
+# #change font to arial
+# plt.rcParams['font.family'] = 'Arial'
+# pairs=[(1, 2)]
+# order = [1,2]
+# ax = sns.boxplot(x='SOZ', y='coef5', data=slope_df, palette=my_palette, order=order, showfliers = False)
+# sns.stripplot(x="SOZ", y="coef5", data=slope_df, color="black", alpha=0.5)
+# annotator = Annotator(ax, pairs, data=slope_df, x="SOZ", y="coef5", order=order)
+# annotator.configure(test='Mann-Whitney', text_format='star', loc='inside', verbose = True)
+# annotator.apply_and_annotate()
+
+# plt.xlabel('SOZ Type', fontsize=12)
+# plt.ylabel('Slope Coefficient', fontsize=12)
+# #change the x-tick labels to be more readable
+# plt.xticks(np.arange(2), ['Mesial Temporal', 'Other'], fontsize = 12)
+# plt.yticks(fontsize = 12)
+# plt.title(f'Distribution of Slope Coefficients (MTL contacts) by SOZ Type (Feature = {Feat_of_interest})', fontsize=16)
+
+# plt.savefig(f'figures/sameside_perSOZ/bilateral/statistical_test/new_metrics/coef5_{Feat_of_interest}-ranksum.pdf')
+
+
+#SLOPE COEFFICIENT PLOTS for all contacts
+#create a boxplot comparing the distribution of correlation across SOZ types
+plt.figure(figsize=(10,10))
+my_palette = {1:'#E64B35FF', 2:'#7E6148FF'}
+#change font to arial
+plt.rcParams['font.family'] = 'Arial'
+pairs=[(1, 2)]
+order = [1,2]
+ax = sns.boxplot(x='SOZ', y='coef10', data=slope_df, palette=my_palette, order=order, showfliers = False)
+sns.stripplot(x="SOZ", y="coef10", data=slope_df, color="black", alpha=0.5)
+annotator = Annotator(ax, pairs, data=slope_df, x="SOZ", y="coef10", order=order)
+annotator.configure(test='Mann-Whitney', text_format='star', loc='inside', verbose = True)
+annotator.apply_and_annotate()
+
+plt.xlabel('SOZ Type', fontsize=12)
+plt.ylabel('Slope Coefficient', fontsize=12)
+#change the x-tick labels to be more readable
+plt.xticks(np.arange(2), ['Mesial Temporal', 'Other'], fontsize = 12)
+plt.yticks(fontsize = 12)
+plt.title(f'Distribution of Slope Coefficients (all contacts) by SOZ Type (Feature = {Feat_of_interest})', fontsize=16)
+
+plt.savefig(f'figures/sameside_perSOZ/bilateral/statistical_test/new_metrics/coef10_{Feat_of_interest}-ranksum.pdf')
+
+#SLOPE COEFFICIENT PLOTS for FIRST VALUE
+#create a boxplot comparing the distribution of correlation across SOZ types
+plt.figure(figsize=(10,10))
+my_palette = {1:'#E64B35FF', 2:'#7E6148FF'}
+#change font to arial
+plt.rcParams['font.family'] = 'Arial'
+pairs=[(1, 2)]
+order = [1,2]
+ax = sns.boxplot(x='SOZ', y='first_value', data=slope_df, palette=my_palette, order=order, showfliers = False)
+sns.stripplot(x="SOZ", y="first_value", data=slope_df, color="black", alpha=0.5)
+annotator = Annotator(ax, pairs, data=slope_df, x="SOZ", y="first_value", order=order)
+annotator.configure(test='Mann-Whitney', text_format='star', loc='inside', verbose = True)
+annotator.apply_and_annotate()
+
+plt.xlabel('SOZ Type', fontsize=12)
+plt.ylabel('Slope Coefficient', fontsize=12)
+#change the x-tick labels to be more readable
+plt.xticks(np.arange(2), ['Mesial Temporal', 'Other'], fontsize = 12)
+plt.yticks(fontsize = 12)
+plt.title(f'Distribution of First Values by SOZ Type (Feature = {Feat_of_interest})', fontsize=16)
+
+plt.savefig(f'figures/sameside_perSOZ/bilateral/statistical_test/new_metrics/first-value_{Feat_of_interest}-ranksum.pdf')
+
 # %%
