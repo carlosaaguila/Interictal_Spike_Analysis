@@ -260,6 +260,39 @@ for Feat_of_interest in list_of_feats:
     pearson_df['SOZ'] = [x[1] for x in label]
     pearson_df['pt_id'] = [x[0] for x in label]
 
+    ### New METRIC
+    coeff_5 = []
+    coeff_10 = []
+    firstonly = []
+    m_label = []
+    for row in range(len(all_spikes_avg)):
+        # #if the row has less than 8 channels, omit from analysis
+        # if len(all_spikes_avg.iloc[row].dropna()) < 8:
+        #     continue
+        gradient = all_spikes_avg.iloc[row].to_list()
+        channel_labels = ['1','2','3','4','5','6','7','8','9','10']
+        channel_labels = [int(x) for x in channel_labels]
+        # for each nan in the graident list, remove the corresponding channel_labels
+        list_to_remove = []
+        for i in range(len(channel_labels)):
+            if np.isnan(gradient[i]):
+                list_to_remove.append(i)
+
+        #remove list_to_remove from channel_labels and gradient
+        channel_labels = [i for j, i in enumerate(channel_labels) if j not in list_to_remove]
+        gradient = [i for j, i in enumerate(gradient) if j not in list_to_remove]
+        m_label.append(all_spikes_avg.index[row])
+
+        coeff_5.append((gradient[4]-gradient[0])/len(gradient[0:5]))
+        coeff_10.append((gradient[-1]-gradient[0])/len(gradient))
+        firstonly.append(gradient[0])
+
+    slope_df = pd.DataFrame(data = coeff_5, columns = ['coef5'])
+    slope_df['coef10'] = coeff_10
+    slope_df['first_value'] = firstonly
+    slope_df['SOZ'] = [x[1] for x in m_label]
+    slope_df['pt_id'] = [x[0] for x in m_label]
+
     ########################
     # MANUAL PLOTS (STATS) #
     ########################
@@ -292,7 +325,7 @@ for Feat_of_interest in list_of_feats:
         #part to change
         plt.title(f'Distribution of Spearman Correlation by SOZ Type (Feature = {Feat_of_interest})', fontsize=16)
 
-        plt.savefig(f'../figures/MUSC/soz_corrections/stat_test/spearman/{Feat_of_interest}-ranksum.pdf')
+        plt.savefig(f'../figures/MUSC/soz_corrections/stat_test/spearman/new-metric_{Feat_of_interest}-ranksum.pdf')
 
         #Pearson Correlation PLOTS
         #create a boxplot comparing the distribution of correlation across SOZ types
@@ -317,7 +350,7 @@ for Feat_of_interest in list_of_feats:
         #part to change
         plt.title(f'Distribution of Pearson Correlation by SOZ Type (Feature = {Feat_of_interest})', fontsize=16)
 
-        plt.savefig(f'../figures/MUSC/soz_corrections/stat_test/pearson/{Feat_of_interest}-ranksum.pdf')
+        plt.savefig(f'../figures/MUSC/soz_corrections/stat_test/pearson/new-metric_{Feat_of_interest}-ranksum.pdf')
 
     if vs_other == True:
         #SPEARMAN CORRELATION PLOTS
@@ -374,48 +407,117 @@ for Feat_of_interest in list_of_feats:
 
         plt.savefig(f'../figures/MUSC/soz_corrections/stat_test/vs_other/pearson/{Feat_of_interest}-ranksum.pdf')
 
-#%%
-#####
-#Code to plot the pearson correlation line of best fit
-#####
-value_columns = ['1','2','3','4','5','6','7','8','9','10']
-value_columns = range(1,11)
+        
+        #SLOPE COEFFICIENT PLOTS for first 5
+        #create a boxplot comparing the distribution of correlation across SOZ types
+        plt.figure(figsize=(10,10))
+        my_palette = {1:'#E64B35FF', 2:'#3C5488FF'}
+        #change font to arial
+        plt.rcParams['font.family'] = 'Verdana'
+        pairs=[(1, 2)]
+        order = [1,2]
+        ax = sns.boxplot(x='SOZ', y='coef5', data=slope_df, palette=my_palette, order=order, showfliers = False)
+        sns.stripplot(x="SOZ", y="coef5", data=slope_df, color="black", alpha=0.5)
+        annotator = Annotator(ax, pairs, data=slope_df, x="SOZ", y="coef5", order=order)
+        annotator.configure(test='Mann-Whitney', text_format='star', loc='inside', verbose = True)
+        annotator.apply_and_annotate()
 
-# Iterate through the rows of the pivot table
-for idx, row in all_spikes_avg.iterrows():
-    # Extract the index levels
-    pt_id, region = idx
-    # Plot the line with colors based on the value of 'G/O v1'
-    row = row.dropna()
-    x = np.arange(1,len(row.dropna())+1,1)
-    if region == 1:
-        color = 'r' 
-        # plt.plot(range(len(value_columns)), row.values, color=color)
+        plt.xlabel('SOZ Type', fontsize=12)
+        plt.ylabel('Slope Coefficient', fontsize=12)
+        #change the x-tick labels to be more readable
+        plt.xticks(np.arange(2), ['Mesial Temporal', 'Other'], fontsize = 12)
+        plt.yticks(fontsize = 12)
 
-        # Calculate linear regression line
-        # slope, intercept = np.polyfit(x, row.values, 2)
-        # plt.plot(x, slope*x + intercept, linestyle='--', color=color)
-        params = np.polyfit(x, row.values, 3)
-        polynomial = np.poly1d(params)
-        # plt.plot(x, polynomial(x), linestyle='--', color=color, label = 'MTLE')
-        # plt.plot(x,row.values, linestyle='--', color=color, label = "MTLE")    
-    else:
-        plt.figure()
-        color = 'b'
-        # plt.plot(range(len(value_columns)), row.values, color=color)
+        #part to change
+        plt.title(f'Distribution of Slope Coefficients (MTL contacts) by SOZ Type (Feature = {Feat_of_interest})', fontsize=16)
 
-        # Calculate linear regression line
-        # slope, intercept = np.polyfit(x, row.values, 2)
-        # plt.plot(x, slope*x + intercept, linestyle='--', color=color)
-        params = np.polyfit(x, row.values, 3)
-        polynomial = np.poly1d(params)
-        # plt.plot(x, polynomial(x), linestyle='--', color=color, label = "OTHER")
-        # plt.plot(x, row.values, linestyle='--', color=color, label = "OTHER" )
-        data = pd.DataFrame([x, row.values]).transpose()
-        data = data.rename(columns = {0:'x', 1:'y'})
-        # sns.scatterplot(x = 'x', y= 'y', data = data)
-        sns.lmplot(x = 'x', y= 'y', data = data)
-        plt.title(f'{pt_id}')
-        plt.show()
-# plt.legend()
-# # %%
+        plt.savefig(f'../figures/MUSC/soz_corrections/stat_test/vs_other/pearson/coef5_{Feat_of_interest}-ranksum.pdf')
+
+        #SLOPE COEFFICIENT PLOTS for all contacts
+        #create a boxplot comparing the distribution of correlation across SOZ types
+        plt.figure(figsize=(10,10))
+        my_palette = {1:'#E64B35FF', 2:'#3C5488FF'}
+        #change font to arial
+        plt.rcParams['font.family'] = 'Verdana'
+        pairs=[(1, 2)]
+        order = [1,2]
+        ax = sns.boxplot(x='SOZ', y='coef10', data=slope_df, palette=my_palette, order=order, showfliers = False)
+        sns.stripplot(x="SOZ", y="coef10", data=slope_df, color="black", alpha=0.5)
+        annotator = Annotator(ax, pairs, data=slope_df, x="SOZ", y="coef10", order=order)
+        annotator.configure(test='Mann-Whitney', text_format='star', loc='inside', verbose = True)
+        annotator.apply_and_annotate()
+
+        plt.xlabel('SOZ Type', fontsize=12)
+        plt.ylabel('Slope Coefficient', fontsize=12)
+        #change the x-tick labels to be more readable
+        plt.xticks(np.arange(2), ['Mesial Temporal', 'Other'], fontsize = 12)
+        plt.yticks(fontsize = 12)
+
+        #part to change
+        plt.title(f'Distribution of Slope Coefficients (all contacts) by SOZ Type (Feature = {Feat_of_interest})', fontsize=16)
+
+        plt.savefig(f'../figures/MUSC/soz_corrections/stat_test/vs_other/pearson/coef10_{Feat_of_interest}-ranksum.pdf')
+
+        #SLOPE COEFFICIENT PLOTS for FIRST VALUE
+        #create a boxplot comparing the distribution of correlation across SOZ types
+        plt.figure(figsize=(10,10))
+        my_palette = {1:'#E64B35FF', 2:'#3C5488FF'}
+        #change font to arial
+        plt.rcParams['font.family'] = 'Verdana'
+        pairs=[(1, 2)]
+        order = [1,2]
+        ax = sns.boxplot(x='SOZ', y='first_value', data=slope_df, palette=my_palette, order=order, showfliers = False)
+        sns.stripplot(x="SOZ", y="first_value", data=slope_df, color="black", alpha=0.5)
+        annotator = Annotator(ax, pairs, data=slope_df, x="SOZ", y="first_value", order=order)
+        annotator.configure(test='Mann-Whitney', text_format='star', loc='inside', verbose = True)
+        annotator.apply_and_annotate()
+
+        plt.xlabel('SOZ Type', fontsize=12)
+        plt.ylabel('Slope Coefficient', fontsize=12)
+        #change the x-tick labels to be more readable
+        plt.xticks(np.arange(2), ['Mesial Temporal', 'Other'], fontsize = 12)
+        plt.yticks(fontsize = 12)
+
+        #part to change
+        plt.title(f'Distribution of First Values by SOZ Type (Feature = {Feat_of_interest})', fontsize=16)
+
+        plt.savefig(f'../figures/MUSC/soz_corrections/stat_test/vs_other/pearson/first_value_{Feat_of_interest}-ranksum.pdf')
+
+    #####
+    #Code to plot the pearson correlation line of best fit
+    #####
+    # Iterate through the rows of the pivot table
+    for idx, row in all_spikes_avg.iterrows():
+        # Extract the index levels
+        pt_id, region = idx
+        # Plot the line with colors based on the value of 'G/O v1'
+        row = row.dropna()
+        x = np.arange(1,len(row.dropna())+1,1)
+        # x = range(0,10)
+        y = row.values
+        if region == 1:
+            color = 'r' 
+            params = np.polyfit(x, y, 1)
+            polynomial = np.poly1d(params)
+            plt.plot(x, polynomial(x), linestyle='--', color=color, label = 'MTLE')
+
+        else:
+            color = 'b'
+            params = np.polyfit(x, y, 1)
+            polynomial = np.poly1d(params)
+            plt.plot(x, polynomial(x), linestyle='--', color=color, label = "OTHER")
+
+            # plt.figure()
+            # data = pd.DataFrame([x, y]).transpose()
+            # data = data.rename(columns = {0:'x', 1:'y'})
+            # # sns.scatterplot(x = 'x', y= 'y', data = data)
+            # sns.lmplot(x = 'x', y= 'y', data = data)
+            # plt.title(f'{pt_id}')
+            # plt.show()
+    plt.ylabel(f'{Feat_of_interest}')
+    plt.xlabel('Contact #')
+    plt.title('Linear Models of Gradient Distributions')
+    plt.legend()
+
+
+# %%
