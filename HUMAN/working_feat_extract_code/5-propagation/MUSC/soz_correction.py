@@ -36,6 +36,7 @@ MUSC_sozs = MUSC_sozs[MUSC_sozs['Site_1MUSC_2Emory'] == 1]
 MUSC_spikes = MUSC_spikes.merge(MUSC_sozs, left_on = 'pt_id', right_on = 'ParticipantID', how = 'inner')
 MUSC_spikes = MUSC_spikes.drop(columns=['ParticipantID','Site_1MUSC_2Emory','IfNeocortical_Location','Correction Notes','lateralization_left','lateralization_right','region'])
 
+MUSC_sozs = MUSC_sozs.drop(columns = ['Unnamed: 10','Unnamed: 11','Unnamed: 12','Unnamed: 13','Unnamed: 14'])
 nonnan_mask = MUSC_sozs.dropna()
 pts_to_remove = nonnan_mask[nonnan_mask['Correction Notes'].str.contains('null')]['ParticipantID'].array
 
@@ -45,9 +46,8 @@ MUSC_spikes = MUSC_spikes[~MUSC_spikes['pt_id'].isin(pts_to_remove)]
 # KEEP THE SAME SIDE, PLUS FOR BILATERAL TAKE BOTH SIDES
 
 vs_other = True #CHANGE if you want to compare 2 groups, or 3. [False: you compare mtle, tle, other] [True: you compare mtle vs. other]
-
 list_of_feats = ['spike_rate', 'rise_amp','decay_amp','sharpness','linelen','recruiment_latency','spike_width','slow_width','slow_amp']
-list_of_feats = ['sharpness','spike_rate']
+
 for Feat_of_interest in list_of_feats:
 
     take_spike_leads = False
@@ -160,7 +160,7 @@ for Feat_of_interest in list_of_feats:
     import seaborn as sns
     import matplotlib.pyplot as plt
 
-    sns.set(font = 'Verdana')
+    sns.set(font = 'Arial')
     plt.clf()
     #color in all the mesial temporal channels
     plt.figure(figsize=(20,20))
@@ -484,40 +484,95 @@ for Feat_of_interest in list_of_feats:
         plt.savefig(f'../figures/MUSC/soz_corrections/stat_test/vs_other/pearson/first_value_{Feat_of_interest}-ranksum.pdf')
 
     #####
-    #Code to plot the pearson correlation line of best fit
-    #####
-    # Iterate through the rows of the pivot table
-    for idx, row in all_spikes_avg.iterrows():
-        # Extract the index levels
-        pt_id, region = idx
-        # Plot the line with colors based on the value of 'G/O v1'
-        row = row.dropna()
-        x = np.arange(1,len(row.dropna())+1,1)
-        # x = range(0,10)
-        y = row.values
-        if region == 1:
-            color = 'r' 
-            params = np.polyfit(x, y, 1)
-            polynomial = np.poly1d(params)
-            plt.plot(x, polynomial(x), linestyle='--', color=color, label = 'MTLE')
+# #Code to plot the pearson correlation line of best fit
+# #####
+# # Iterate through the rows of the pivot table
+# plt.figure()
+# for idx, row in all_spikes_avg.iterrows():
+#     # Extract the index levels
+#     pt_id, region = idx
+#     # Plot the line with colors based on the value of 'G/O v1'
+#     row = row.dropna()
+#     x = np.arange(1,len(row.dropna())+1,1)
+#     # x = range(0,10)
+#     y = row.values
+#     if region == 1:
+#         color = 'r' 
+#         params = np.polyfit(x, y, 1)
+#         polynomial = np.poly1d(params)
+#         plt.plot(x, polynomial(x), linestyle='--', color=color, label = 'MTLE')
 
-        else:
-            color = 'b'
-            params = np.polyfit(x, y, 1)
-            polynomial = np.poly1d(params)
-            plt.plot(x, polynomial(x), linestyle='--', color=color, label = "OTHER")
+#     else:
+#         color = 'b'
+#         params = np.polyfit(x, y, 1)
+#         polynomial = np.poly1d(params)
+#         plt.plot(x, polynomial(x), linestyle='--', color=color, label = "OTHER")
 
-            # plt.figure()
-            # data = pd.DataFrame([x, y]).transpose()
-            # data = data.rename(columns = {0:'x', 1:'y'})
-            # # sns.scatterplot(x = 'x', y= 'y', data = data)
-            # sns.lmplot(x = 'x', y= 'y', data = data)
-            # plt.title(f'{pt_id}')
-            # plt.show()
-    plt.ylabel(f'{Feat_of_interest}')
-    plt.xlabel('Contact #')
-    plt.title('Linear Models of Gradient Distributions')
-    plt.legend()
+#         # plt.figure()
+#         # data = pd.DataFrame([x, y]).transpose()
+#         # data = data.rename(columns = {0:'x', 1:'y'})
+#         # # sns.scatterplot(x = 'x', y= 'y', data = data)
+#         # sns.lmplot(x = 'x', y= 'y', data = data)
+#         # plt.title(f'{pt_id}')
+#         # plt.show()
+# plt.ylabel(f'{Feat_of_interest}')
+# plt.xlabel('Contact #')
+# plt.title('Linear Models of Gradient Distributions')
 
+    # plt.legend()
+
+
+# # %%
+# TRY to make a linear model?
+# import statsmodels.api as sm
+# import statsmodels.formula.api as smf
+# from statsmodels.formula.api import ols
+
+# def forest_plots(model, title):
+#     plt.rcParams["font.family"] = "Arial"
+#     plt.rcParams['font.size'] = 12
+#     params = model.params
+#     conf = model.conf_int()
+#     conf['Odds Ratio'] = params
+#     conf.columns = ['2.5%', '97.5%', 'Odds Ratio']# convert log odds to ORs
+#     odds = pd.DataFrame((conf))# check if pvalues are significant
+#     odds['pvalues'] = model.pvalues
+#     odds['significant?'] = ['significant' if pval <= 0.05 else 'not significant' for pval in model.pvalues]
+
+#     fig, ax = plt.subplots(nrows=1, sharex=True, sharey=True, figsize=(10, 10), dpi=300)
+#     for idx, row in odds.iloc[::-1].iterrows():
+#         ci = [[row['Odds Ratio'] - row[::-1]['2.5%']], [row['97.5%'] - row['Odds Ratio']]]
+#         if row['significant?'] == 'significant':
+#             plt.errorbar(x=[row['Odds Ratio']], y=[row.name], xerr=ci,
+#                 ecolor='tab:red', capsize=3, linestyle='None', linewidth=1, marker="o", 
+#                         markersize=5, mfc="tab:red", mec="tab:red")
+#         else:
+#             plt.errorbar(x=[row['Odds Ratio']], y=[row.name], xerr=ci,
+#                 ecolor='tab:gray', capsize=3, linestyle='None', linewidth=1, marker="o", 
+#                         markersize=5, mfc="tab:gray", mec="tab:gray")
+#         plt.axvline(x=1, linewidth=0.8, linestyle='--', color='black')
+#     plt.tick_params(axis='both', which='major', labelsize=10)
+#     plt.xlabel('Odds Ratio and 95% Confidence Interval', fontsize=10)
+#     plt.tight_layout()
+#     plt.title('Forest Plot of {}'.format(title), fontsize=12)
+#     # plt.savefig('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/spike figures/forest_plots/MNI/{}.png'.format(title), dpi=300)
+#     plt.show()
+#     return odds, fig
+
+
+# md = smf.mixedlm('{} ~ C(SOZ)'.format(slope_df['coef5']), list, groups="pt_id")
+# mdf = md.fit()
+# print(f"{Feat_of_interest} --- MIXED LM RESULTS")
+# print(mdf.summary())
+# print(mdf.pvalues)
+# odds, fig = forest_plots(mdf, f"{Feat_of_interest} Coef5 --- MIXED LM RESULTS")
+
+
+# md = smf.mixedlm('{} ~ C(SOZ)'.format(slope_df['coef10']), list, groups="pt_id")
+# mdf = md.fit()
+# print(f"{Feat_of_interest} --- MIXED LM RESULTS")
+# print(mdf.summary())
+# print(mdf.pvalues)
+# odds, fig = forest_plots(mdf, f"{Feat_of_interest} Coef 10--- MIXED LM RESULTS")
 
 # %%
