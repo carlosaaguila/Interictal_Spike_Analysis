@@ -26,22 +26,29 @@ from ied_fx_v3 import *
 data_directory = ['/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2', '/mnt/leif/littlab/data/Human_Data']
 
 ## load the spike data
-MUSC_spikes = pd.read_csv('../dataset/MUSC_allspikes_v2.csv', index_col=0)
+MUSC_spikes = pd.read_csv('../dataset/MUSC_allspikes_v4.csv', index_col=0)
 
+#fix SOZs
 #load SOZ corrections
 MUSC_sozs = pd.read_excel('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/MUSC-soz-corrections.xlsx')
 MUSC_sozs = MUSC_sozs[MUSC_sozs['Site_1MUSC_2Emory'] == 1]
-
 #fix SOZ and laterality
 MUSC_spikes = MUSC_spikes.merge(MUSC_sozs, left_on = 'pt_id', right_on = 'ParticipantID', how = 'inner')
 MUSC_spikes = MUSC_spikes.drop(columns=['ParticipantID','Site_1MUSC_2Emory','IfNeocortical_Location','Correction Notes','lateralization_left','lateralization_right','region'])
+MUSC_sozs = MUSC_sozs.drop(columns = ['Unnamed: 10','Unnamed: 11','Unnamed: 12','Unnamed: 13','Unnamed: 14'])
+nonnan_mask = MUSC_sozs.dropna()
+pts_to_remove = nonnan_mask[nonnan_mask['Correction Notes'].str.contains('null')]['ParticipantID'].array
+
+MUSC_spikes = MUSC_spikes[~MUSC_spikes['pt_id'].isin(pts_to_remove)]
 
 # ADD MUSC PATIENTS
 # KEEP THE SAME SIDE, PLUS FOR BILATERAL TAKE BOTH SIDES
+take_spike_leads = False
 
 list_of_feats = ['sharpness', 'spike_rate']#,'decay_amp','rise_amp','linelen','recruiment_latency','spike_width','slow_width','slow_amp']
 for Feat_of_interest in list_of_feats:
 
+    #MUSC DATA
     take_spike_leads = False
 
     #########################
@@ -127,138 +134,107 @@ for Feat_of_interest in list_of_feats:
     #reorder all_spikes_avg, so that is_mesial is decesending
     all_spikes_avg = all_spikes_avg.sort_values(by=['region', 'pt_id'], ascending=[True, True])
 
-#%%
-MUSC_spikes_avg = all_spikes_avg
+    MUSC_spikes_avg = all_spikes_avg
 
-#%%
-import pandas as pd
-import numpy as np
-from ieeg.auth import Session
-from resampy import resample
-import re
-import scipy.stats as stats
+    ####################
+    # 1. Load in data  #
+    ####################
 
-import warnings
-warnings.filterwarnings('ignore')
-
-# Import custom functions
-import sys, os
-code_v2_path = os.path.dirname('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/spike_detector/')
-sys.path.append(code_v2_path)
-from get_iEEG_data import *
-from spike_detector import *
-from iEEG_helper_functions import *
-from spike_morphology_v2 import *
-
-code_path = os.path.dirname('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/functions/')
-sys.path.append(code_path)
-from ied_fx_v3 import *
-
-data_directory = ['/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2', '/mnt/leif/littlab/data/Human_Data']
-
-#%%
-Feat_of_interest = 'spike_rate'
-take_spike_leads = False
-
-####################
-# 1. Load in data  #
-####################
-
-#load spikes from dataset
-if ('rate' in Feat_of_interest) | ('latency' in Feat_of_interest) | (Feat_of_interest == 'seq_spike_time_diff'):
-    all_spikes = pd.read_csv('../dataset/spikes_bySOZ_T-R.csv', index_col=0)
-    bilateral_spikes = pd.read_csv('../dataset/bilateral_spikes_bySOZ_T-R.csv', index_col=0)
-else:
-    all_spikes = pd.read_csv('../dataset/spikes_bySOZ.csv')
-    bilateral_spikes = pd.read_csv('../dataset/bilateral_MTLE_all_spikes.csv')
-    bilateral_spikes = bilateral_spikes.drop(['engel','hup_id','name','spike_rate'], axis=1)
+    #load spikes from dataset
+    if ('rate' in Feat_of_interest) | ('latency' in Feat_of_interest) | (Feat_of_interest == 'seq_spike_time_diff'):
+        all_spikes = pd.read_csv('../dataset/spikes_bySOZ_T-R.csv', index_col=0)
+        bilateral_spikes = pd.read_csv('../dataset/bilateral_spikes_bySOZ_T-R.csv', index_col=0)
+    else:
+        all_spikes = pd.read_csv('../dataset/spikes_bySOZ.csv')
+        bilateral_spikes = pd.read_csv('../dataset/bilateral_MTLE_all_spikes.csv')
+        bilateral_spikes = bilateral_spikes.drop(['engel','hup_id','name','spike_rate'], axis=1)
 
 
-#rename 'clinic_SOZ' to 'SOZ'
-bilateral_spikes = bilateral_spikes.rename(columns={'clinic_SOZ':'SOZ'})
+    #rename 'clinic_SOZ' to 'SOZ'
+    bilateral_spikes = bilateral_spikes.rename(columns={'clinic_SOZ':'SOZ'})
 
-all_spikes = pd.concat([all_spikes, bilateral_spikes], axis=0).reset_index(drop=True)
+    all_spikes = pd.concat([all_spikes, bilateral_spikes], axis=0).reset_index(drop=True)
 
-#flag that says we want spike leaders only
-if take_spike_leads == True:
-    all_spikes = all_spikes[all_spikes['is_spike_leader'] == 1]
+    #flag that says we want spike leaders only
+    if take_spike_leads == True:
+        all_spikes = all_spikes[all_spikes['is_spike_leader'] == 1]
 
-#remove patients with 'SOZ' containing other
-# all_spikes = all_spikes[~all_spikes['SOZ'].str.contains('other')].reset_index(drop=True)
+    #remove patients with 'SOZ' containing other
+    # all_spikes = all_spikes[~all_spikes['SOZ'].str.contains('other')].reset_index(drop=True)
 
-#channels to keep 
-chs_tokeep = ['RA','LA','RDA','LDA','LH','RH','LDH','RDH','DA','DH','DHA','LB','LDB','LC','LDC','RB','RDB','RC','RDC']
+    #channels to keep 
+    chs_tokeep = ['RA','LA','RDA','LDA','LH','RH','LDH','RDH','DA','DH','DHA','LB','LDB','LC','LDC','RB','RDB','RC','RDC']
 
-#if channel_label contains any of the strings in chs_tokeep, keep it
-all_spikes = all_spikes[all_spikes['channel_label'].str.contains('|'.join(chs_tokeep))].reset_index(drop=True)
+    #if channel_label contains any of the strings in chs_tokeep, keep it
+    all_spikes = all_spikes[all_spikes['channel_label'].str.contains('|'.join(chs_tokeep))].reset_index(drop=True)
 
-#only take the electrode channels that are in the same side
-left_spikes = all_spikes[all_spikes['SOZ'].str.contains('left')].reset_index(drop=True)
-left_spikes_tokeep = left_spikes[~left_spikes['channel_label'].str.contains('R')].reset_index(drop=True)
+    #only take the electrode channels that are in the same side
+    left_spikes = all_spikes[all_spikes['SOZ'].str.contains('left')].reset_index(drop=True)
+    left_spikes_tokeep = left_spikes[~left_spikes['channel_label'].str.contains('R')].reset_index(drop=True)
 
-right_spikes = all_spikes[all_spikes['SOZ'].str.contains('right')].reset_index(drop=True)
-right_spikes_tokeep = right_spikes[~right_spikes['channel_label'].str.contains('L')].reset_index(drop=True)
+    right_spikes = all_spikes[all_spikes['SOZ'].str.contains('right')].reset_index(drop=True)
+    right_spikes_tokeep = right_spikes[~right_spikes['channel_label'].str.contains('L')].reset_index(drop=True)
 
-bilateral_spikes = all_spikes[all_spikes['SOZ'].str.contains('bilateral')].reset_index(drop=True)
+    bilateral_spikes = all_spikes[all_spikes['SOZ'].str.contains('bilateral')].reset_index(drop=True)
 
-#concat them back into all_spikes
-all_spikes = pd.concat([left_spikes_tokeep, right_spikes_tokeep, bilateral_spikes], axis =0).reset_index(drop=True)
+    #concat them back into all_spikes
+    all_spikes = pd.concat([left_spikes_tokeep, right_spikes_tokeep, bilateral_spikes], axis =0).reset_index(drop=True)
 
-#get only the spikes that contain 'mesial temporal' in the SOZ column
-mesial_temp_spikes = all_spikes[all_spikes['SOZ'].str.contains('mesial')].reset_index(drop=True)
+    #get only the spikes that contain 'mesial temporal' in the SOZ column
+    mesial_temp_spikes = all_spikes[all_spikes['SOZ'].str.contains('mesial')].reset_index(drop=True)
 
-# grab the remaining spikes that aren't in mesial_temp_spikes
-non_mesial_temp_spikes = all_spikes[~all_spikes['SOZ'].str.contains('mesial')].reset_index(drop=True)
+    # grab the remaining spikes that aren't in mesial_temp_spikes
+    non_mesial_temp_spikes = all_spikes[~all_spikes['SOZ'].str.contains('mesial')].reset_index(drop=True)
 
-#remove any 'channel_label' that contains the letter T or F
-mesial_temp_spikes = mesial_temp_spikes[~mesial_temp_spikes['channel_label'].str.contains('T|F|P|RCC|RCA|RAD|LAD|LHD|RHD|LDAH|RDAH|RCB|Z')].reset_index(drop=True)
-non_mesial_temp_spikes = non_mesial_temp_spikes[~non_mesial_temp_spikes['channel_label'].str.contains('T|F|P|RCC|RCA|RAD|LAD|LHD|RHD|LDAH|RDAH|RCB|Z')].reset_index(drop=True)
+    #remove any 'channel_label' that contains the letter T or F
+    mesial_temp_spikes = mesial_temp_spikes[~mesial_temp_spikes['channel_label'].str.contains('T|F|P|RCC|RCA|RAD|LAD|LHD|RHD|LDAH|RDAH|RCB|Z')].reset_index(drop=True)
+    non_mesial_temp_spikes = non_mesial_temp_spikes[~non_mesial_temp_spikes['channel_label'].str.contains('T|F|P|RCC|RCA|RAD|LAD|LHD|RHD|LDAH|RDAH|RCB|Z')].reset_index(drop=True)
 
-########################################
-# 2. Filter Elecs, Group, and Analysis #
-########################################
+    ########################################
+    # 2. Filter Elecs, Group, and Analysis #
+    ########################################
 
-#strip the letters from the channel_label column and keep only the numerical portion
-mesial_temp_spikes['channel_label'] = mesial_temp_spikes['channel_label'].str.replace('L|R|A|H|B|C|D', '')
-non_mesial_temp_spikes['channel_label'] = non_mesial_temp_spikes['channel_label'].str.replace('L|R|A|H|B|C|D', '')
+    #strip the letters from the channel_label column and keep only the numerical portion
+    mesial_temp_spikes['channel_label'] = mesial_temp_spikes['channel_label'].str.replace('L|R|A|H|B|C|D', '')
+    non_mesial_temp_spikes['channel_label'] = non_mesial_temp_spikes['channel_label'].str.replace('L|R|A|H|B|C|D', '')
 
-#replace "sharpness" with the absolute value of it
-mesial_temp_spikes[Feat_of_interest] = abs(mesial_temp_spikes[Feat_of_interest])
-non_mesial_temp_spikes[Feat_of_interest] = abs(non_mesial_temp_spikes[Feat_of_interest])
+    #replace "sharpness" with the absolute value of it
+    mesial_temp_spikes[Feat_of_interest] = abs(mesial_temp_spikes[Feat_of_interest])
+    non_mesial_temp_spikes[Feat_of_interest] = abs(non_mesial_temp_spikes[Feat_of_interest])
 
-#group by patient and channel_label and get the average spike rate for each patient and channel
-mesial_temp_spikes_avg = mesial_temp_spikes.groupby(['pt_id', 'channel_label'])[Feat_of_interest].mean().reset_index()
-#for non_mesial_temp_spikes_avg['SOZ'], only keep everything after '_'
-non_mesial_temp_spikes['SOZ'] = non_mesial_temp_spikes['SOZ'].str.split('_').str[1]
-non_mesial_temp_spikes_avg = non_mesial_temp_spikes.groupby(['pt_id', 'channel_label', 'SOZ'])[Feat_of_interest].mean().reset_index()
+    #group by patient and channel_label and get the average spike rate for each patient and channel
+    mesial_temp_spikes_avg = mesial_temp_spikes.groupby(['pt_id', 'channel_label'])[Feat_of_interest].mean().reset_index()
+    #for non_mesial_temp_spikes_avg['SOZ'], only keep everything after '_'
+    non_mesial_temp_spikes['SOZ'] = non_mesial_temp_spikes['SOZ'].str.split('_').str[1]
+    non_mesial_temp_spikes_avg = non_mesial_temp_spikes.groupby(['pt_id', 'channel_label', 'SOZ'])[Feat_of_interest].mean().reset_index()
 
-# for mesial_temp_spikes_avg, add a column called 'mesial' and set it to 1
-mesial_temp_spikes_avg['SOZ'] = 1
+    # for mesial_temp_spikes_avg, add a column called 'mesial' and set it to 1
+    mesial_temp_spikes_avg['SOZ'] = 1
 
-#concatenate mesial_temp_spikes_avg and non_mesial_temp_spikes_avg
-all_spikes_avg = pd.concat([mesial_temp_spikes_avg, non_mesial_temp_spikes_avg], axis=0).reset_index(drop=True)
-all_spikes_avg = all_spikes_avg.pivot_table(index=['pt_id','SOZ'], columns='channel_label', values=Feat_of_interest)
-all_spikes_avg = all_spikes_avg.reindex(columns=['1','2','3','4','5','6','7','8','9','10','11','12'])
+    #concatenate mesial_temp_spikes_avg and non_mesial_temp_spikes_avg
+    all_spikes_avg = pd.concat([mesial_temp_spikes_avg, non_mesial_temp_spikes_avg], axis=0).reset_index(drop=True)
+    all_spikes_avg = all_spikes_avg.pivot_table(index=['pt_id','SOZ'], columns='channel_label', values=Feat_of_interest)
+    all_spikes_avg = all_spikes_avg.reindex(columns=['1','2','3','4','5','6','7','8','9','10','11','12'])
 
-#reorder all_spikes_avg, so that is_mesial is decesending
-all_spikes_avg = all_spikes_avg.sort_values(by=['SOZ', 'pt_id'], ascending=[True, True])
+    #reorder all_spikes_avg, so that is_mesial is decesending
+    all_spikes_avg = all_spikes_avg.sort_values(by=['SOZ', 'pt_id'], ascending=[True, True])
 
 
-#create a heat map where each row is a patient from pt_id and each column is a channel from channel_label
-#the values are the average spike rate for each patient and channel
-mesial_temp_spikes_avg = mesial_temp_spikes_avg.pivot_table(index='pt_id', columns='channel_label', values=Feat_of_interest)
-non_mesial_temp_spikes_avg = non_mesial_temp_spikes_avg.pivot_table(index='pt_id', columns='channel_label', values=Feat_of_interest)
+    #create a heat map where each row is a patient from pt_id and each column is a channel from channel_label
+    #the values are the average spike rate for each patient and channel
+    mesial_temp_spikes_avg = mesial_temp_spikes_avg.pivot_table(index='pt_id', columns='channel_label', values=Feat_of_interest)
+    non_mesial_temp_spikes_avg = non_mesial_temp_spikes_avg.pivot_table(index='pt_id', columns='channel_label', values=Feat_of_interest)
 
-#reorder columns so goes in [1,2,3,4,5,6,7,8,9,10,11,12]
-mesial_temp_spikes_avg = mesial_temp_spikes_avg.reindex(columns=['1','2','3','4','5','6','7','8','9','10','11','12'])
-non_mesial_temp_spikes_avg = non_mesial_temp_spikes_avg.reindex(columns=['1','2','3','4','5','6','7','8','9','10','11','12'])
+    #reorder columns so goes in [1,2,3,4,5,6,7,8,9,10,11,12]
+    mesial_temp_spikes_avg = mesial_temp_spikes_avg.reindex(columns=['1','2','3','4','5','6','7','8','9','10','11','12'])
+    non_mesial_temp_spikes_avg = non_mesial_temp_spikes_avg.reindex(columns=['1','2','3','4','5','6','7','8','9','10','11','12'])
 
-#remove 'HUP215' from all_spikes_avg
-if ('latency' in Feat_of_interest) | (Feat_of_interest == 'seq_spike_time_diff'):
-    all_spikes_avg = all_spikes_avg.drop('HUP215')
-    all_spikes_avg = all_spikes_avg.drop('HUP099')
-#%%
-HUP_spikes_avg = all_spikes_avg
+    #remove 'HUP215' from all_spikes_avg
+    if ('latency' in Feat_of_interest) | (Feat_of_interest == 'seq_spike_time_diff'):
+        all_spikes_avg = all_spikes_avg.drop('HUP215')
+        all_spikes_avg = all_spikes_avg.drop('HUP099')
+    #%%
+    HUP_spikes_avg = all_spikes_avg
 
 #%%
 pearson_corr_1 = []
