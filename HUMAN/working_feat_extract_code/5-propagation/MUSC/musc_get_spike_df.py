@@ -23,52 +23,42 @@ from ied_fx_v3 import *
 
 data_directory = ['/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2', '/mnt/leif/littlab/data/Human_Data']
 
-#load all the filenames (long form IEEG filenames)
-filenames_w_ids = pd.read_csv('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/filenames_w_ids.csv')
-#load the list of patients to exclude
-blacklist = ['HUP101' ,'HUP112','HUP115','HUP119','HUP124','HUP144','HUP147','HUP149','HUP155','HUP176',
-             'HUP193','HUP194','HUP195','HUP198','HUP208','HUP212','HUP216','HUP217','HUP064','HUP071',
-             'HUP072','HUP073','HUP085','HUP094', 'HUP173'] #HUP173 didn't make it through the pipeline, no clue why
+#filenames for MUSC patients
+MUSC_pts = pd.read_excel('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/MUSC_Emory_LEN_SOZ_type.xlsx')
+MUSC_pts_cleaned = MUSC_pts[MUSC_pts['Site_1MUSC_2Emory'] == 1]
+# MUSC_pts_cleaned2 = MUSC_pts_cleaned[((MUSC_pts_cleaned['MTL'] == 1) & (MUSC_pts_cleaned['Neo'] == 0))| ((MUSC_pts_cleaned['MTL'] == 0) & (MUSC_pts_cleaned['Neo'] == 1))]
+pt_in_soz = MUSC_pts_cleaned[['ParticipantID','filename']]
+new_sozs = pd.read_excel('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/MUSC-soz-corrections.xlsx')
+new_sozs = new_sozs.drop(columns = ['Unnamed: 10','Unnamed: 11','Unnamed: 12','Unnamed: 13','Unnamed: 14'])
+pt_in_soz = pt_in_soz.merge(new_sozs, how = 'inner', on = 'ParticipantID')
 
-# remove the patients in the blacklist from filenames_w_ids
-filenames_w_ids = filenames_w_ids[~filenames_w_ids['hup_id'].isin(blacklist)]
-#only keep rows where the column "to use" is a 1
-filenames_w_ids = filenames_w_ids[filenames_w_ids['to use'] == 1].reset_index(drop=True)
-
-#find the patients we want (seperate by SOZ)
-# load all the SOZ's
-SOZ_list = pd.read_csv('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/soz_locations.csv', index_col = 0)
-
-# remove rows that have 'diffuse' or 'bilateral' in the 'lateralization' column
-SOZ_list = SOZ_list[~SOZ_list['lateralization'].isin(['diffuse'])].reset_index(drop=True)
-#only keep rows where lateralization is bilateral
-
-# remove any nan's in lateralization
-SOZ_list = SOZ_list[~SOZ_list['lateralization'].isna()].reset_index(drop=True) 
-
-# remove any 'frontal','multifocal','diffuse','temporal multifocal' in 'region' column
-SOZ_list = SOZ_list[~SOZ_list['region'].isin(['diffuse','multifocal','temporal multifocal'])].reset_index(drop=True)
-# remove any nans in 'region' column
-SOZ_list = SOZ_list[~SOZ_list['region'].isna()].reset_index(drop=True)
-
-#patients in SOZ_list that are in filenames_w_ids
-pt_in_soz = filenames_w_ids[filenames_w_ids['hup_id'].isin(SOZ_list['name'])].reset_index(drop=True)
+def soz_assigner(row):
+    if row['MTL'] == 1:
+        return 1
+    elif row['Neo'] == 1:
+        return 2
+    elif row['Temporal'] == 1:
+        return 4
+    elif row['Other'] == 1:
+        return 3
+    else:
+        return None
+    
+pt_in_soz['SOZ'] = pt_in_soz.apply(soz_assigner, axis = 1)
 
  # %%
 all_spikes = pd.DataFrame()
-
-unique_pts = pt_in_soz['hup_id'].unique()
 
 for index, row in pt_in_soz.iterrows():
     print(f'Processing {row["filename"]}')
     print(f'{index} out of {len(pt_in_soz)}')
 
     filename = row['filename']
-    hup_id = row['hup_id']
+    hup_id = row['ParticipantID']
 
     # load the data
     try:
-        spike_output_DF = pd.read_csv(f'{data_directory[0]}/spike_leaders/{filename}_spike_output.csv').dropna()
+        spike_output_DF = pd.read_csv(f'{data_directory[0]}/spike_leaders/MUSC/{filename}_spike_output.csv').dropna()
         spike_output_DF.columns = ['peak_index', 'channel_index', 'channel_label', 'spike_sequence', 'peak',
                                 'left_point', 'right_point','slow_end','slow_max','rise_amp','decay_amp',
                                 'slow_width','slow_amp','rise_slope','decay_slope','average_amp','linelen',
@@ -88,10 +78,64 @@ for index, row in pt_in_soz.iterrows():
                                                 'slow_amp': 'float64', 'rise_slope': 'float64', 'decay_slope': 'float64', 'average_amp': 'float64',
                                                 'linelen': 'float64', 'interval number': 'int', 'peak_index_samples': 'int64', 'peak_time_usec': 'float64'})
 
+    """
+    #for each dataframe, add a column with a unique tag for each spike_sequence and interval number
+    #this will be used to identify each spike sequence and interval when we combine all the dataframes
+    # spike_output_DF['new_spike_seq'] = spike_output_DF.groupby(['interval number','spike_sequence']).ngroup()
+
+    #sort by new_spike_seq, drop all rows with NaN values
+    # spike_output_DF = spike_output_DF.sort_values(by=['new_spike_seq']).dropna()
+
+    #create a new column called "is_spike_leader" that is 1 if the spike is a spike leader and 0 if it is not
+    # spike_output_DF['is_spike_leader'] = 0
+    #set the first spike in each spike sequence to be a spike leader, based on smallest peak_index in each group
+    # spike_output_DF.loc[spike_output_DF.groupby(['new_spike_seq'])['peak_index'].idxmin(),'is_spike_leader'] = 1
+
+    """
+    """
+    # load the patient data
+    if os.path.exists(data_directory[0] + '/pickle_spike/{}_obj.pkl'.format(hup_id)):
+        spike, brain_df, onsetzone, ids = load_ptall(hup_id, data_directory)
+    else:
+        print(f'no pickle file for {hup_id}')
+        print('skipping patient')
+        continue
+
+
+    # check if brain_df is a dataframe, if not you can skip this patient
+    if isinstance(brain_df, pd.DataFrame) == False:
+        print('brain_df is not a dataframe')
+        continue
+    """
 
     #clean labels
     spike_output_DF['channel_label'] = spike_output_DF['channel_label'].apply(lambda x: decompose_labels(x, hup_id))
+    
+    """
+    #clean brain_df labels
+    brain_df['key_0'] = brain_df['key_0'].apply(lambda x: decompose_labels(x, hup_id))
 
+    #merge brain_df using "key_0" to spike_output_DF using "channel_label", to get 'final_label' in spike_output_DF
+    spike_output_DF = spike_output_DF.merge(brain_df[['key_0','final_label']], left_on='channel_label', right_on='key_0', how='left')
+    #drop the extra column 'key_0'
+    spike_output_DF = spike_output_DF.drop(columns=['key_0'])
+    """
+    """
+    #For each group of new_spike_seq, find the difference between the peak_index_samples between the smallest and largest peak_index_samples of the group
+    spike_output_DF['seq_total_dur'] = spike_output_DF.groupby(['new_spike_seq'])['peak_index_samples'].transform(lambda x: x.max() - x.min())
+
+    #For each group of new_spike_seq, find the difference between the peak_index_samples between the smallest and second_smallest peak_index_samples of the group
+    spike_output_DF['seq_onetwo_time'] = spike_output_DF.groupby(['new_spike_seq'])['peak_index_samples'].transform(lambda x: x.nsmallest(2).max() - x.nsmallest(2).min())
+
+    #For each group of new_spike_seq, sort the values by peak_index_sample and find the difference between each peak_index_samples
+    spike_output_DF['seq_spike_time_diff'] = spike_output_DF.groupby(['new_spike_seq'])['peak_index_samples'].transform(lambda x: x.sort_values().diff())
+
+    #for each group of new_spike_seq, find the mean of the seq_spike_time_diff
+    spike_output_DF['avg_latency'] = spike_output_DF.groupby(['new_spike_seq'])['seq_spike_time_diff'].transform(lambda x: x.mean())
+
+    # drop seq_spike_time_diff
+    spike_output_DF = spike_output_DF.drop(columns=['seq_spike_time_diff'])  
+    """
     #calculate spike_width
     spike_output_DF['spike_width'] = spike_output_DF['right_point']-spike_output_DF['left_point']
 
@@ -108,77 +152,15 @@ for index, row in pt_in_soz.iterrows():
     spike_output_DF['pt_id'] = hup_id
     spike_output_DF['filename'] = filename
 
-    sub_soz = SOZ_list[SOZ_list['name'] == hup_id]
-    region = sub_soz['region']
-    lateralization = sub_soz['lateralization']
 
-    spike_output_DF['SOZ'] = region
-    spike_output_DF['SOZ'] =  spike_output_DF['SOZ'].fillna(region)
-    spike_output_DF['lateralization'] = lateralization
-    spike_output_DF['lateralization'] = spike_output_DF['lateralization'].fillna(lateralization)
+    #add SOZ
+    spike_output_DF['region'] = row['SOZ']
 
-    #concat spike_output_DF to all_spikes
-    all_spikes = pd.concat([all_spikes, spike_output_DF], ignore_index=True)
+    #add laterality
+    spike_output_DF['lateralization_left'] = row['Left']
+    spike_output_DF['lateralization_right'] = row['Right']
 
-all_spikes.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/complete_dfs/hup_basic_df.csv', index=False)
-
-"""
-
-for pt in unique_pts:
-    subset_df = all_spikes[all_spikes['pt_id'] == pt]
-    subset_df
-    #for each dataframe, add a column with a unique tag for each spike_sequence and interval number
-    #this will be used to identify each spike sequence and interval when we combine all the dataframes
-    spike_output_DF['new_spike_seq'] = spike_output_DF.groupby(['interval number','spike_sequence']).ngroup()
-
-    #sort by new_spike_seq, drop all rows with NaN values
-    spike_output_DF = spike_output_DF.sort_values(by=['new_spike_seq']).dropna()
-
-    #create a new column called "is_spike_leader" that is 1 if the spike is a spike leader and 0 if it is not
-    spike_output_DF['is_spike_leader'] = 0
-    #set the first spike in each spike sequence to be a spike leader, based on smallest peak_index in each group
-    spike_output_DF.loc[spike_output_DF.groupby(['new_spike_seq'])['peak_index'].idxmin(),'is_spike_leader'] = 1
-
-
-    # load the patient data
-    if os.path.exists(data_directory[0] + '/pickle_spike/{}_obj.pkl'.format(hup_id)):
-        spike, brain_df, onsetzone, ids = load_ptall(hup_id, data_directory)
-    else:
-        print(f'no pickle file for {hup_id}')
-        print('skipping patient')
-        continue
-
-
-    # check if brain_df is a dataframe, if not you can skip this patient
-    if isinstance(brain_df, pd.DataFrame) == False:
-        print('brain_df is not a dataframe')
-        continue    
-
-    #clean brain_df labels
-    brain_df['key_0'] = brain_df['key_0'].apply(lambda x: decompose_labels(x, hup_id))
-
-    #merge brain_df using "key_0" to spike_output_DF using "channel_label", to get 'final_label' in spike_output_DF
-    spike_output_DF = spike_output_DF.merge(brain_df[['key_0','final_label']], left_on='channel_label', right_on='key_0', how='left')
-    #drop the extra column 'key_0'
-    spike_output_DF = spike_output_DF.drop(columns=['key_0'])
-
-
-    #For each group of new_spike_seq, find the difference between the peak_index_samples between the smallest and largest peak_index_samples of the group
-    spike_output_DF['seq_total_dur'] = spike_output_DF.groupby(['new_spike_seq'])['peak_index_samples'].transform(lambda x: x.max() - x.min())
-
-    #For each group of new_spike_seq, find the difference between the peak_index_samples between the smallest and second_smallest peak_index_samples of the group
-    spike_output_DF['seq_onetwo_time'] = spike_output_DF.groupby(['new_spike_seq'])['peak_index_samples'].transform(lambda x: x.nsmallest(2).max() - x.nsmallest(2).min())
-
-    #For each group of new_spike_seq, sort the values by peak_index_sample and find the difference between each peak_index_samples
-    spike_output_DF['seq_spike_time_diff'] = spike_output_DF.groupby(['new_spike_seq'])['peak_index_samples'].transform(lambda x: x.sort_values().diff())
-
-    #for each group of new_spike_seq, find the mean of the seq_spike_time_diff
-    spike_output_DF['avg_latency'] = spike_output_DF.groupby(['new_spike_seq'])['seq_spike_time_diff'].transform(lambda x: x.mean())
-
-    # drop seq_spike_time_diff
-    spike_output_DF = spike_output_DF.drop(columns=['seq_spike_time_diff'])  
-
-    ###
+    """
     #add spikerate
     master_elecs = pd.read_csv('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/master_elecs.csv')
     sozlist = pd.read_csv('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/all_ptids.csv', index_col=0)
@@ -200,30 +182,23 @@ for pt in unique_pts:
 
     #drop region and lateralization
     spike_output_DF = spike_output_DF.drop(columns=['region', 'lateralization'])
-    ###
+    """
+    #concat spike_output_DF to all_spikes
+    all_spikes = pd.concat([all_spikes, spike_output_DF], ignore_index=True)
 
-
-all_spikes.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/complete_dfs/hup_basic_df.csv', index=False)
-"""
-#%%
+#save the new dataframe as a csv
+all_spikes.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/complete_dfs/MUSC_basic_df.csv', index=False)
+# %%
 # manually run to fix the dataframe for TIMING
 
 #load it back in:
-all_spikes = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/complete_dfs/hup_basic_df.csv')
+all_spikes = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/complete_dfs/MUSC_basic_df.csv')
 
 fix_timing_spikes = pd.DataFrame()
 unique_pts = all_spikes['pt_id'].unique()
 
 for pt in unique_pts:
     spike_subset = all_spikes[all_spikes['pt_id'] == pt]
-
-    sub_soz = SOZ_list[SOZ_list['name'] == pt]
-    region = sub_soz['region'].iloc[0]
-    lateralization = sub_soz['lateralization'].iloc[0]
-    spike_subset['SOZ'] = region
-    spike_subset['SOZ'] =  spike_subset['SOZ'].fillna(region)
-    spike_subset['lateralization'] = lateralization
-    spike_subset['lateralization'] = spike_subset['lateralization'].fillna(lateralization)
 
     #for each dataframe, add a column with a unique tag for each spike_sequence and interval number
     #this will be used to identify each spike sequence and interval when we combine all the dataframes
@@ -254,6 +229,5 @@ for pt in unique_pts:
 
     fix_timing_spikes = pd.concat([fix_timing_spikes, spike_subset], ignore_index=True)
 
-fix_timing_spikes.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/complete_dfs/hup_basic_df.csv', index=False)
-
+fix_timing_spikes.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/complete_dfs/MUSC_basic_df.csv', index=False)
 # %%
