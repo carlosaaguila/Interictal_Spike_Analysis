@@ -66,6 +66,7 @@ all_spikes_list = [MUSC_full, MUSC_thresh]
 
 vs_other = True #CHANGE if you want to compare 2 groups, or 3. [False: you compare mtle, tle, other] [True: you compare mtle vs. other]
 list_of_feats = ['spike_rate', 'rise_amp','decay_amp','sharpness','linelen','recruiment_latency','spike_width','slow_width','slow_amp']
+list_of_feats = ['spike_rate','recruitment_latency_thresh']
 
 df_to_use = []
 for Feat_of_interest in list_of_feats:

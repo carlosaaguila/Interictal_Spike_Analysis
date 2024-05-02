@@ -27,7 +27,7 @@ from ied_fx_v3 import *
 data_directory = ['/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2', '/mnt/leif/littlab/data/Human_Data']
 
 # Load data
-MUSC_spikes = pd.read_csv('../dataset/MUSC_basic_df.csv')
+MUSC_spikes = pd.read_csv('../dataset/complete_dfs/MUSC_basic_df.csv')
 all_spikes = MUSC_spikes
 # all_spikes = all_spikes.drop(['engel','hup_id','name','spike_rate'], axis=1)
 
