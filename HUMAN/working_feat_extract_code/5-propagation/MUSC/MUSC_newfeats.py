@@ -27,7 +27,7 @@ from ied_fx_v3 import *
 data_directory = ['/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2', '/mnt/leif/littlab/data/Human_Data']
 
 # Load data
-MUSC_spikes = pd.read_csv('../dataset/MUSC_allspikes.csv')
+MUSC_spikes = pd.read_csv('../dataset/MUCS_basic_df.csv')
 all_spikes = MUSC_spikes
 # all_spikes = all_spikes.drop(['engel','hup_id','name','spike_rate'], axis=1)
 
@@ -82,6 +82,8 @@ all_spikes.to_csv('../dataset/complete_dfs/MUSC_full.csv')
 
 ########
 # create a new DF, w/ only the recruitment latency of thresholded 
+
+all_spikes.drop(columns = ['recruitment_latency_full','seq_spike_time_diff_full'])
 
 #This should technically only give us spike trains that are of a certain length.
 all_spikes = all_spikes[(all_spikes['seq_total_dur'] >= 8) & (all_spikes['seq_total_dur'] <= 200)]
