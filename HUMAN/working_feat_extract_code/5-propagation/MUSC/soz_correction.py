@@ -26,21 +26,40 @@ from ied_fx_v3 import *
 data_directory = ['/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2', '/mnt/leif/littlab/data/Human_Data']
 
 ## load the spike data
-MUSC_spikes = pd.read_csv('../dataset/MUSC_allspikes_v2.csv', index_col=0)
+MUSC_spikes = pd.read_csv('../dataset/complete_dfs/MUSC_full.csv', index_col=0)
 
 #load SOZ corrections
 MUSC_sozs = pd.read_excel('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/MUSC-soz-corrections.xlsx')
 MUSC_sozs = MUSC_sozs[MUSC_sozs['Site_1MUSC_2Emory'] == 1]
+MUSC_sozs = MUSC_sozs.drop(columns=['Unnamed: 10','Unnamed: 11','Unnamed: 12','Unnamed: 13','Unnamed: 14'])
 
 #fix SOZ and laterality
 MUSC_spikes = MUSC_spikes.merge(MUSC_sozs, left_on = 'pt_id', right_on = 'ParticipantID', how = 'inner')
 MUSC_spikes = MUSC_spikes.drop(columns=['ParticipantID','Site_1MUSC_2Emory','IfNeocortical_Location','Correction Notes','lateralization_left','lateralization_right','region'])
 
-MUSC_sozs = MUSC_sozs.drop(columns = ['Unnamed: 10','Unnamed: 11','Unnamed: 12','Unnamed: 13','Unnamed: 14'])
+#find the patients that should be null, and remove them for the full dataset
 nonnan_mask = MUSC_sozs.dropna()
 pts_to_remove = nonnan_mask[nonnan_mask['Correction Notes'].str.contains('null')]['ParticipantID'].array
-
 MUSC_spikes = MUSC_spikes[~MUSC_spikes['pt_id'].isin(pts_to_remove)]
+MUSC_full = MUSC_spikes
+
+## load the spike data
+MUSC_spikes = pd.read_csv('../dataset/complete_dfs/MUSC_thresholded.csv', index_col=0)
+
+#load SOZ corrections
+MUSC_sozs = pd.read_excel('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/MUSC-soz-corrections.xlsx')
+MUSC_sozs = MUSC_sozs[MUSC_sozs['Site_1MUSC_2Emory'] == 1]
+MUSC_sozs = MUSC_sozs.drop(columns=['Unnamed: 10','Unnamed: 11','Unnamed: 12','Unnamed: 13','Unnamed: 14'])
+
+#fix SOZ and laterality
+MUSC_spikes = MUSC_spikes.merge(MUSC_sozs, left_on = 'pt_id', right_on = 'ParticipantID', how = 'inner')
+MUSC_spikes = MUSC_spikes.drop(columns=['ParticipantID','Site_1MUSC_2Emory','IfNeocortical_Location','Correction Notes','lateralization_left','lateralization_right','region'])
+
+#remove the patients that should be NULL for the thresholded dataset
+MUSC_spikes = MUSC_spikes[~MUSC_spikes['pt_id'].isin(pts_to_remove)]
+MUSC_thresh = MUSC_spikes
+
+all_spikes_list = [MUSC_full, MUSC_thresh]
 
 # ADD MUSC PATIENTS
 # KEEP THE SAME SIDE, PLUS FOR BILATERAL TAKE BOTH SIDES
@@ -48,7 +67,14 @@ MUSC_spikes = MUSC_spikes[~MUSC_spikes['pt_id'].isin(pts_to_remove)]
 vs_other = True #CHANGE if you want to compare 2 groups, or 3. [False: you compare mtle, tle, other] [True: you compare mtle vs. other]
 list_of_feats = ['spike_rate', 'rise_amp','decay_amp','sharpness','linelen','recruiment_latency','spike_width','slow_width','slow_amp']
 
+df_to_use = []
 for Feat_of_interest in list_of_feats:
+    if Feat_of_interest == 'recruitment_latency_thresh':
+        df_to_use.append(1)
+    else:
+        df_to_use.append(0)
+
+for i, Feat_of_interest in enumerate(list_of_feats):
 
     take_spike_leads = False
 
@@ -56,7 +82,7 @@ for Feat_of_interest in list_of_feats:
     # 1. Organize the data  #
     #########################
 
-    all_spikes = MUSC_spikes
+    all_spikes = all_spikes_list[df_to_use[i]]
 
     #flag that says we want spike leaders only
     if take_spike_leads == True:
