@@ -7,7 +7,7 @@ import scipy.stats as stats
 from statannotations.Annotator import Annotator
 import seaborn as sns
 import matplotlib.pyplot as plt
-
+from scipy.interpolate import interp1d
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -25,10 +25,12 @@ sys.path.append(code_path)
 from ied_fx_v3 import *
 
 data_directory = ['/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2', '/mnt/leif/littlab/data/Human_Data']
-
+drop_pts = ['HUP093','HUP108','HUP113','HUP114','HUP116','HUP123','HUP087','HUP099','HUP111','HUP121','HUP105','HUP106','HUP107','HUP159']
 #load in both spike dataframes for HUP
 spikes_full = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/complete_dfs/hup_thresholded.csv', index_col = 0)
 spikes_thresh = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/complete_dfs/hup_thresholded.csv', index_col= 0)
+spikes_full = spikes_full[~spikes_full['pt_id'].isin(drop_pts)]
+spikes_thresh = spikes_thresh[~spikes_thresh['pt_id'].isin(drop_pts)]
 all_spike_list = [spikes_full, spikes_thresh]
 
 # KEEP THE SAME SIDE, PLUS FOR BILATERAL TAKE BOTH SIDES
@@ -36,7 +38,9 @@ take_spike_leads = False
 #WHAT DO YOU WANT TO REMOVE FROM THE CORE PLOT (CHOICES: 'frontal','mesial temporal','other cortex', 'temporal neocortical','temporal')
 soz_to_remove = ['temporal']
 
-list_of_feats = ['spike_rate', 'rise_amp','decay_amp','sharpness','linelen','spike_width','slow_width','slow_amp','recruitment_latency_thresh']
+# list_of_feats = ['spike_rate', 'decay_amp', 'rise_amp','sharpness','linelen','spike_width','slow_width','slow_amp','recruitment_latency_thresh']
+# list_of_feats = ['decay_amp','sharpness','linelen','slow_width','slow_amp']
+list_of_feats = ['spike_rate','recruitment_latency_thresh']
 
 df_to_use = []
 for Feat_of_interest in list_of_feats:
@@ -45,8 +49,11 @@ for Feat_of_interest in list_of_feats:
     else:
         df_to_use.append(0)
 
-for i, Feat_of_interest in enumerate(list_of_feats):
+interp = False
 
+print('Starting')
+for i, Feat_of_interest in enumerate(list_of_feats):
+    print('looking at:', Feat_of_interest)
     all_spikes = all_spike_list[df_to_use[i]]
     ####################
     # 1. Load in data  #
@@ -122,6 +129,7 @@ for i, Feat_of_interest in enumerate(list_of_feats):
     mesial_temp_spikes_avg = mesial_temp_spikes_avg.reindex(columns=['1','2','3','4','5','6','7','8','9','10','11','12'])
     non_mesial_temp_spikes_avg = non_mesial_temp_spikes_avg.reindex(columns=['1','2','3','4','5','6','7','8','9','10','11','12'])
 
+
     def remove_rows_by_index(pivot_table, index_values_to_remove):
         """
         Remove rows from a pivot table based on index values.
@@ -149,13 +157,26 @@ for i, Feat_of_interest in enumerate(list_of_feats):
     #reorder all_spikes_avg, so that is_mesial is decesending
     all_spikes_avg = all_spikes_avg.sort_values(by=['SOZ', 'pt_id'], ascending=[True, True])
 
+    if interp == 'True':
+        # Smooth out the data by interpolating along the rows while retaining the original number of rows
+        all_spikes_avg_v2 = pd.DataFrame(index=all_spikes_avg.index, columns=np.linspace(0, len(all_spikes_avg.columns) - 1, 100), dtype=float)
+        for i, row in all_spikes_avg.iterrows():
+            all_spikes_avg_v2.loc[i] = interp1d(np.arange(len(row)), row, kind='linear')(np.linspace(0, len(row)-1, 100))
+
+        all_spikes_avg = all_spikes_avg_v2
+
     ####################
     # 3. Plot Heatmaps #
     ####################
 
     sns.set_style('ticks')
-    plt.figure(figsize=(20,20))
-    sns.heatmap(all_spikes_avg, cmap='viridis', alpha = 1)
+    if interp == True:
+        plt.figure(figsize=(10,20))
+    else:
+        plt.figure(figsize=(20,20))
+
+    # sns.heatmap(all_spikes_avg, cmap='viridis', alpha = 1)
+    sns.heatmap(all_spikes_avg, cmap = 'rocket', alpha = 1)
     plt.xlabel('Channel Number', fontsize=20)
     plt.ylabel('Patient ID', fontsize=20)
     plt.title(f'Average {Feat_of_interest} by Channel and Patient', fontsize=24)
@@ -188,7 +209,13 @@ for i, Feat_of_interest in enumerate(list_of_feats):
 
     plt.legend(handles=[mesial_patch, other_patch, neocort_patch], loc='upper right')
     sns.despine()
-    plt.savefig(f'figures/sameside_perSOZ/bilateral/{Feat_of_interest}_allptsbySOZ_CLEAN.pdf')
+
+
+    if interp == True:
+        plt.savefig(f'figures/sameside_perSOZ/bilateral/{Feat_of_interest}_CONCEPT_MERGE.pdf')
+        continue
+    else: 
+        plt.savefig(f'figures/sameside_perSOZ/bilateral/{Feat_of_interest}_allptsbySOZ_CLEAN.pdf')
     plt.show()
 
     #########################
