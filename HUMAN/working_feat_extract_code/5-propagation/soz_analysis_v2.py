@@ -39,8 +39,8 @@ take_spike_leads = False
 soz_to_remove = ['temporal']
 
 # list_of_feats = ['spike_rate', 'decay_amp', 'rise_amp','sharpness','linelen','spike_width','slow_width','slow_amp','recruitment_latency_thresh']
-list_of_feats = ['decay_amp','sharpness','linelen','slow_width','slow_amp']
-# list_of_feats = ['spike_rate','recruitment_latency_thresh']
+# list_of_feats = ['decay_amp','sharpness','linelen','slow_amp']
+list_of_feats = ['spike_rate','recruitment_latency_thresh']
 
 df_to_use = []
 for Feat_of_interest in list_of_feats:
@@ -171,7 +171,7 @@ for i, Feat_of_interest in enumerate(list_of_feats):
 
     sns.set_style('ticks')
     if interp == True:
-        plt.figure(figsize=(10,20))
+        plt.figure(figsize=(20,20))
     else:
         plt.figure(figsize=(20,20))
 
@@ -192,9 +192,9 @@ for i, Feat_of_interest in enumerate(list_of_feats):
     #same for mesial temporal
     mesial_temp_pts = len(all_spikes_avg[all_spikes_avg.index.get_level_values(1) == 'mesial temporal'])
 
-    plt.axhline(mesial_temp_pts, color='k', linewidth=2.5)
-    plt.axhline(mesial_temp_pts+other_cortex_pts, color='k', linewidth=1.5, linestyle = '--')
-    plt.axhline(mesial_temp_pts+other_cortex_pts+temp_pts, color='k', linewidth=1.5, linestyle = '--')
+    plt.axhline(mesial_temp_pts, color='white', linewidth=2.5)
+    plt.axhline(mesial_temp_pts+other_cortex_pts, color='white', linewidth=1.5, linestyle = '--')
+    plt.axhline(mesial_temp_pts+other_cortex_pts+temp_pts, color='white', linewidth=1.5, linestyle = '--')
     #create a list of 48 colors
     colors = ['#E64B35FF']*mesial_temp_pts + ['#7E6148FF']*other_cortex_pts + ['#00A087FF']*temp_pts + ['#3C5488FF']*temp_neocort_pts
     for ytick, color in zip(plt.gca().get_yticklabels(), colors):
@@ -218,6 +218,7 @@ for i, Feat_of_interest in enumerate(list_of_feats):
         plt.savefig(f'figures/sameside_perSOZ/bilateral/{Feat_of_interest}_allptsbySOZ_CLEAN.pdf')
     plt.show()
 
+    # continue
     #########################
     # Generate Correlations #
     #########################
@@ -321,7 +322,7 @@ for i, Feat_of_interest in enumerate(list_of_feats):
 
     #SPEARMAN CORRELATION PLOTS
     #create a boxplot comparing the distribution of correlation across SOZ types
-    plt.figure(figsize=(10,10))
+    plt.figure(figsize=(8,6))
     #where 1, is MTL, 2 is NEO, and 3 is Other
     #change font to arial
     plt.rcParams['font.family'] = 'Arial'
@@ -330,14 +331,14 @@ for i, Feat_of_interest in enumerate(list_of_feats):
     pairs=[(1, 'temporal neocortical'), ('temporal neocortical','other cortex'), (1,'other cortex')]
     order = [1,'temporal neocortical','other cortex']
 
-    my_palette = {1:'#E64B35FF', 2:'#7E6148FF'}
+    my_palette = {1:'#E64B35FF', 2:'#3C5488FF'}
     pairs=[(1, 2)]
     order = [1,2]
 
     ax = sns.boxplot(x='SOZ', y='correlation', data=corr_df, palette=my_palette, order = order, showfliers = False)
     sns.stripplot(x="SOZ", y="correlation", data=corr_df, color="black", alpha=0.5)
     annotator = Annotator(ax, pairs, data=corr_df, x="SOZ", y="correlation", order=order)
-    annotator.configure(test='Mann-Whitney', text_format='star', loc='inside', verbose = True)
+    annotator.configure(test='Mann-Whitney', text_format='simple', loc='inside', verbose = True)
     annotator.apply_and_annotate()
 
 
@@ -349,27 +350,27 @@ for i, Feat_of_interest in enumerate(list_of_feats):
     plt.yticks(fontsize = 12)
 
     #part to change
-    plt.title(f'Distribution of Spearman Correlation by SOZ Type (Feature = {Feat_of_interest})', fontsize=16)
+    plt.title(f'(Feature = {Feat_of_interest}) Directionality', fontsize=16)
     sns.despine()
     plt.savefig(f'figures/sameside_perSOZ/bilateral/statistical_test/spearman/{Feat_of_interest}-ranksum_CLEAN.pdf')
     plt.show()
 
     #Pearson Correlation PLOTS
     #create a boxplot comparing the distribution of correlation across SOZ types
-    plt.figure(figsize=(10,10))
+    plt.figure(figsize=(8,6))
     #change font to arial
     plt.rcParams['font.family'] = 'Arial'
     my_palette = {1:'#E64B35FF', 'other cortex':'#7E6148FF', 'temporal neocortical':'#00A087FF'} #'temporal':'#3C5488FF'
     pairs=[(1, 'temporal neocortical'), ('temporal neocortical','other cortex'), (1,'other cortex')]
     order = [1,'temporal neocortical','other cortex']
 
-    my_palette = {1:'#E64B35FF', 2:'#7E6148FF'}
+    my_palette = {1:'#E64B35FF', 2:'#3C5488FF'}
     pairs=[(1, 2)]
     order = [1,2]
     ax = sns.boxplot(x='SOZ', y='correlation', data=pearson_df, palette=my_palette, order=order, showfliers = False)
     sns.stripplot(x="SOZ", y="correlation", data=pearson_df, color="black", alpha=0.5)
     annotator = Annotator(ax, pairs, data=pearson_df, x="SOZ", y="correlation", order=order)
-    annotator.configure(test='Mann-Whitney', text_format='star', loc='inside', verbose = True)
+    annotator.configure(test='Mann-Whitney', text_format='simple', loc='inside', verbose = True)
     annotator.apply_and_annotate()
 
     plt.xlabel('SOZ Type', fontsize=12)
@@ -380,7 +381,7 @@ for i, Feat_of_interest in enumerate(list_of_feats):
     plt.yticks(fontsize = 12)
 
     #part to change
-    plt.title(f'Distribution of Pearson Correlation by SOZ Type (Feature = {Feat_of_interest})', fontsize=16)
+    plt.title(f'Feature = {Feat_of_interest} Directionality', fontsize=16)
     sns.despine()
     plt.savefig(f'figures/sameside_perSOZ/bilateral/statistical_test/pearson/{Feat_of_interest}-ranksum_CLEAN.pdf')
     plt.show()
@@ -388,7 +389,7 @@ for i, Feat_of_interest in enumerate(list_of_feats):
     #SLOPE COEFFICIENT PLOTS for all contacts
     #create a boxplot comparing the distribution of correlation across SOZ types
     plt.figure(figsize=(10,10))
-    my_palette = {1:'#E64B35FF', 2:'#7E6148FF'}
+    my_palette = {1:'#E64B35FF', 2:'#3C5488FF'}
     #change font to arial
     plt.rcParams['font.family'] = 'Arial'
     pairs=[(1, 2)]
@@ -396,7 +397,7 @@ for i, Feat_of_interest in enumerate(list_of_feats):
     ax = sns.boxplot(x='SOZ', y='coef10', data=slope_df, palette=my_palette, order=order, showfliers = False)
     sns.stripplot(x="SOZ", y="coef10", data=slope_df, color="black", alpha=0.5)
     annotator = Annotator(ax, pairs, data=slope_df, x="SOZ", y="coef10", order=order)
-    annotator.configure(test='Mann-Whitney', text_format='star', loc='inside', verbose = True)
+    annotator.configure(test='Mann-Whitney', text_format='simple', loc='inside', verbose = True)
     annotator.apply_and_annotate()
 
     plt.xlabel('SOZ Type', fontsize=12)
@@ -404,14 +405,14 @@ for i, Feat_of_interest in enumerate(list_of_feats):
     #change the x-tick labels to be more readable
     plt.xticks(np.arange(2), ['Mesial Temporal', 'Other'], fontsize = 12)
     plt.yticks(fontsize = 12)
-    plt.title(f'Distribution of Slope Coefficients (all contacts) by SOZ Type (Feature = {Feat_of_interest})', fontsize=16)
+    plt.title(f'Feature = {Feat_of_interest} Directionality', fontsize=16)
     sns.despine()
     plt.savefig(f'figures/sameside_perSOZ/bilateral/statistical_test/new_metrics/coef10_{Feat_of_interest}-ranksum_CLEAN.pdf')
 
     #SLOPE COEFFICIENT PLOTS for FIRST VALUE
     #create a boxplot comparing the distribut   ion of correlation across SOZ types
-    plt.figure(figsize=(10,10))
-    my_palette = {1:'#E64B35FF', 2:'#7E6148FF'}
+    plt.figure(figsize=(8,6))
+    my_palette = {1:'#E64B35FF', 2:'#3C5488FF'}
     #change font to arial
     plt.rcParams['font.family'] = 'Arial'
     pairs=[(1, 2)]
@@ -419,7 +420,7 @@ for i, Feat_of_interest in enumerate(list_of_feats):
     ax = sns.boxplot(x='SOZ', y='first_value', data=slope_df, palette=my_palette, order=order, showfliers = False)
     sns.stripplot(x="SOZ", y="first_value", data=slope_df, color="black", alpha=0.5)
     annotator = Annotator(ax, pairs, data=slope_df, x="SOZ", y="first_value", order=order)
-    annotator.configure(test='Mann-Whitney', text_format='star', loc='inside', verbose = True)
+    annotator.configure(test='Mann-Whitney', text_format='simple', loc='inside', verbose = True)
     annotator.apply_and_annotate()
 
     plt.xlabel('SOZ Type', fontsize=12)
@@ -427,7 +428,7 @@ for i, Feat_of_interest in enumerate(list_of_feats):
     #change the x-tick labels to be more readable
     plt.xticks(np.arange(2), ['Mesial Temporal', 'Other'], fontsize = 12)
     plt.yticks(fontsize = 12)
-    plt.title(f'Distribution of First Values by SOZ Type (Feature = {Feat_of_interest})', fontsize=16)
+    plt.title(f'Feature = {Feat_of_interest} Directionality', fontsize=16)
     sns.despine()
 
     plt.savefig(f'figures/sameside_perSOZ/bilateral/statistical_test/new_metrics/first-value_{Feat_of_interest}-ranksum_CLEAN.pdf')
