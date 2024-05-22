@@ -25,7 +25,7 @@ sys.path.append(code_path)
 from ied_fx_v3 import *
 
 data_directory = ['/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2', '/mnt/leif/littlab/data/Human_Data']
-drop_pts = ['HUP093','HUP108','HUP113','HUP114','HUP116','HUP123','HUP087','HUP099','HUP111','HUP121','HUP105','HUP106','HUP107','HUP159']
+drop_pts = ['HUP093','HUP108','HUP113','HUP114','HUP116','HUP123','HUP087','HUP099','HUP111','HUP121','HUP105','HUP106','HUP107','HUP159'] #These are the patients with less than 8 contacts.
 #load in both spike dataframes for HUP
 spikes_full = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/complete_dfs/hup_thresholded.csv', index_col = 0)
 spikes_thresh = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/complete_dfs/hup_thresholded.csv', index_col= 0)
@@ -39,8 +39,8 @@ take_spike_leads = False
 soz_to_remove = ['temporal']
 
 # list_of_feats = ['spike_rate', 'decay_amp', 'rise_amp','sharpness','linelen','spike_width','slow_width','slow_amp','recruitment_latency_thresh']
-# list_of_feats = ['decay_amp','sharpness','linelen','slow_width','slow_amp']
-list_of_feats = ['spike_rate','recruitment_latency_thresh']
+list_of_feats = ['decay_amp','sharpness','linelen','slow_width','slow_amp']
+# list_of_feats = ['spike_rate','recruitment_latency_thresh']
 
 df_to_use = []
 for Feat_of_interest in list_of_feats:
@@ -99,8 +99,8 @@ for i, Feat_of_interest in enumerate(list_of_feats):
     ########################################
 
     #strip the letters from the channel_label column and keep only the numerical portion
-    mesial_temp_spikes['channel_label'] = mesial_temp_spikes['channel_label'].str.replace('L|R|A|H|B|C|D', '')
-    non_mesial_temp_spikes['channel_label'] = non_mesial_temp_spikes['channel_label'].str.replace('L|R|A|H|B|C|D', '')
+    mesial_temp_spikes['channel_label'] = mesial_temp_spikes['channel_label'].str.replace('L|R|A|H|B|C|D', '', regex = True)
+    non_mesial_temp_spikes['channel_label'] = non_mesial_temp_spikes['channel_label'].str.replace('L|R|A|H|B|C|D', '', regex = True)
 
     #replace "sharpness" with the absolute value of it
     mesial_temp_spikes[Feat_of_interest] = abs(mesial_temp_spikes[Feat_of_interest])
@@ -157,7 +157,7 @@ for i, Feat_of_interest in enumerate(list_of_feats):
     #reorder all_spikes_avg, so that is_mesial is decesending
     all_spikes_avg = all_spikes_avg.sort_values(by=['SOZ', 'pt_id'], ascending=[True, True])
 
-    if interp == 'True':
+    if interp == True:
         # Smooth out the data by interpolating along the rows while retaining the original number of rows
         all_spikes_avg_v2 = pd.DataFrame(index=all_spikes_avg.index, columns=np.linspace(0, len(all_spikes_avg.columns) - 1, 100), dtype=float)
         for i, row in all_spikes_avg.iterrows():
@@ -409,7 +409,7 @@ for i, Feat_of_interest in enumerate(list_of_feats):
     plt.savefig(f'figures/sameside_perSOZ/bilateral/statistical_test/new_metrics/coef10_{Feat_of_interest}-ranksum_CLEAN.pdf')
 
     #SLOPE COEFFICIENT PLOTS for FIRST VALUE
-    #create a boxplot comparing the distribution of correlation across SOZ types
+    #create a boxplot comparing the distribut   ion of correlation across SOZ types
     plt.figure(figsize=(10,10))
     my_palette = {1:'#E64B35FF', 2:'#7E6148FF'}
     #change font to arial
