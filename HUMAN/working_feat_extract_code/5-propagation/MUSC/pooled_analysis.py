@@ -749,3 +749,65 @@ plt.show()
 
 
 # %%
+####################################
+## NOW CREATE PLOTS FOR SPIKE RATE 
+####################################
+
+plt.figure(figsize=(8,6))
+#change font to arial
+plt.rcParams['font.family'] = 'Arial'
+
+my_palette = {1:'#E64B35FF', 2:'#3C5488FF'}
+pairs=[(1, 2)]
+order = [1,2]
+ax = sns.boxplot(x='SOZ', y='spike_rate_corr', data=pearson_df, palette=my_palette, order=order, showfliers = False)
+sns.stripplot(x="SOZ", y="spike_rate_corr", data=pearson_df, color="black", alpha=0.5)
+annotator = Annotator(ax, pairs, data=pearson_df, x="SOZ", y="spike_rate_corr", order=order)
+annotator.configure(test='Mann-Whitney', text_format='simple', loc='inside', verbose = True, comparisons_correction='Benjamini-Hochberg')
+annotator.apply_and_annotate()
+
+plt.xlabel('SOZ Type', fontsize=12)
+plt.ylabel('Pearson Correlation', fontsize=12)
+#change the x-tick labels to be more readable
+# plt.xticks(np.arange(3), ['Mesial Temporal', 'Neocortical', 'Other Cortex'], fontsize = 12)
+plt.xticks(np.arange(2), ['Mesial Temporal', 'Other'], fontsize = 12)
+plt.yticks(fontsize = 12)
+
+#part to change
+plt.title('Spike Rate Directionality', fontsize=16)
+sns.despine()
+plt.savefig(f'../figures/MUSC+HUP/official/spike_rate_pearon_CLEAN.pdf')
+plt.show()
+
+
+#%%
+#############################
+# NOW CREATE PLOTS FOR TIMING
+#############################
+
+plt.figure(figsize=(8,6))
+#change font to arial
+plt.rcParams['font.family'] = 'Arial'
+
+my_palette = {1:'#E64B35FF', 2:'#3C5488FF'}
+pairs=[(1, 2)]
+order = [1,2]
+ax = sns.boxplot(x='SOZ', y='recruitment_latency_thresh_corr', data=pearson_df, palette=my_palette, order=order, showfliers = False)
+sns.stripplot(x="SOZ", y="recruitment_latency_thresh_corr", data=pearson_df, color="black", alpha=0.5)
+annotator = Annotator(ax, pairs, data=pearson_df, x="SOZ", y="recruitment_latency_thresh_corr", order=order)
+annotator.configure(test='Mann-Whitney', text_format='simple', loc='inside', verbose = True, comparisons_correction='Benjamini-Hochberg')
+annotator.apply_and_annotate()
+
+plt.xlabel('SOZ Type', fontsize=12)
+plt.ylabel('Pearson Correlation', fontsize=12)
+#change the x-tick labels to be more readable
+# plt.xticks(np.arange(3), ['Mesial Temporal', 'Neocortical', 'Other Cortex'], fontsize = 12)
+plt.xticks(np.arange(2), ['Mesial Temporal', 'Other'], fontsize = 12)
+plt.yticks(fontsize = 12)
+
+#part to change
+plt.title('Spike Timing Directionality', fontsize=16)
+sns.despine()
+plt.savefig(f'../figures/MUSC+HUP/official/timing_pearon_CLEAN.pdf')
+plt.show()
+# %%
