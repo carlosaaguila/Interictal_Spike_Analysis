@@ -41,14 +41,14 @@ multi_file = filenamescsv[filenamescsv['hup_id'].duplicated()]['hup_id'].unique(
 pt_ids = filenamescsv[~filenamescsv['hup_id'].isin(multi_file)]
 
 #%%
-
+pt_ids
 with open("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/error_log.txt", "a") as log_file:
     for index, row in pt_ids.iterrows():
         pt_id = row['hup_id']
         filename = row['filename']
 
-        rows = 7
-        cols = 2
+        rows = 1
+        cols = 1
         num_plots = rows * cols
         fig, axes = plt.subplots(rows, cols, figsize=(15,20)) 
 
@@ -122,7 +122,7 @@ with open("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/worki
                 ax = axes[row,col]
                 ax.plot(plt_samps, CAR_data[ch_oi][start:stop])
                 #plot morphology
-                ax.plot(peak, CAR_data[ch_oi].iloc[peak], 'o', color = 'r')
+                ax.plot(peak, CAR_data[ch_oi].iloc[peak], 'o', color = 'r', label = 'Peak')
                 ax.plot(left, CAR_data[ch_oi].iloc[left], 'o', color = 'b')
                 ax.plot(right, CAR_data[ch_oi].iloc[right], 'o', color = 'b')
                 ax.plot(slow_end, CAR_data[ch_oi].iloc[slow_end], 'o', color = 'k')
@@ -137,5 +137,7 @@ with open("/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/worki
         plt.subplots_adjust(top = 0.95)
         # plt.show()
 
-        plt.savefig(f'/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/supplemental_figs/random_detects_and_morph/{pt_id}_spikes.png', dpi = 600)
+        # plt.savefig(f'/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/supplemental_figs/random_detects_and_morph/{pt_id}_spikes.png', dpi = 600)
 
+
+# %%

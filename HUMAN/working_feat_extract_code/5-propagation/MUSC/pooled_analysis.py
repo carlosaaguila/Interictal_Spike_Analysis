@@ -383,7 +383,7 @@ for Feat_of_interest in list_of_feats:
     if interp == True:
         plt.figure(figsize=(10,20))
     else:
-        plt.figure(figsize=(20,20))
+        plt.figure(figsize=(10,20))
 
     # sns.heatmap(all_spikes_avg, cmap='viridis', alpha = 1)
     sns.heatmap(all_spikes_avg, cmap = 'rocket', alpha = 1)
