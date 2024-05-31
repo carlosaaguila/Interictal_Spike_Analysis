@@ -51,6 +51,7 @@ for Feat_of_interest in list_of_feats:
     else:
         df_to_use.append(0)
 
+vs_other = False
 interp = False
 
 ALL_HUP_FEATS = []
@@ -179,7 +180,7 @@ all_spikes_list = [MUSC_full, MUSC_thresh]
 # ADD MUSC PATIENTS
 # KEEP THE SAME SIDE, PLUS FOR BILATERAL TAKE BOTH SIDES
 
-vs_other = True #CHANGE if you want to compare 2 groups, or 3. [False: you compare mtle, tle, other] [True: you compare mtle vs. other]
+# vs_other = True #CHANGE if you want to compare 2 groups, or 3. [False: you compare mtle, tle, other] [True: you compare mtle vs. other]
 # list_of_feats = ['spike_rate', 'rise_amp','decay_amp','sharpness','linelen','recruiment_latency','spike_width','slow_width','slow_amp']
 list_of_feats = ['spike_rate','recruitment_latency_thresh','decay_amp','sharpness','linelen','slow_amp']
 
@@ -514,19 +515,38 @@ for Feat_of_interest in list_of_feats:
     # corr_df = corr_df[corr_df['SOZ'] != 'temporal']
     # pearson_df = pearson_df[pearson_df['SOZ'] != 'temporal']
 
-    def soz_assigner(row):
-        if row['SOZ'] == 'temporal neocortical':
-            return int(2)
-        elif row['SOZ'] == 'other cortex':
-            return int(2)
-        elif row['SOZ'] == 'mesial temporal':
-            return int(1)
-        else:
-            return None
+    if vs_other == True: 
 
-    corr_df['SOZ'] = corr_df.apply(soz_assigner, axis = 1)
-    pearson_df['SOZ'] = pearson_df.apply(soz_assigner, axis = 1)
-    slope_df['SOZ'] = slope_df.apply(soz_assigner, axis = 1)
+        def soz_assigner(row):
+            if row['SOZ'] == 'temporal neocortical':
+                return int(2)
+            elif row['SOZ'] == 'other cortex':
+                return int(2)
+            elif row['SOZ'] == 'mesial temporal':
+                return int(1)
+            else:
+                return None
+
+        corr_df['SOZ'] = corr_df.apply(soz_assigner, axis = 1)
+        pearson_df['SOZ'] = pearson_df.apply(soz_assigner, axis = 1)
+        slope_df['SOZ'] = slope_df.apply(soz_assigner, axis = 1)
+
+    if vs_other == False:
+
+        def soz_assigner(row):
+            if row['SOZ'] == 'temporal neocortical':
+                return int(2)
+            elif row['SOZ'] == 'other cortex':
+                return int(3)
+            elif row['SOZ'] == 'mesial temporal':
+                return int(1)
+            else:
+                return None
+
+        corr_df['SOZ'] = corr_df.apply(soz_assigner, axis = 1)
+        pearson_df['SOZ'] = pearson_df.apply(soz_assigner, axis = 1)
+        slope_df['SOZ'] = slope_df.apply(soz_assigner, axis = 1)
+
 
 # %%
 #SPEARMAN PLOTS MORPHOLOGY
@@ -541,25 +561,47 @@ melted_corr_df = corr_df.melt(id_vars='SOZ',
 
 # Set up the matplotlib figure
 fig, ax = plt.subplots(1,1, figsize=(12,6))
-my_palette = {1:'#E64B35FF', 2:'#3C5488FF'}
-fig_args = {'x':'Metric',
-            'y':'Value',
-            'hue':'SOZ',
-            'data':melted_corr_df,
-            'order':['decay_amp_corr','sharpness_corr','linelen_corr','slow_amp_corr'],
-            'hue_order':[1,2]}
+if vs_other == True:
+    my_palette = {1:'#E64B35FF', 2:'#3C5488FF'}
+    fig_args = {'x':'Metric',
+                'y':'Value',
+                'hue':'SOZ',
+                'data':melted_corr_df,
+                'order':['decay_amp_corr','sharpness_corr','linelen_corr','slow_amp_corr'],
+                'hue_order':[1,2]}
 
-significanceComparisons = [(('decay_amp_corr',1), ('decay_amp_corr',2)),
-                           (('sharpness_corr',1), ('sharpness_corr',2)),
-                           (('linelen_corr',1), ('linelen_corr',2)),
-                           (('slow_amp_corr',1), ('slow_amp_corr',2))]
+    significanceComparisons = [(('decay_amp_corr',1), ('decay_amp_corr',2)),
+                            (('sharpness_corr',1), ('sharpness_corr',2)),
+                            (('linelen_corr',1), ('linelen_corr',2)),
+                            (('slow_amp_corr',1), ('slow_amp_corr',2))]
+else:
+    my_palette = {1:'#E64B35FF', 3:'#7E6148FF', 2:'#00A087FF'}
+    fig_args = {'x':'Metric',
+                'y':'Value',
+                'hue':'SOZ',
+                'data':melted_corr_df,
+                'order':['decay_amp_corr','sharpness_corr','linelen_corr','slow_amp_corr'],
+                'hue_order':[1,2,3]}
+
+    significanceComparisons = [(('decay_amp_corr',1), ('decay_amp_corr',2)),
+                            (('decay_amp_corr',1), ('decay_amp_corr',3)),
+                            (('decay_amp_corr',2), ('decay_amp_corr',3)),
+                            (('sharpness_corr',1), ('sharpness_corr',2)),
+                            (('sharpness_corr',1), ('sharpness_corr',3)),
+                            (('sharpness_corr',2), ('sharpness_corr',3)),
+                            (('linelen_corr',1), ('linelen_corr',2)),
+                            (('linelen_corr',1), ('linelen_corr',3)),
+                            (('linelen_corr',2), ('linelen_corr',2)),
+                            (('slow_amp_corr',1), ('slow_amp_corr',2)),
+                            (('slow_amp_corr',1), ('slow_amp_corr',3)),
+                            (('slow_amp_corr',2), ('slow_amp_corr',3))]
 
 sns.boxplot(ax=ax, showfliers = False,palette=my_palette, **fig_args)
 sns.stripplot(ax =ax, color = 'k', alpha = 0.5, dodge=True, jitter=True, size=5, **fig_args)
 
 annotator = Annotator(ax=ax, pairs=significanceComparisons,
                       **fig_args, plot='boxplot')
-configuration = {'test':'Mann-Whitney',
+configuration = {'test':'Kruskal',
                  'comparisons_correction':'Benjamini-Hochberg',
                  'text_format':'simple',
                  'loc':'inside',
@@ -576,11 +618,15 @@ ax.set(xlabel=None)
 
 # Update the legend to prevent duplication
 handles, labels = ax.get_legend_handles_labels()
-ax.legend(handles[:2], ['mTLE', 'Other'], loc='upper right', fontsize=12, bbox_to_anchor=(1.05, 1))
+if vs_other == True:
+    ax.legend(handles[:2], ['mTLE', 'Other'], loc='upper right', fontsize=12, bbox_to_anchor=(1.05, 1))
+else: 
+    ax.legend(handles[:3], ['mTLE', 'Neo', 'Other'], loc='upper right', fontsize=12, bbox_to_anchor=(1.05, 1))
+
 
 # Show the plot
 sns.despine()
-plt.savefig(f'../figures/MUSC+HUP/official/ALL_spearman_CLEAN.pdf')
+# plt.savefig(f'../figures/MUSC+HUP/official/ALL_spearman_CLEAN.pdf')
 plt.show()
 
 #%%
@@ -596,26 +642,56 @@ melted_pearson_df = pearson_df.melt(id_vars='SOZ',
 
 # Set up the matplotlib figure
 fig, ax = plt.subplots(1,1, figsize=(12,6))
-my_palette = {1:'#E64B35FF', 2:'#3C5488FF'}
-fig_args = {'x':'Metric',
-            'y':'Value',
-            'hue':'SOZ',
-            'data':melted_pearson_df,
-            'order':['decay_amp_corr','sharpness_corr','linelen_corr','slow_amp_corr'],
-            'hue_order':[1,2]}
+if vs_other == True:
+    my_palette = {1:'#E64B35FF', 2:'#3C5488FF'}
+    fig_args = {'x':'Metric',
+                'y':'Value',
+                'hue':'SOZ',
+                'data':melted_pearson_df,
+                'order':['decay_amp_corr','sharpness_corr','linelen_corr','slow_amp_corr'],
+                'hue_order':[1,2]}
 
-significanceComparisons = [(('decay_amp_corr',1), ('decay_amp_corr',2)),
-                           (('sharpness_corr',1), ('sharpness_corr',2)),
-                           (('linelen_corr',1), ('linelen_corr',2)),
-                           (('slow_amp_corr',1), ('slow_amp_corr',2))]
+    significanceComparisons = [(('decay_amp_corr',1), ('decay_amp_corr',2)),
+                            (('sharpness_corr',1), ('sharpness_corr',2)),
+                            (('linelen_corr',1), ('linelen_corr',2)),
+                            (('slow_amp_corr',1), ('slow_amp_corr',2))]
+else:
+    my_palette = {1:'#E64B35FF', 3:'#7E6148FF', 2:'#00A087FF'}
+    fig_args = {'x':'Metric',
+                'y':'Value',
+                'hue':'SOZ',
+                'data':melted_pearson_df,
+                'order':['decay_amp_corr','sharpness_corr','linelen_corr','slow_amp_corr'],
+                'hue_order':[1,2,3]}
+
+    significanceComparisons = [(('decay_amp_corr',1), ('decay_amp_corr',2)),
+                            (('decay_amp_corr',1), ('decay_amp_corr',3)),
+                            (('decay_amp_corr',2), ('decay_amp_corr',3)),
+                            (('sharpness_corr',1), ('sharpness_corr',2)),
+                            (('sharpness_corr',1), ('sharpness_corr',3)),
+                            (('sharpness_corr',2), ('sharpness_corr',3)),
+                            (('linelen_corr',1), ('linelen_corr',2)),
+                            (('linelen_corr',1), ('linelen_corr',3)),
+                            (('linelen_corr',2), ('linelen_corr',2)),
+                            (('slow_amp_corr',1), ('slow_amp_corr',2)),
+                            (('slow_amp_corr',1), ('slow_amp_corr',3)),
+                            (('slow_amp_corr',2), ('slow_amp_corr',3))]
+    
+    # significanceComparisons = [(('decay_amp_corr',1), ('decay_amp_corr',2), ('decay_amp_corr',3)),
+    #                            (('sharpness_corr',1), ('sharpness_corr',2), ('sharpness_corr',3)),
+    #                            (('linelen_corr',1), ('linelen_corr',2), ('linelen_corr',3)),
+    #                            (('slow_amp_corr',1), ('slow_amp_corr',2), ('slow_amp_corr',3))]
 
 sns.boxplot(ax=ax, showfliers = False,palette=my_palette, **fig_args)
 sns.stripplot(ax =ax, color = 'k', alpha = 0.5, dodge=True, jitter=True, size=5, **fig_args)
 
 annotator = Annotator(ax=ax, pairs=significanceComparisons,
                       **fig_args, plot='boxplot')
-configuration = {'test':'Mann-Whitney',
-                 'comparisons_correction':'Benjamini-Hochberg',
+# test = 'Mann-Whitney'
+test = 'Kruskal'
+comp = 'BH'
+configuration = {'test':test,
+                 'comparisons_correction':comp,
                  'text_format':'simple',
                  'loc':'inside',
                  'verbose':True}
@@ -631,11 +707,14 @@ ax.set(xlabel=None)
 
 # Update the legend to prevent duplication
 handles, labels = ax.get_legend_handles_labels()
-ax.legend(handles[:2], ['mTLE', 'Other'], loc='upper right', fontsize=12, bbox_to_anchor=(1.05, 1))
+if vs_other == True:
+    ax.legend(handles[:2], ['mTLE', 'Other'], loc='upper right', fontsize=12, bbox_to_anchor=(1.05, 1))
+else: 
+    ax.legend(handles[:3], ['mTLE', 'Neo', 'Other'], loc='upper right', fontsize=12, bbox_to_anchor=(1.05, 1))
 
 # Show the plot
 sns.despine()
-plt.savefig(f'../figures/MUSC+HUP/official/ALL_pearson_CLEAN.pdf')
+# plt.savefig(f'../figures/MUSC+HUP/official/ALL_pearson_CLEAN.pdf')
 plt.show()
 
 
@@ -756,27 +835,46 @@ plt.show()
 plt.figure(figsize=(8,6))
 #change font to arial
 plt.rcParams['font.family'] = 'Arial'
+test = 'Kruskal'
 
-my_palette = {1:'#E64B35FF', 2:'#3C5488FF'}
-pairs=[(1, 2)]
-order = [1,2]
-ax = sns.boxplot(x='SOZ', y='spike_rate_corr', data=pearson_df, palette=my_palette, order=order, showfliers = False)
-sns.stripplot(x="SOZ", y="spike_rate_corr", data=pearson_df, color="black", alpha=0.5)
-annotator = Annotator(ax, pairs, data=pearson_df, x="SOZ", y="spike_rate_corr", order=order)
-annotator.configure(test='Mann-Whitney', text_format='simple', loc='inside', verbose = True, comparisons_correction='Benjamini-Hochberg')
-annotator.apply_and_annotate()
+if vs_other == True:
+    my_palette = {1:'#E64B35FF', 2:'#3C5488FF'}
+    pairs=[(1, 2)]
+    order = [1,2]
+    ax = sns.boxplot(x='SOZ', y='spike_rate_corr', data=pearson_df, palette=my_palette, order=order, showfliers = False)
+    sns.stripplot(x="SOZ", y="spike_rate_corr", data=pearson_df, color="black", alpha=0.5)
+    annotator = Annotator(ax, pairs, data=pearson_df, x="SOZ", y="spike_rate_corr", order=order)
+    annotator.configure(test='Mann-Whitney', text_format='simple', loc='inside', verbose = True, comparisons_correction='Benjamini-Hochberg')
+    annotator.apply_and_annotate()
 
-plt.xlabel('SOZ Type', fontsize=12)
-plt.ylabel('Pearson Correlation', fontsize=12)
-#change the x-tick labels to be more readable
-# plt.xticks(np.arange(3), ['Mesial Temporal', 'Neocortical', 'Other Cortex'], fontsize = 12)
-plt.xticks(np.arange(2), ['Mesial Temporal', 'Other'], fontsize = 12)
-plt.yticks(fontsize = 12)
+    plt.xlabel('SOZ Type', fontsize=12)
+    plt.ylabel('Pearson Correlation', fontsize=12)
+    #change the x-tick labels to be more readable
+    # plt.xticks(np.arange(3), ['Mesial Temporal', 'Neocortical', 'Other Cortex'], fontsize = 12)
+    plt.xticks(np.arange(2), ['Mesial Temporal', 'Other'], fontsize = 12)
+    plt.yticks(fontsize = 12)
+
+if vs_other== False:
+    my_palette = {1:'#E64B35FF', 3:'#7E6148FF', 2:'#00A087FF'}
+    pairs=[(1, 2), (2,3), (1,3)]
+    order = [1,2,3]
+    ax = sns.boxplot(x='SOZ', y='spike_rate_corr', data=pearson_df, palette=my_palette, order=order, showfliers = False)
+    sns.stripplot(x="SOZ", y="spike_rate_corr", data=pearson_df, color="black", alpha=0.5)
+    annotator = Annotator(ax, pairs, data=pearson_df, x="SOZ", y="spike_rate_corr", order=order)
+    annotator.configure(test=test, text_format='simple', loc='inside', verbose = True, comparisons_correction='Benjamini-Hochberg')
+    annotator.apply_and_annotate()
+
+    plt.xlabel('SOZ Type', fontsize=12)
+    plt.ylabel('Pearson Correlation', fontsize=12)
+    #change the x-tick labels to be more readable
+    # plt.xticks(np.arange(3), ['Mesial Temporal', 'Neocortical', 'Other Cortex'], fontsize = 12)
+    plt.xticks(np.arange(3), ['Mesial Temporal', 'Neo', 'Other'], fontsize = 12)
+    plt.yticks(fontsize = 12)
 
 #part to change
 plt.title('Spike Rate Directionality', fontsize=16)
 sns.despine()
-plt.savefig(f'../figures/MUSC+HUP/official/spike_rate_pearon_CLEAN.pdf')
+# plt.savefig(f'../figures/MUSC+HUP/official/spike_rate_pearon_CLEAN.pdf')
 plt.show()
 
 
@@ -788,26 +886,120 @@ plt.show()
 plt.figure(figsize=(8,6))
 #change font to arial
 plt.rcParams['font.family'] = 'Arial'
+test = 'Kruskal'
 
-my_palette = {1:'#E64B35FF', 2:'#3C5488FF'}
-pairs=[(1, 2)]
-order = [1,2]
-ax = sns.boxplot(x='SOZ', y='recruitment_latency_thresh_corr', data=pearson_df, palette=my_palette, order=order, showfliers = False)
-sns.stripplot(x="SOZ", y="recruitment_latency_thresh_corr", data=pearson_df, color="black", alpha=0.5)
-annotator = Annotator(ax, pairs, data=pearson_df, x="SOZ", y="recruitment_latency_thresh_corr", order=order)
-annotator.configure(test='Mann-Whitney', text_format='simple', loc='inside', verbose = True, comparisons_correction='Benjamini-Hochberg')
-annotator.apply_and_annotate()
+if vs_other == True:
+    my_palette = {1:'#E64B35FF', 2:'#3C5488FF'}
+    pairs=[(1, 2)]
+    order = [1,2]
+    ax = sns.boxplot(x='SOZ', y='recruitment_latency_thresh_corr', data=pearson_df, palette=my_palette, order=order, showfliers = False)
+    sns.stripplot(x="SOZ", y="recruitment_latency_thresh_corr", data=pearson_df, color="black", alpha=0.5)
+    annotator = Annotator(ax, pairs, data=pearson_df, x="SOZ", y="recruitment_latency_thresh_corr", order=order)
+    annotator.configure(test='Mann-Whitney', text_format='simple', loc='inside', verbose = True, comparisons_correction='Benjamini-Hochberg')
+    annotator.apply_and_annotate()
 
-plt.xlabel('SOZ Type', fontsize=12)
-plt.ylabel('Pearson Correlation', fontsize=12)
-#change the x-tick labels to be more readable
-# plt.xticks(np.arange(3), ['Mesial Temporal', 'Neocortical', 'Other Cortex'], fontsize = 12)
-plt.xticks(np.arange(2), ['Mesial Temporal', 'Other'], fontsize = 12)
-plt.yticks(fontsize = 12)
+    plt.xlabel('SOZ Type', fontsize=12)
+    plt.ylabel('Pearson Correlation', fontsize=12)
+    #change the x-tick labels to be more readable
+    # plt.xticks(np.arange(3), ['Mesial Temporal', 'Neocortical', 'Other Cortex'], fontsize = 12)
+    plt.xticks(np.arange(2), ['Mesial Temporal', 'Other'], fontsize = 12)
+    plt.yticks(fontsize = 12)
+
+if vs_other== False:
+    my_palette = {1:'#E64B35FF', 3:'#7E6148FF', 2:'#00A087FF'}
+    pairs=[(1, 2), (2,3), (1,3)]
+    order = [1,2,3]
+    ax = sns.boxplot(x='SOZ', y='recruitment_latency_thresh_corr', data=pearson_df, palette=my_palette, order=order, showfliers = False)
+    sns.stripplot(x="SOZ", y="recruitment_latency_thresh_corr", data=pearson_df, color="black", alpha=0.5)
+    annotator = Annotator(ax, pairs, data=pearson_df, x="SOZ", y="recruitment_latency_thresh_corr", order=order)
+    annotator.configure(test=test, text_format='simple', loc='inside', verbose = True, comparisons_correction='Benjamini-Hochberg')
+    annotator.apply_and_annotate()
+
+    plt.xlabel('SOZ Type', fontsize=12)
+    plt.ylabel('Pearson Correlation', fontsize=12)
+    #change the x-tick labels to be more readable
+    # plt.xticks(np.arange(3), ['Mesial Temporal', 'Neocortical', 'Other Cortex'], fontsize = 12)
+    plt.xticks(np.arange(3), ['Mesial Temporal', 'Neo', 'Other'], fontsize = 12)
+    plt.yticks(fontsize = 12)
 
 #part to change
 plt.title('Spike Timing Directionality', fontsize=16)
 sns.despine()
-plt.savefig(f'../figures/MUSC+HUP/official/timing_pearon_CLEAN.pdf')
+# plt.savefig(f'../figures/MUSC+HUP/official/timing_pearon_CLEAN.pdf')
 plt.show()
 # %%
+####################################
+# look for grouped stats (high level)
+####################################
+
+#######
+#Morphology
+
+from scipy.stats import f_oneway, levene, shapiro, kruskal
+
+x = decay_amp_corr
+_,p1 = shapiro(x[x['SOZ'] == 1]['Value'])
+_,p2 = shapiro(x[x['SOZ'] == 2]['Value'])
+_,p3 = shapiro(x[x['SOZ'] == 3]['Value'])
+print(f"Shapiro-Wilk test p-values: group1={p1}, group2={p2}, group3={p3}")
+_, p_levene = levene(x[x['SOZ'] == 1]['Value'], x[x['SOZ'] == 2]['Value'], x[x['SOZ'] == 3]['Value'])
+print(f"Levene's test p-value: {p_levene}")
+
+k1,tp1 = f_oneway(x[x['SOZ'] == 1]['Value'],x[x['SOZ'] == 2]['Value'],x[x['SOZ'] == 3]['Value'])
+print('decay amp p:',p1)
+print('---------------------')
+
+x = slow_amp_corr
+_,p1 = shapiro(x[x['SOZ'] == 1]['Value'])
+_,p2 = shapiro(x[x['SOZ'] == 2]['Value'])
+_,p3 = shapiro(x[x['SOZ'] == 3]['Value'])
+print(f"Shapiro-Wilk test p-values: group1={p1}, group2={p2}, group3={p3}")
+_, p_levene = levene(x[x['SOZ'] == 1]['Value'], x[x['SOZ'] == 2]['Value'], x[x['SOZ'] == 3]['Value'])
+print(f"Levene's test p-value: {p_levene}")
+k2,tp2 = f_oneway(x[x['SOZ'] == 1]['Value'],x[x['SOZ'] == 2]['Value'],x[x['SOZ'] == 3]['Value'])
+print('slow wave amp p',p2)
+print('---------------------')
+
+x = sharpness_corr
+_,p1 = shapiro(x[x['SOZ'] == 1]['Value'])
+_,p2 = shapiro(x[x['SOZ'] == 2]['Value'])
+_,p3 = shapiro(x[x['SOZ'] == 3]['Value'])
+print(f"Shapiro-Wilk test p-values: group1={p1}, group2={p2}, group3={p3}")
+_, p_levene = levene(x[x['SOZ'] == 1]['Value'], x[x['SOZ'] == 2]['Value'], x[x['SOZ'] == 3]['Value'])
+print(f"Levene's test p-value: {p_levene}")
+k3,tp3 = f_oneway(x[x['SOZ'] == 1]['Value'],x[x['SOZ'] == 2]['Value'],x[x['SOZ'] == 3]['Value'])
+print('sharpness corr',p3)
+print('---------------------')
+
+x = linelen_corr
+_,p1 = shapiro(x[x['SOZ'] == 1]['Value'])
+_,p2 = shapiro(x[x['SOZ'] == 2]['Value'])
+_,p3 = shapiro(x[x['SOZ'] == 3]['Value'])
+print(f"Shapiro-Wilk test p-values: group1={p1}, group2={p2}, group3={p3}")
+_, p_levene = levene(x[x['SOZ'] == 1]['Value'], x[x['SOZ'] == 2]['Value'], x[x['SOZ'] == 3]['Value'])
+print(f"Levene's test p-value: {p_levene}")
+k4,tp4 = f_oneway(x[x['SOZ'] == 1]['Value'],x[x['SOZ'] == 2]['Value'],x[x['SOZ'] == 3]['Value'])
+print('linelen p',p4)
+print('---------------------')
+
+
+# Collect all p-values
+p_values = np.array([tp1, tp2, tp3, tp4])
+
+from statsmodels.stats.multitest import multipletests
+# Apply FDR correction
+rejected, p_values_corrected, _, _ = multipletests(p_values, alpha=0.05, method='fdr_bh')
+
+print('decay amp, slow amp, sharpness, linelen')
+print(rejected)
+print(p_values_corrected)
+
+#######
+#TIMING + RATE
+
+rate = pearson_df[['spike_rate_corr','SOZ']]
+latency = pearson_df[['SOZ','recruitment_latency_thresh_corr']]
+
+#change if you want anova, but really no different in results
+print(kruskal(rate[rate['SOZ'] == 1]['spike_rate_corr'], rate[rate['SOZ'] == 2]['spike_rate_corr'],rate[rate['SOZ'] == 3]['spike_rate_corr']))
+print(kruskal(latency[latency['SOZ'] == 1]['recruitment_latency_thresh_corr'], latency[latency['SOZ'] == 2]['recruitment_latency_thresh_corr'],latency[latency['SOZ'] == 3]['recruitment_latency_thresh_corr']))
