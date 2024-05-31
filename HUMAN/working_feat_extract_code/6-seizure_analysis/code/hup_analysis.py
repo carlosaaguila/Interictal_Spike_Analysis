@@ -457,3 +457,17 @@ plt.title(f'Feature = EI, Directionality', fontsize=16)
 sns.despine()
 # plt.savefig(f'figures/sameside_perSOZ/bilateral/statistical_test/pearson/{Feat_of_interest}-ranksum_CLEAN.pdf')
 plt.show()
+# %%
+
+#######
+#EI ANOVA
+from scipy.stats import kruskal, shapiro, levene, f_oneway
+
+ei = pearson_df[['SOZ','correlation']]
+
+#change if you want anova, but really no different in results
+print(kruskal(ei[ei['SOZ'] == 1]['correlation'], ei[ei['SOZ'] == 2]['correlation'],ei[ei['SOZ'] == 3]['correlation']))
+print(f_oneway(ei[ei['SOZ'] == 1]['correlation'], ei[ei['SOZ'] == 2]['correlation'],ei[ei['SOZ'] == 3]['correlation']))
+
+
+# %%
