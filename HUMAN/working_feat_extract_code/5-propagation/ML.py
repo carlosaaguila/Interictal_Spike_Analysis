@@ -26,11 +26,16 @@ from ied_fx_v3 import *
 data_directory = ['/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2', '/mnt/leif/littlab/data/Human_Data']
 
 # %%
+subset = True
+
 
 pearson_df = pd.read_csv('dataset/ML_data/pearson_ML_v3.csv', index_col=0)
 pearson_df['SOZ'] = pearson_df['SOZ'].replace(2, 0)
 spearman_df = pd.read_csv('dataset/ML_data/spearman_ML_v2.csv', index_col=0)
-EI_df = pd.read_csv('dataset/ML_data/EI_corr.csv', index_col = 0)[['EI_corr','pt_id']]
+if subset == True:
+    EI_df = pd.read_csv('dataset/ML_data/EI_corr_subset_pearson.csv', index_col = 0)[['EI_corr','pt_id']]
+elif subset == False:
+    EI_df = pd.read_csv('dataset/ML_data/EI_corr_full_pearson.csv', index_col = 0)[['correlation','pt_id']]
 
 combine_pearson = pearson_df.merge(EI_df, on='pt_id')
 
@@ -248,12 +253,13 @@ plt.plot(np.linspace(0,1,100), np.linspace(0,1,100), '--', color='black')
 
 
 ########################
-# LEAVE ONE OUT - Logistic Regression
+# #ONLY ICTAL DATA
 # ########################
 
-#ONLY SPIKE RATE
-
-all_feats = pd.read_csv('dataset/ML_data/EI_corr.csv', index_col = 0)
+if subset == False: 
+    all_feats = combine_pearson[['correlation','pt_id','SOZ']]
+else:
+    all_feats = combine_pearson[['EI_corr','pt_id','SOZ']]
 
 
 #Split the data according to IDs 
@@ -343,7 +349,17 @@ sns.despine()
 # plt.title("Confusion Matrix for LR test set predictions (spike rate)")
 # plt.xlabel("Predicted Label")
 # plt.ylabel("True Label")
-plt.savefig('figures/ML/all_ROCS_AES.pdf')
+
+# Alternatively, use tick_params for setting font size
+plt.tick_params(axis='both', which='major', labelsize=16)
+
+# Manually set the weight to bold for tick labels
+for label in plt.gca().get_xticklabels():
+    label.set_weight('bold')
+for label in plt.gca().get_yticklabels():
+    label.set_weight('bold')
+
+# plt.savefig('figures/ML/all_ROCS_AES.pdf')
 
 plt.show()
 
