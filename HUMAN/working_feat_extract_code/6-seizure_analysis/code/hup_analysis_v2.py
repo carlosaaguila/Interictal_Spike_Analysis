@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 import warnings
 warnings.filterwarnings('ignore')
+import ast
 
 # Import custom functions
 import sys, os
@@ -25,9 +26,31 @@ code_path = os.path.dirname('/mnt/leif/littlab/users/aguilac/Interictal_Spike_An
 sys.path.append(code_path)
 from ied_fx_v3 import *
 
-hup_ei = pd.read_csv('../data/expanded_results_Carlos_HUP.csv')
+hup_ei = pd.read_csv('../data/all_EI_results_summary_15052024.csv')
 
 #%%
+# remove any row that has all 0's for EI# Assuming 'df' is your DataFrame
+hup_ei['EI'] = hup_ei['EI'].apply(lambda x: list(map(float, x.strip('[]').split())))
+
+import ast
+# Function to convert string representation of list to actual list
+def convert_to_list(string_list):
+    return ast.literal_eval(string_list)
+# Apply the function to the 'name' column
+hup_ei['name'] = hup_ei['name'].apply(convert_to_list)
+
+# Remove rows where 'EI' is a list of all zeros
+df_filtered = hup_ei[hup_ei['EI'].apply(lambda x: not np.all(np.array(x) == 0.0))]
+
+# Explode the EI and name columns to unnest the lists
+df_exploded = df_filtered.explode(['EI', 'name'])
+
+# Reset index if needed
+df_exploded = df_exploded.reset_index(drop=True)
+
+#%%
+hup_ei = df_exploded #reassign back to this variable for the rest of the analysis.
+
 hup_ei['EI'] = pd.to_numeric(hup_ei['EI'], errors='coerce')
 hup_ei = hup_ei.dropna(subset=['EI'])
 
@@ -47,23 +70,47 @@ grouped['channel_label'] = grouped.apply(
     axis=1
 )
 
-grouped = grouped[~grouped['channel_label'].str.contains('T|F|P|RCC|RCA|RAD|LAD|LHD|RHD|LDAH|RDAH|RCB')].reset_index(drop=True)
+hup_files = pd.read_csv('../data/HUP_files.csv', index_col = 0)
 
+all_spikes = grouped.merge(hup_files[['pt_id','channel_label']], on = 'pt_id', how = 'inner')
 
-#%% grab SOZs
+# Function to convert string representation of list to actual list if needed
+def convert_to_list(string_list):
+    if isinstance(string_list, str):
+        return ast.literal_eval(string_list)
+    return string_list
+
+# Convert string representations of lists to actual lists if needed
+all_spikes['channel_label_y'] = all_spikes['channel_label_y'].apply(convert_to_list)
+
+def is_channel_in_list(row):
+    return row['channel_label_x'] in row['channel_label_y']
+
+# Filter rows where channel_label_x is in channel_label_y
+all_spikes = all_spikes[all_spikes.apply(is_channel_in_list, axis=1)].reset_index(drop=True)
+
+chs_tokeep = ['RA','LA','RDA','LDA','LH','RH','LDH','RDH','DA','DH','DHA','LB','LDB','LC','LDC','RB','RDB','RC','RDC']
+
+#if channel_label contains any of the strings in chs_tokeep, keep it
+all_spikes = all_spikes[all_spikes['channel_label_x'].str.contains('|'.join(chs_tokeep))].reset_index(drop=True)
+
+all_spikes = all_spikes[~all_spikes['channel_label_x'].str.contains('T|F|P|RCC|RCA|RAD|LAD|LHD|RHD|LDAH|RDAH|RCB|Z')].reset_index(drop=True)
+
+#strip the letters from the channel_label column and keep only the numerical portion
+all_spikes['channel_label_x'] = all_spikes['channel_label_x'].str.replace('L|R|A|H|B|C|D', '', regex = True)
+
 hup_sozs = pd.read_csv('../data/SOZ_hup.csv', index_col = 0)
 uniques_sozs = hup_sozs[['pt_id','SOZ']].drop_duplicates()
-
-#%% merge them
-grouped = grouped.merge(uniques_sozs, on = 'pt_id', how='inner')
+# merge them
+all_spikes = all_spikes.merge(uniques_sozs, on = 'pt_id', how='inner')
+all_spikes = all_spikes.drop(columns = 'channel_label_y')
 
 # %%
-#strip the letters from the channel_label column and keep only the numerical portion
-grouped['channel_label'] = grouped['channel_label'].str.replace('L|R|A|H|B|C|D', '', regex = True)
 #concatenate mesial_temp_spikes_avg and non_mesial_temp_spikes_avg
 def quantile_75(x):
     return np.percentile(x, 75)
-all_spikes_avg = grouped.pivot_table(index=['pt_id','SOZ'], columns='channel_label', values="EI", aggfunc='median')
+
+all_spikes_avg = all_spikes.pivot_table(index=['pt_id','SOZ'], columns='channel_label_x', values="EI", aggfunc='median')
 all_spikes_avg = all_spikes_avg.reindex(columns=['1','2','3','4','5','6','7','8','9','10','11','12'])
 
 def remove_rows_by_index(pivot_table, index_values_to_remove):
