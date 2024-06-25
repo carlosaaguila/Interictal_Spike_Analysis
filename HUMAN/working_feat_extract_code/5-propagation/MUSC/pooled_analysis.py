@@ -321,15 +321,16 @@ all_pts_df = pd.concat([merged_hup_df, merged_MUSC_df], axis = 0)
 all_pts_df['pt_id'] = all_pts_df['pt_id'].str.replace('3T_MP0', '').str.replace('HUP', '')
 
 #%%
-
 #############################
 # WE LOOK TO PLOT EVERYTHING
 #############################
 
 merged_df = all_pts_df
 from sklearn.preprocessing import MinMaxScaler
-scaler = MinMaxScaler()
-merged_df[list_of_feats] = scaler.fit_transform(merged_df[list_of_feats])
+# scaler = MinMaxScaler()
+# to_normalize = ['decay_amp', 'rise_amp','sharpness','linelen','spike_width','slow_width','slow_amp']
+
+# merged_df[to_normalize] = scaler.fit_transform(merged_df[to_normalize])
 
 corr_df = pd.DataFrame()
 pearson_df = pd.DataFrame()
@@ -382,12 +383,12 @@ for Feat_of_interest in list_of_feats:
 
     sns.set_style('ticks')
     if interp == True:
-        plt.figure(figsize=(10,20))
+        plt.figure(figsize=(10,10))
     else:
-        plt.figure(figsize=(10,20))
+        plt.figure(figsize=(10,10))
 
-    # sns.heatmap(all_spikes_avg, cmap='viridis', alpha = 1)
-    sns.heatmap(all_spikes_avg, cmap = 'rocket', alpha = 1)
+    sns.heatmap(all_spikes_avg, cmap='viridis', alpha = 1)
+    # sns.heatmap(all_spikes_avg, cmap = 'rocket', alpha = 1)
     plt.xlabel('Channel Number', fontsize=20)
     plt.ylabel('Patient ID', fontsize=20)
     plt.title(f'Average {Feat_of_interest} by Channel and Patient', fontsize=24)
@@ -425,7 +426,7 @@ for Feat_of_interest in list_of_feats:
         plt.savefig(f'../figures/MUSC+HUP/{Feat_of_interest}_gradients_interp.pdf')
         continue
     else: 
-        plt.savefig(f'../figures/MUSC+HUP/{Feat_of_interest}_gradients.pdf')
+        plt.savefig(f'../figures/MUSC+HUP/{Feat_of_interest}_gradients_small.pdf')
     
     #########################
     # Generate Correlations #
@@ -630,8 +631,8 @@ sns.despine()
 plt.show()
 
 #%%
-#PEARSON PLOTS MORPHOLOGY
 
+#PEARSON PLOTS MORPHOLOGY
 plt.rcParams['font.family'] = 'Arial'
 pearson_df['SOZ'] = pearson_df['SOZ'].astype('category')
 
@@ -656,7 +657,7 @@ if vs_other == True:
                             (('linelen_corr',1), ('linelen_corr',2)),
                             (('slow_amp_corr',1), ('slow_amp_corr',2))]
 else:
-    my_palette = {1:'#E64B35FF', 3:'#7E6148FF', 2:'#00A087FF'}
+    my_palette = {1:'#E64B35FF', 3:'#7E6148FF', 2:'#3C5488FF'}
     fig_args = {'x':'Metric',
                 'y':'Value',
                 'hue':'SOZ',
@@ -687,12 +688,12 @@ sns.stripplot(ax =ax, color = 'k', alpha = 0.5, dodge=True, jitter=True, size=5,
 
 annotator = Annotator(ax=ax, pairs=significanceComparisons,
                       **fig_args, plot='boxplot')
-# test = 'Mann-Whitney'
-test = 'Kruskal'
+test = 'Mann-Whitney'
+# test = 'Kruskal'
 comp = 'BH'
 configuration = {'test':test,
                  'comparisons_correction':comp,
-                 'text_format':'simple',
+                 'text_format':'star',
                  'loc':'inside',
                  'verbose':True}
 annotator.configure(**configuration)
@@ -714,7 +715,8 @@ else:
 
 # Show the plot
 sns.despine()
-# plt.savefig(f'../figures/MUSC+HUP/official/ALL_pearson_CLEAN.pdf')
+plt.axhline(y=0, color='k', linestyle='--')
+plt.savefig(f'../figures/MUSC+HUP/official/ALL_pearson_CLEAN.pdf')
 plt.show()
 
 
@@ -835,7 +837,8 @@ plt.show()
 plt.figure(figsize=(8,6))
 #change font to arial
 plt.rcParams['font.family'] = 'Arial'
-test = 'Kruskal'
+test = 'Mann-Whitney'
+plt.axhline(y=0, color='k', linestyle='--')
 
 if vs_other == True:
     my_palette = {1:'#E64B35FF', 2:'#3C5488FF'}
@@ -844,7 +847,7 @@ if vs_other == True:
     ax = sns.boxplot(x='SOZ', y='spike_rate_corr', data=pearson_df, palette=my_palette, order=order, showfliers = False)
     sns.stripplot(x="SOZ", y="spike_rate_corr", data=pearson_df, color="black", alpha=0.5)
     annotator = Annotator(ax, pairs, data=pearson_df, x="SOZ", y="spike_rate_corr", order=order)
-    annotator.configure(test='Mann-Whitney', text_format='simple', loc='inside', verbose = True, comparisons_correction='Benjamini-Hochberg')
+    annotator.configure(test='Mann-Whitney', text_format='star', loc='inside', verbose = True, comparisons_correction='Benjamini-Hochberg')
     annotator.apply_and_annotate()
 
     plt.xlabel('SOZ Type', fontsize=12)
@@ -855,13 +858,13 @@ if vs_other == True:
     plt.yticks(fontsize = 12)
 
 if vs_other== False:
-    my_palette = {1:'#E64B35FF', 3:'#7E6148FF', 2:'#00A087FF'}
+    my_palette = {1:'#E64B35FF', 3:'#7E6148FF', 2:'#3C5488FF'}
     pairs=[(1, 2), (2,3), (1,3)]
     order = [1,2,3]
     ax = sns.boxplot(x='SOZ', y='spike_rate_corr', data=pearson_df, palette=my_palette, order=order, showfliers = False)
     sns.stripplot(x="SOZ", y="spike_rate_corr", data=pearson_df, color="black", alpha=0.5)
     annotator = Annotator(ax, pairs, data=pearson_df, x="SOZ", y="spike_rate_corr", order=order)
-    annotator.configure(test=test, text_format='simple', loc='inside', verbose = True, comparisons_correction='Benjamini-Hochberg')
+    annotator.configure(test=test, text_format='star', loc='inside', verbose = True, comparisons_correction='Benjamini-Hochberg')
     annotator.apply_and_annotate()
 
     plt.xlabel('SOZ Type', fontsize=12)
@@ -874,7 +877,10 @@ if vs_other== False:
 #part to change
 plt.title('Spike Rate Directionality', fontsize=16)
 sns.despine()
-# plt.savefig(f'../figures/MUSC+HUP/official/spike_rate_pearon_CLEAN.pdf')
+if vs_other == True:
+    plt.savefig(f'../figures/MUSC+HUP/official/spike_rate_pearon_CLEAN.pdf')
+if vs_other == False:
+    plt.savefig(f'../figures/MUSC+HUP/official/spike_rate_pearon_MULTI.pdf')
 plt.show()
 
 
@@ -886,7 +892,8 @@ plt.show()
 plt.figure(figsize=(8,6))
 #change font to arial
 plt.rcParams['font.family'] = 'Arial'
-test = 'Kruskal'
+test = 'Mann-Whitney'
+plt.axhline(y=0, color='k', linestyle='--')
 
 if vs_other == True:
     my_palette = {1:'#E64B35FF', 2:'#3C5488FF'}
@@ -895,37 +902,38 @@ if vs_other == True:
     ax = sns.boxplot(x='SOZ', y='recruitment_latency_thresh_corr', data=pearson_df, palette=my_palette, order=order, showfliers = False)
     sns.stripplot(x="SOZ", y="recruitment_latency_thresh_corr", data=pearson_df, color="black", alpha=0.5)
     annotator = Annotator(ax, pairs, data=pearson_df, x="SOZ", y="recruitment_latency_thresh_corr", order=order)
-    annotator.configure(test='Mann-Whitney', text_format='simple', loc='inside', verbose = True, comparisons_correction='Benjamini-Hochberg')
+    annotator.configure(test='Mann-Whitney', text_format='star', loc='inside', verbose = True, comparisons_correction='Benjamini-Hochberg')
     annotator.apply_and_annotate()
 
     plt.xlabel('SOZ Type', fontsize=12)
     plt.ylabel('Pearson Correlation', fontsize=12)
     #change the x-tick labels to be more readable
-    # plt.xticks(np.arange(3), ['Mesial Temporal', 'Neocortical', 'Other Cortex'], fontsize = 12)
     plt.xticks(np.arange(2), ['Mesial Temporal', 'Other'], fontsize = 12)
     plt.yticks(fontsize = 12)
 
 if vs_other== False:
-    my_palette = {1:'#E64B35FF', 3:'#7E6148FF', 2:'#00A087FF'}
+    my_palette = {1:'#E64B35FF', 3:'#7E6148FF', 2:'#3C5488FF'}
     pairs=[(1, 2), (2,3), (1,3)]
     order = [1,2,3]
     ax = sns.boxplot(x='SOZ', y='recruitment_latency_thresh_corr', data=pearson_df, palette=my_palette, order=order, showfliers = False)
     sns.stripplot(x="SOZ", y="recruitment_latency_thresh_corr", data=pearson_df, color="black", alpha=0.5)
     annotator = Annotator(ax, pairs, data=pearson_df, x="SOZ", y="recruitment_latency_thresh_corr", order=order)
-    annotator.configure(test=test, text_format='simple', loc='inside', verbose = True, comparisons_correction='Benjamini-Hochberg')
+    annotator.configure(test=test, text_format='star', loc='inside', verbose = True, comparisons_correction='Benjamini-Hochberg')
     annotator.apply_and_annotate()
 
     plt.xlabel('SOZ Type', fontsize=12)
     plt.ylabel('Pearson Correlation', fontsize=12)
     #change the x-tick labels to be more readable
-    # plt.xticks(np.arange(3), ['Mesial Temporal', 'Neocortical', 'Other Cortex'], fontsize = 12)
     plt.xticks(np.arange(3), ['Mesial Temporal', 'Neo', 'Other'], fontsize = 12)
     plt.yticks(fontsize = 12)
 
 #part to change
 plt.title('Spike Timing Directionality', fontsize=16)
 sns.despine()
-# plt.savefig(f'../figures/MUSC+HUP/official/timing_pearon_CLEAN.pdf')
+if vs_other == True:
+    plt.savefig(f'../figures/MUSC+HUP/official/timing_thresh_pearon_CLEAN.pdf')
+if vs_other == False:
+    plt.savefig(f'../figures/MUSC+HUP/official/timing_thresh_pearon_MULTI.pdf')
 plt.show()
 # %%
 ####################################
