@@ -39,8 +39,8 @@ take_spike_leads = False
 #WHAT DO YOU WANT TO REMOVE FROM THE CORE PLOT (CHOICES: 'frontal','mesial temporal','other cortex', 'temporal neocortical','temporal')
 soz_to_remove = ['temporal']
 
-# list_of_feats = ['spike_rate', 'decay_amp', 'rise_amp','sharpness','linelen','spike_width','slow_width','slow_amp','recruitment_latency_thresh']
-list_of_feats = ['decay_amp','sharpness','linelen','slow_width','slow_amp']
+list_of_feats = ['spike_rate', 'decay_amp', 'rise_amp','sharpness','linelen','spike_width','slow_width','slow_amp','recruitment_latency_thresh']
+# list_of_feats = ['decay_amp','sharpness','linelen','slow_width','slow_amp']
 # list_of_feats = ['spike_rate','recruitment_latency_thresh']
 
 df_to_use = []
@@ -136,6 +136,8 @@ for i, df in enumerate(ALL_FEATS[1:], start=2):
 #%%
 from sklearn.preprocessing import MinMaxScaler
 scaler = MinMaxScaler()
+to_normalize = ['decay_amp', 'rise_amp','sharpness','linelen','spike_width','slow_width','slow_amp']
+
 merged_df[list_of_feats] = scaler.fit_transform(merged_df[list_of_feats])
 
 corr_df = pd.DataFrame()
@@ -191,10 +193,10 @@ for Feat_of_interest in list_of_feats:
     if interp == True:
         plt.figure(figsize=(10,20))
     else:
-        plt.figure(figsize=(20,20))
+        plt.figure(figsize=(10,10))
 
-    # sns.heatmap(all_spikes_avg, cmap='viridis', alpha = 1)
-    sns.heatmap(all_spikes_avg, cmap = 'rocket', alpha = 1)
+    sns.heatmap(all_spikes_avg, cmap='viridis', alpha = 1)
+    # sns.heatmap(all_spikes_avg, cmap = 'rocket', alpha = 1)
     plt.xlabel('Channel Number', fontsize=20)
     plt.ylabel('Patient ID', fontsize=20)
     plt.title(f'Average {Feat_of_interest} by Channel and Patient', fontsize=24)
@@ -232,7 +234,7 @@ for Feat_of_interest in list_of_feats:
         plt.savefig(f'figures/sameside_perSOZ/bilateral/{Feat_of_interest}_CONCEPT_MERGE.pdf')
         continue
     else: 
-        plt.savefig(f'figures/sameside_perSOZ/bilateral/{Feat_of_interest}_allptsbySOZ_CLEAN.pdf')
+        plt.savefig(f'figures/sameside_perSOZ/bilateral/{Feat_of_interest}_allptsbySOZ_SMALL.pdf')
     
     #########################
     # Generate Correlations #
