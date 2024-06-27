@@ -1,0 +1,467 @@
+File,Onset time,Offset time,method of finding these times
+MP0001_D01,3725.664062,3757.85,looked for seizurey annotations and confirmed
+MP0001_D01,9508.953125,9537.88,looked for seizurey annotations and confirmed
+MP0001_D01,57662.4365,57702.91,looked for seizurey annotations and confirmed
+MP0001_D01,74815.16111,74867.43,looked for seizurey annotations and confirmed
+MP0001_D01,84446.08298,84476.4,looked for seizurey annotations and confirmed
+MP0001_D01,95359.53806,95428.06,looked for seizurey annotations and confirmed
+MP0001_D01,101235.0263,101340.03,looked for seizurey annotations and confirmed
+MP0001_D01,160987.6761,161043.2,looked for seizurey annotations and confirmed
+MP0001_D01,197575.219,197634.9,looked for seizurey annotations and confirmed
+MP0001_D01,201432.8987,201453.7,looked for seizurey annotations and confirmed
+MP0001_D01,201462.469,201494.1175,just copied from MUSC notes
+MP0001_D01,201966.3518,202005.1175,just copied from MUSC notes
+MP0001_D01,218869.2347,218884.7581,just copied from MUSC notes
+MP0001_D01,220485.1018,220520.2112,just copied from MUSC notes
+MP0001_D01,222974.5646,222996.5099,just copied from MUSC notes
+MP0001_D01,223003.6896,223031.4865,just copied from MUSC notes
+MP0001_D01,241163.463,241200.549,just copied from MUSC notes
+MP0001_D01,274863.9786,274886.1036,just copied from MUSC notes
+MP0001_D01,274895.2286,274902.0255,just copied from MUSC notes
+MP0001_D01,276966.4708,277014.3771,just copied from MUSC notes
+MP0001_D01,278911.3536,278921.2521,just copied from MUSC notes
+MP0001_D01,300418.6036,300463.1896,just copied from MUSC notes
+MP0001_D01,304232.9865,304288.6271,just copied from MUSC notes
+MP0001_D01,321442.073,321558.239,just copied from MUSC notes
+MP0001_D01,352594.9675,352643.5379,just copied from MUSC notes
+MP0001_D01,370602.5398,370615.1258,just copied from MUSC notes
+MP0001_D01,371597.7429,371859.3543,just copied from MUSC notes
+,NaN,NaN,
+MP0002_D02,138760.7801,138812.41,looked for seizurey annotations and confirmed
+MP0002_D02,146857.0016,146933.99,looked for seizurey annotations and confirmed
+MP0002_D02,267081.8861,267199.76,looked for seizurey annotations and confirmed
+MP0002_D02,339889.6691,339936.9191,just copied from MUSC notes
+MP0002_D02,339944.0207,339958.2238,just copied from MUSC notes
+MP0002_D02,377535.7316,377636.841,just copied from MUSC notes
+MP0002_D02,387304.6379,387365.8254,just copied from MUSC notes
+MP0002_D02,393407.8488,393481.3019,just copied from MUSC notes
+MP0002_D02,401815.9021,401893.1677,just copied from MUSC notes
+MP0002_D02,405633.613,405709.4568,just copied from MUSC notes
+MP0002_D02,409260.9763,409341.5896,just copied from MUSC notes
+MP0002_D02,417620.365,417732.031,just copied from MUSC notes
+MP0002_D02,450012.8181,450090.1071,just copied from MUSC notes
+,NaN,NaN,
+MP0003,48602.43974,48641.79,looked for seizurey annotations and confirmed
+MP0003,73470.69755,73606.5,looked for seizurey annotations and confirmed
+MP0003,103094.9798,103147.81,looked for seizurey annotations and confirmed
+MP0003,105881.5096,106086.721,just copied from MUSC notes
+MP0003,117006.3861,117114.7152,just copied from MUSC notes
+MP0003,128114.1551,128212.5047,just copied from MUSC notes
+MP0003,130596.4676,130703.325,just copied from MUSC notes
+MP0003,163987.2885,164028.975,just copied from MUSC notes
+MP0003,225305.7475,225334.8657,just copied from MUSC notes
+,NaN,NaN,
+MP0004_D01,3958.48,4013.32,looked for seizurey annotations and confirmed
+MP0004_D01,31451.68555,31497.56,looked for seizurey annotations and confirmed
+,NaN,NaN,
+MP0006_D01,25839.11894,25923.45,looked for seizurey annotations and confirmed
+MP0006_D01,32809.37969,32833.3,looked for seizurey annotations and confirmed
+MP0006_D01,35473.06426,35509.9,looked for seizurey annotations and confirmed
+MP0006_D01,41188.26738,41210.71,looked for seizurey annotations and confirmed
+MP0006_D01,63235.78203,63265.78,looked for seizurey annotations and confirmed
+MP0006_D01,70639.16387,70661.97,looked for seizurey annotations and confirmed
+MP0006_D01,70765.44414,70782.43,looked for seizurey annotations and confirmed
+MP0006_D01,74307.30449,74392.79,looked for seizurey annotations and confirmed
+MP0006_D01,78802.12504,78850.82,looked for seizurey annotations and confirmed
+MP0006_D01,80053.54252,80090.16,looked for seizurey annotations and confirmed
+MP0006_D01,81968.9517,82008.89,looked for seizurey annotations and confirmed
+MP0006_D01,82137.79838,82226.11,looked for seizurey annotations and confirmed
+MP0006_D01,83584.25834,83644.02,looked for seizurey annotations and confirmed
+MP0006_D01,85811.68754,85846.55,looked for seizurey annotations and confirmed
+MP0006_D01,92277.31401,92330.92,looked for seizurey annotations and confirmed
+MP0006_D01,93166.31401,93191.06,looked for seizurey annotations and confirmed
+MP0006_D01,97229.43608,97246.99,looked for seizurey annotations and confirmed
+MP0006_D01,99535.51908,99559.6,looked for seizurey annotations and confirmed
+MP0006_D01,101014.7359,101035.67,looked for seizurey annotations and confirmed
+MP0006_D01,103038.0044,103053,looked for seizurey annotations and confirmed
+MP0006_D01,105740.4214,105797.99,looked for seizurey annotations and confirmed
+MP0006_D01,111584.3746,111617.2,looked for seizurey annotations and confirmed
+MP0006_D01,112714.1709,112856.89,looked for seizurey annotations and confirmed
+MP0006_D01,128617.25,128731.19,looked for seizurey annotations and confirmed
+MP0006_D01,137433.3365,137493.34,looked for seizurey annotations and confirmed
+MP0006_D01,151557.8257,151609.1,looked for seizurey annotations and confirmed
+MP0006_D01,152454.108,152476.12,looked for seizurey annotations and confirmed
+MP0006_D01,156138.105,156161.53,looked for seizurey annotations and confirmed
+MP0006_D01,157847.2964,157927.8746,just copied from MUSC notes
+MP0006_D01,157965.896,157986.814,just copied from MUSC notes
+MP0006_D01,158891.4458,158936.7095,just copied from MUSC notes
+MP0006_D01,164887.1535,164916.37,looked for seizurey annotations and confirmed
+MP0006_D01,169119.2101,169161.57,looked for seizurey annotations and confirmed
+MP0006_D01,171214.2326,171283.73,looked for seizurey annotations and confirmed
+MP0006_D01,190207.133,190259.18,looked for seizurey annotations and confirmed
+MP0006_D01,193887.5856,194003.04,looked for seizurey annotations and confirmed
+MP0006_D01,198855.6486,198980.2,looked for seizurey annotations and confirmed
+MP0006_D01,203561.234,203681.23,looked for seizurey annotations and confirmed
+MP0006_D01,206198.2111,206291.4,looked for seizurey annotations and confirmed
+,NaN,NaN,
+MP0007_D01,228172.7898,228304.67,looked for seizurey annotations and confirmed
+MP0007_D01,229917.3655,230020.33,looked for seizurey annotations and confirmed
+MP0007_D01,231197.7092,231295.88,looked for seizurey annotations and confirmed
+MP0007_D01,232082.9836,232219.44,looked for seizurey annotations and confirmed
+,NaN,NaN,
+MP0010_D01,196106.8878,196182.31,looked for seizurey annotations and confirmed
+MP0010_D01,209923.6681,210000.25,looked for seizurey annotations and confirmed
+MP0010_D01,263451.6432,263529.41,looked for seizurey annotations and confirmed
+,NaN,NaN,
+MP0011_D01,83293.4337,83362.17,looked for seizurey annotations and confirmed
+MP0011_D01,111843.0084,111918.05,looked for seizurey annotations and confirmed
+MP0011_D01,131352.544,131422.69,looked for seizurey annotations and confirmed
+MP0011_D01,211231.4854,211317.32,looked for seizurey annotations and confirmed
+MP0011_D01,226343.6812,226529.23,looked for seizurey annotations and confirmed
+MP0011_D01,283672.2516,283769.08,looked for seizurey annotations and confirmed
+MP0011_D01,301902.5017,301983.65,looked for seizurey annotations and confirmed
+,NaN,NaN,
+MP0013_D01,170706.7647,170792,looked for seizurey annotations and confirmed
+MP0013_D01,174665.0889,174797.9,looked for seizurey annotations and confirmed
+MP0013_D01,190397.3077,190487.31,looked for seizurey annotations and confirmed
+MP0013_D01,300805.8644,301050.65,looked for seizurey annotations and confirmed
+,NaN,NaN,
+MP0014_D01,11801.85547,11870.32,looked for seizurey annotations and confirmed
+MP0014_D01,11801.85547,11869.7168,just copied from MUSC notes
+MP0014_D01,16113.9375,16196.52734,just copied from MUSC notes
+MP0014_D01,19843.44336,19934.17383,just copied from MUSC notes
+MP0014_D01,21279.18945,21325.67,looked for seizurey annotations and confirmed
+MP0014_D01,23314.26172,23358.17,looked for seizurey annotations and confirmed
+MP0014_D01,37717.31653,37800.08,looked for seizurey annotations and confirmed
+MP0014_D01,50302.82434,50395.08606,just copied from MUSC notes
+MP0014_D01,59759.98449,59792.15637,just copied from MUSC notes
+MP0014_D01,65044.61731,65073.09387,just copied from MUSC notes
+MP0014_D01,130599.0735,130649.6438,just copied from MUSC notes
+MP0014_D01,134893.4094,134971.2375,just copied from MUSC notes
+MP0014_D01,142182.2453,142247.7766,just copied from MUSC notes
+MP0014_D01,145409.1828,145473.2844,just copied from MUSC notes
+MP0014_D01,150715.3313,150877.7375,just copied from MUSC notes
+MP0014_D01,151292.8703,151323.7453,just copied from MUSC notes
+MP0014_D01,152450.0735,152482.6594,just copied from MUSC notes
+MP0014_D01,156057.9094,156123.0422,just copied from MUSC notes
+MP0014_D01,159382.3547,159465.4328,just copied from MUSC notes
+MP0014_D01,164849.0409,164984.5,looked for seizurey annotations and confirmed
+MP0014_D01,171502.4941,171678.31,looked for seizurey annotations and confirmed
+MP0014_D01,173636.4472,173726.45,looked for seizurey annotations and confirmed
+MP0014_D01,176786.3769,176870.6,looked for seizurey annotations and confirmed
+MP0014_D01,182624.9999,182744.9999,looked at MUSC onset and added 120 s
+MP0014_D01,186721.6796,186841.6796,looked at MUSC onset and added 120 s
+MP0014_D01,186941.0937,187061.0937,looked at MUSC onset and added 120 s
+MP0014_D01,187845.5468,187965.5468,looked at MUSC onset and added 120 s
+MP0014_D01,201131.2577,201251.2577,looked at MUSC onset and added 120 s
+MP0014_D01,203664.0624,203749.0624,just copied from MUSC notes
+MP0014_D01,206327.6874,206436.3749,just copied from MUSC notes
+MP0014_D01,213057.539,213177.539,looked at MUSC onset and added 120 s
+MP0014_D01,214587.7265,214707.7265,looked at MUSC onset and added 120 s
+MP0014_D01,217366.4921,217486.4921,looked at MUSC onset and added 120 s
+MP0014_D01,218293.2343,218413.2343,looked at MUSC onset and added 120 s
+MP0014_D01,219291.0624,219411.0624,looked at MUSC onset and added 120 s
+MP0014_D01,219812.2265,219932.2265,looked at MUSC onset and added 120 s
+MP0014_D01,220295.0077,220415.0077,looked at MUSC onset and added 120 s
+MP0014_D01,220484.4531,220604.4531,looked at MUSC onset and added 120 s
+MP0014_D01,220911.1406,221031.1406,looked at MUSC onset and added 120 s
+MP0014_D01,221192.0702,221312.0702,looked at MUSC onset and added 120 s
+MP0014_D01,221477.7499,221597.7499,looked at MUSC onset and added 120 s
+MP0014_D01,221756.1874,221876.1874,looked at MUSC onset and added 120 s
+MP0014_D01,222092.8281,222212.8281,looked at MUSC onset and added 120 s
+MP0014_D01,222102.0624,222222.0624,looked at MUSC onset and added 120 s
+MP0014_D01,222306.2656,222426.2656,looked at MUSC onset and added 120 s
+MP0014_D01,222497.1015,222617.1015,looked at MUSC onset and added 120 s
+MP0014_D01,222751.2187,222871.2187,looked at MUSC onset and added 120 s
+MP0014_D01,223179.9062,223299.9062,looked at MUSC onset and added 120 s
+MP0014_D01,223423.1171,223543.1171,looked at MUSC onset and added 120 s
+MP0014_D01,223618.1874,223738.1874,looked at MUSC onset and added 120 s
+MP0014_D01,223901.2343,224021.2343,looked at MUSC onset and added 120 s
+MP0014_D01,224121.3984,224241.3984,looked at MUSC onset and added 120 s
+MP0014_D01,224276.2109,224396.2109,looked at MUSC onset and added 120 s
+MP0014_D01,224496.3671,224616.3671,looked at MUSC onset and added 120 s
+MP0014_D01,224685.0702,224805.0702,looked at MUSC onset and added 120 s
+MP0014_D01,224936.6718,225056.6718,looked at MUSC onset and added 120 s
+MP0014_D01,225093.9218,225213.9218,looked at MUSC onset and added 120 s
+MP0014_D01,225339.4687,225459.4687,looked at MUSC onset and added 120 s
+MP0014_D01,225565.7031,225685.7031,looked at MUSC onset and added 120 s
+MP0014_D01,225848.7656,225968.7656,looked at MUSC onset and added 120 s
+MP0014_D01,226100.3827,226220.3827,looked at MUSC onset and added 120 s
+MP0014_D01,226289.0937,226409.0937,looked at MUSC onset and added 120 s
+MP0014_D01,226540.7031,226660.7031,looked at MUSC onset and added 120 s
+MP0014_D01,226760.8593,226880.8593,looked at MUSC onset and added 120 s
+MP0014_D01,226949.5781,227069.5781,looked at MUSC onset and added 120 s
+MP0014_D01,227138.289,227258.289,looked at MUSC onset and added 120 s
+MP0014_D01,227264.7968,227384.7968,looked at MUSC onset and added 120 s
+MP0014_D01,227610.7656,227730.7656,looked at MUSC onset and added 120 s
+MP0014_D01,227893.8281,228013.8281,looked at MUSC onset and added 120 s
+MP0014_D01,228176.8906,228296.8906,looked at MUSC onset and added 120 s
+MP0014_D01,228397.0468,228517.0468,looked at MUSC onset and added 120 s
+MP0014_D01,228554.3046,228674.3046,looked at MUSC onset and added 120 s
+MP0014_D01,228805.9062,228925.9062,looked at MUSC onset and added 120 s
+MP0014_D01,229057.4999,229177.4999,looked at MUSC onset and added 120 s
+MP0014_D01,229277.6406,229397.6406,looked at MUSC onset and added 120 s
+MP0014_D01,229592.1484,229712.1484,looked at MUSC onset and added 120 s
+MP0014_D01,229878.3593,229998.3593,looked at MUSC onset and added 120 s
+,NaN,NaN,
+MP0015_D01,154019.5816,154133.87,looked for seizurey annotations and confirmed
+MP0015_D01,173225.348,173270.348,accepted MUSC onset and offset as truth
+MP0015_D01,186006.464,186098.591,accepted MUSC onset and offset as truth
+MP0015_D01,194775.0131,194825.436,accepted MUSC onset and offset as truth
+MP0015_D01,270209.5846,270295.3307,accepted MUSC onset and offset as truth
+,NaN,NaN,
+MP0018_D01,49162.69014,49224.63,looked for seizurey annotations and confirmed
+MP0018_D01,157312.1829,157432.52,looked for seizurey annotations and confirmed
+MP0018_D01,280518.672,280616.29,looked for seizurey annotations and confirmed
+MP0018_D01,348425.8964,348577.07,looked for seizurey annotations and confirmed
+MP0018_D01,381169.4979,381301.1,looked for seizurey annotations and confirmed
+MP0018_D01,383897.6073,384044.13,looked for seizurey annotations and confirmed
+,NaN,NaN,
+MP0019_D01,22433.5,22456.26758,accepted MUSC onset and offset as truth
+MP0019_D01,45192.64262,45232.252,accepted MUSC onset and offset as truth
+MP0019_D01,95804.01295,95847.88209,accepted MUSC onset and offset as truth
+MP0019_D01,140469.3821,140600.6555,accepted MUSC onset and offset as truth
+MP0019_D01,157901.7727,158007.8274,accepted MUSC onset and offset as truth
+MP0019_D01,165639.8412,166370.3432,accepted MUSC onset and offset as truth
+MP0019_D01,193606.0632,193713.2332,accepted MUSC onset and offset as truth
+MP0019_D01,249920.0882,250030.2151,accepted MUSC onset and offset as truth
+MP0019_D01,362815.8657,363017.8989,accepted MUSC onset and offset as truth
+MP0019_D01,416209.8247,416574.1665,accepted MUSC onset and offset as truth
+MP0019_D01,423933.5903,424063.1939,accepted MUSC onset and offset as truth
+MP0019_D01,473045.0763,473064.6056,accepted MUSC onset and offset as truth
+,NaN,NaN,
+MP0020_D02,91267.78711,91402.02148,accepted MUSC onset and offset as truth
+MP0020_D02,108975.6074,109080.9766,accepted MUSC onset and offset as truth
+MP0020_D02,126937.4902,127078.8281,accepted MUSC onset and offset as truth
+MP0020_D02,134665.0527,134781.9121,accepted MUSC onset and offset as truth
+MP0020_D02,1735.482421,1815.794921,accepted MUSC onset and offset as truth
+MP0020_D02,19222.85742,19308.66211,accepted MUSC onset and offset as truth
+,NaN,NaN,
+MP0021_D01,81899.27881,81973.79,looked for seizurey annotations and confirmed
+MP0021_D01,91838.47413,91908.05,looked for seizurey annotations and confirmed
+MP0021_D01,102633.1055,102639.6128,just copied from MUSC notes
+MP0021_D01,143797.8247,143857.5288,just copied from MUSC notes
+MP0021_D01,149418.896,149475.7349,just copied from MUSC notes
+MP0021_D01,152717.2114,152789.0796,just copied from MUSC notes
+MP0021_D01,155624.8267,155689.3472,just copied from MUSC notes
+MP0021_D01,157254.8726,157335.1934,just copied from MUSC notes
+MP0021_D01,161442.5269,161528.8179,just copied from MUSC notes
+MP0021_D01,165554.1558,165662.2778,just copied from MUSC notes
+,NaN,NaN,
+MP0022_D01,103050.7323,103067.83,looked for seizurey annotations and confirmed
+MP0022_D01,121995.3983,122011.3417,just copied from MUSC notes
+MP0022_D01,172103.3034,172120.9743,just copied from MUSC notes
+MP0022_D01,190657.9245,190781.323,just copied from MUSC notes
+MP0022_D01,196758.5222,196853.3503,just copied from MUSC notes
+MP0022_D01,217261.2038,217353.2956,just copied from MUSC notes
+MP0022_D01,221233.0847,221323.0691,just copied from MUSC notes
+MP0022_D01,225704.6316,225771.3113,just copied from MUSC notes
+MP0022_D01,236317.8738,236355.4519,just copied from MUSC notes
+MP0022_D01,245733.9675,245852.7331,just copied from MUSC notes
+MP0022_D01,263409.3541,263422.9547,just copied from MUSC notes
+MP0022_D01,264213.5978,264227.0499,just copied from MUSC notes
+MP0022_D01,287806.0548,287880.0412,just copied from MUSC notes
+,NaN,NaN,
+MP0025_D01,237188.1647,237262.4914,accepted MUSC onset and offset as truth
+MP0025_D01,410691.18,410779.16,looked for seizurey annotations and confirmed
+MP0025_D01,416314.8363,416398.3656,accepted MUSC onset and offset as truth
+MP0025_D01,425509.5414,425594.5707,accepted MUSC onset and offset as truth
+,NaN,NaN,
+,NaN,NaN,
+3T_MP0026,13291.12793,13421.35,looked for seizurey annotations and confirmed
+3T_MP0026,13445.91797,13516.61133,just copied from MUSC notes
+3T_MP0026,23760.94922,23797.22168,just copied from MUSC notes
+3T_MP0026,25184.2334,25239.52441,just copied from MUSC notes
+3T_MP0026,25289.24414,25320.8584,just copied from MUSC notes
+3T_MP0026,41421.33105,41459.80957,just copied from MUSC notes
+3T_MP0026,42092.71573,42163.82657,just copied from MUSC notes
+3T_MP0026,45231.46719,45285.37198,just copied from MUSC notes
+3T_MP0026,53910.52725,53945.32901,just copied from MUSC notes
+3T_MP0026,54467.63809,54513.33243,just copied from MUSC notes
+3T_MP0026,54885.32706,54898.38028,just copied from MUSC notes
+3T_MP0026,56031.7045,56071.13223,just copied from MUSC notes
+3T_MP0026,60990.36172,61021.49258,just copied from MUSC notes
+3T_MP0026,61932.63712,61975.45743,just copied from MUSC notes
+3T_MP0026,62830.14981,62894.08145,just copied from MUSC notes
+3T_MP0026,63170.32169,63203.0961,just copied from MUSC notes
+3T_MP0026,63548.40958,63568.5629,just copied from MUSC notes
+3T_MP0026,67451.89932,67489.6542,just copied from MUSC notes
+3T_MP0026,69494.45499,69562.84024,just copied from MUSC notes
+3T_MP0026,70047.91153,70080.99063,just copied from MUSC notes
+3T_MP0026,70406.23428,70432.59708,just copied from MUSC notes
+3T_MP0026,84226.91055,84279.03,looked for seizurey annotations and confirmed
+3T_MP0026,86381.7587,86437.93985,just copied from MUSC notes
+3T_MP0026,91020.04727,91071.87979,just copied from MUSC notes
+3T_MP0026,97431.93692,97483.56241,just copied from MUSC notes
+3T_MP0026,98015.68008,98045.68,looked for seizurey annotations and confirmed
+3T_MP0026,98282.73868,98342.74,looked for seizurey annotations and confirmed
+3T_MP0026,99115.86856,99160.87,looked for seizurey annotations and confirmed
+3T_MP0026,104416.5888,104438.42,looked for seizurey annotations and confirmed
+3T_MP0026,116404.3456,116419.35,looked for seizurey annotations and confirmed
+3T_MP0026,119902.4701,119935.98,looked for seizurey annotations and confirmed
+3T_MP0026,121947.1332,122000.1459,just copied from MUSC notes
+3T_MP0026,157013.2445,157073.0804,just copied from MUSC notes
+,NaN,NaN,
+3T_MP0027,21902.18848,22036.09,looked for seizurey annotations and confirmed
+3T_MP0027,113376.1615,113499.58,looked for seizurey annotations and confirmed
+3T_MP0027,144960.6859,145054.8626,just copied from MUSC notes
+3T_MP0027,270554.9283,270608.9908,just copied from MUSC notes
+3T_MP0027,286023.9283,286044.3971,just copied from MUSC notes
+3T_MP0027,286234.9674,286256.983,just copied from MUSC notes
+3T_MP0027,294753.1137,294882.7173,just copied from MUSC notes
+3T_MP0027,338067.0278,338188.4135,just copied from MUSC notes
+3T_MP0027,439393.5952,439522.1353,just copied from MUSC notes
+,NaN,NaN,
+3T_MP0028,9424.011718,9522.12,looked for seizurey annotations and confirmed
+,NaN,NaN,
+3T_MP0029,181594.4365,181657.59,looked for seizurey annotations and confirmed
+3T_MP0029,268436.67,268461.95,looked for seizurey annotations and confirmed
+3T_MP0029,269101.1574,269140.03,looked for seizurey annotations and confirmed
+3T_MP0029,327880.5602,327925.56,looked for seizurey annotations and confirmed
+3T_MP0029,331026.0866,331086.09,looked for seizurey annotations and confirmed
+3T_MP0029,331474.1969,331534.2,looked for seizurey annotations and confirmed
+3T_MP0029,332212.8913,332272.89,looked for seizurey annotations and confirmed
+3T_MP0029,332813.8346,332858.83,looked for seizurey annotations and confirmed
+3T_MP0029,333592.1237,333652.12,looked for seizurey annotations and confirmed
+3T_MP0029,334316.3249,334376.32,looked for seizurey annotations and confirmed
+3T_MP0029,335232.4616,335292.46,looked for seizurey annotations and confirmed
+3T_MP0029,338700.3883,338780.3883,looked at MUSC onset and added 120 s
+3T_MP0029,339305.2956,339385.2956,looked at MUSC onset and added 120 s
+3T_MP0029,340373.2018,340453.2018,looked at MUSC onset and added 120 s
+3T_MP0029,346485.0631,346565.0631,looked at MUSC onset and added 120 s
+3T_MP0029,350232.2712,350312.2712,looked at MUSC onset and added 120 s
+3T_MP0029,356869.6657,356949.6657,looked at MUSC onset and added 120 s
+3T_MP0029,364569.9479,364649.9479,looked at MUSC onset and added 120 s
+3T_MP0029,365269.5046,365349.5046,looked at MUSC onset and added 120 s
+3T_MP0029,368602.985,368682.985,looked at MUSC onset and added 120 s
+3T_MP0029,369161.1608,369241.1608,looked at MUSC onset and added 120 s
+3T_MP0029,370038.2829,370118.2829,looked at MUSC onset and added 120 s
+3T_MP0029,372931.2643,373011.2643,looked at MUSC onset and added 120 s
+3T_MP0029,374159.2458,374239.2458,looked at MUSC onset and added 120 s
+3T_MP0029,374972.6032,375052.6032,looked at MUSC onset and added 120 s
+3T_MP0029,375718.5924,375798.5924,looked at MUSC onset and added 120 s
+3T_MP0029,378145.446,378225.446,looked at MUSC onset and added 120 s
+3T_MP0029,378731.2633,378811.2633,looked at MUSC onset and added 120 s
+3T_MP0029,379249.0885,379329.0885,looked at MUSC onset and added 120 s
+3T_MP0029,383076.6286,383156.6286,looked at MUSC onset and added 120 s
+3T_MP0029,383802.9655,383882.9655,looked at MUSC onset and added 120 s
+3T_MP0029,387378.4967,387458.4967,looked at MUSC onset and added 120 s
+3T_MP0029,388144.0417,388224.0417,looked at MUSC onset and added 120 s
+3T_MP0029,388686.2829,388766.2829,looked at MUSC onset and added 120 s
+3T_MP0029,394969.4958,395049.4958,looked at MUSC onset and added 120 s
+3T_MP0029,395532.2331,395612.2331,looked at MUSC onset and added 120 s
+3T_MP0029,400570.0622,400650.0622,looked at MUSC onset and added 120 s
+3T_MP0029,401615.5036,401695.5036,looked at MUSC onset and added 120 s
+3T_MP0029,402270.8688,402350.8688,looked at MUSC onset and added 120 s
+3T_MP0029,403144.6774,403224.6774,looked at MUSC onset and added 120 s
+3T_MP0029,406808.7145,406888.7145,looked at MUSC onset and added 120 s
+3T_MP0029,407313.8747,407393.8747,looked at MUSC onset and added 120 s
+3T_MP0029,407906.8288,407986.8288,looked at MUSC onset and added 120 s
+3T_MP0029,408539.3249,408619.3249,looked at MUSC onset and added 120 s
+3T_MP0029,409179.1071,409259.1071,looked at MUSC onset and added 120 s
+3T_MP0029,410474.3424,410554.3424,looked at MUSC onset and added 120 s
+3T_MP0029,412019.6181,412099.6181,looked at MUSC onset and added 120 s
+3T_MP0029,413563.2978,413643.2978,looked at MUSC onset and added 120 s
+3T_MP0029,414625.4697,414705.4697,looked at MUSC onset and added 120 s
+3T_MP0029,419267.8056,419347.8056,looked at MUSC onset and added 120 s
+3T_MP0029,419898.9462,419978.9462,looked at MUSC onset and added 120 s
+3T_MP0029,420760.3837,420840.3837,looked at MUSC onset and added 120 s
+3T_MP0029,424227.7197,424307.7197,looked at MUSC onset and added 120 s
+3T_MP0029,425313.6806,425393.6806,looked at MUSC onset and added 120 s
+3T_MP0029,431142.2275,431222.2275,looked at MUSC onset and added 120 s
+3T_MP0029,433404.4462,433484.4462,looked at MUSC onset and added 120 s
+3T_MP0029,436079.7665,436159.7665,looked at MUSC onset and added 120 s
+3T_MP0029,438788.2509,438868.2509,looked at MUSC onset and added 120 s
+3T_MP0029,438792.0951,438872.0951,looked at MUSC onset and added 120 s
+3T_MP0029,441570.329,441650.329,looked at MUSC onset and added 120 s
+3T_MP0029,444049.1493,444129.1493,looked at MUSC onset and added 120 s
+3T_MP0029,446929.5556,447009.5556,looked at MUSC onset and added 120 s
+3T_MP0029,446929.9677,447009.9677,looked at MUSC onset and added 120 s
+3T_MP0029,447873.8681,447953.8681,looked at MUSC onset and added 120 s
+3T_MP0029,448503.0009,448583.0009,looked at MUSC onset and added 120 s
+3T_MP0029,451061.8915,451141.8915,looked at MUSC onset and added 120 s
+3T_MP0029,453570.7587,453650.7587,looked at MUSC onset and added 120 s
+3T_MP0029,455372.5243,455452.5243,looked at MUSC onset and added 120 s
+3T_MP0029,456725.54,456805.54,looked at MUSC onset and added 120 s
+3T_MP0029,457631.6572,457711.6572,looked at MUSC onset and added 120 s
+3T_MP0029,458956.8837,459036.8837,looked at MUSC onset and added 120 s
+3T_MP0029,460182.6493,460262.6493,looked at MUSC onset and added 120 s
+3T_MP0029,461813.3212,461893.3212,looked at MUSC onset and added 120 s
+3T_MP0029,463196.0146,463276.0146,looked at MUSC onset and added 120 s
+3T_MP0029,465316.9286,465396.9286,looked at MUSC onset and added 120 s
+3T_MP0029,466128.9208,466208.9208,looked at MUSC onset and added 120 s
+3T_MP0029,467050.7802,467130.7802,looked at MUSC onset and added 120 s
+3T_MP0029,467918.7177,467998.7177,looked at MUSC onset and added 120 s
+3T_MP0029,468704.0458,468784.0458,looked at MUSC onset and added 120 s
+3T_MP0029,469789.8896,469869.8896,looked at MUSC onset and added 120 s
+3T_MP0029,470408.5536,470488.5536,looked at MUSC onset and added 120 s
+3T_MP0029,471158.2646,471238.2646,looked at MUSC onset and added 120 s
+3T_MP0029,472650.0771,472730.0771,looked at MUSC onset and added 120 s
+3T_MP0029,477407.7958,477487.7958,looked at MUSC onset and added 120 s
+3T_MP0029,479722.413,479802.413,looked at MUSC onset and added 120 s
+3T_MP0029,480688.1396,480768.1396,looked at MUSC onset and added 120 s
+3T_MP0029,481508.5302,481588.5302,looked at MUSC onset and added 120 s
+3T_MP0029,483161.0458,483241.0458,looked at MUSC onset and added 120 s
+3T_MP0029,483672.7333,483752.7333,looked at MUSC onset and added 120 s
+3T_MP0029,484134.4911,484214.4911,looked at MUSC onset and added 120 s
+3T_MP0029,484442.3661,484522.3661,looked at MUSC onset and added 120 s
+3T_MP0029,486247.3661,486327.3661,looked at MUSC onset and added 120 s
+3T_MP0029,489319.3959,489399.3959,looked at MUSC onset and added 120 s
+3T_MP0029,490186.1821,490266.1821,looked at MUSC onset and added 120 s
+3T_MP0029,494625.7309,494705.7309,looked at MUSC onset and added 120 s
+3T_MP0029,495483.0512,495563.0512,looked at MUSC onset and added 120 s
+3T_MP0029,496516.8207,496596.8207,looked at MUSC onset and added 120 s
+3T_MP0029,505068.2683,505148.2683,looked at MUSC onset and added 120 s
+3T_MP0029,507430.1004,507510.1004,looked at MUSC onset and added 120 s
+,NaN,NaN,
+3T_MP0031,245478.71,245556.01,Marissa found times from MUSC and I confirmed
+3T_MP0031,281330.65,281408.27,Marissa found times from MUSC and I confirmed
+3T_MP0031,300487.56,300573.73,Marissa found times from MUSC and I confirmed
+3T_MP0031,310306.25,310520.53,Marissa found times from MUSC and I confirmed
+3T_MP0031,311558.58,311626.52,Marissa found times from MUSC and I confirmed
+,NaN,NaN,
+3T_MP0035,27118.96777,27242.22,looked for seizurey annotations and confirmed
+,NaN,NaN,
+3T_MP0036,99638.26432,99683.26,looked for seizurey annotations and confirmed
+3T_MP0036,101144.9557,101234.96,looked for seizurey annotations and confirmed
+3T_MP0036,700047.524,700092.52,looked for seizurey annotations and confirmed
+3T_MP0036,857858.7478,857923.37,looked for seizurey annotations and confirmed
+3T_MP0036,859042.7752,859132.78,looked for seizurey annotations and confirmed
+,NaN,NaN,
+3T_MP0037_D01,82386.39547,82431.4,looked for seizurey annotations and confirmed
+3T_MP0037_D02,10573.66406,10698.38,looked for seizurey annotations and confirmed
+3T_MP0037_D02,11767.66406,11833.3,looked for seizurey annotations and confirmed
+3T_MP0037_D02,29016.75781,29166.76,looked for seizurey annotations and confirmed
+,NaN,NaN,
+3T_MP0038_D02,13527.94,13592.02,looked for seizurey annotations and confirmed
+3T_MP0038_D02,88672.84006,88737.95822,just copied from MUSC notes
+3T_MP0038_D02,90431.64,90451.15,looked for seizurey annotations and confirmed
+3T_MP0038_D02,90752.56,90834.53,just copied from MUSC notes
+3T_MP0038_D02,136955.1867,137024.8156,just copied from MUSC notes
+3T_MP0038_D02,144410.4797,144489.8156,just copied from MUSC notes
+3T_MP0038_D03,57306.29,57382.02,looked for seizurey annotations and confirmed
+3T_MP0038_D03,66405.2793,66469.78906,just copied from MUSC notes
+3T_MP0038_D03,71568.19434,71663.3125,just copied from MUSC notes
+3T_MP0038_D03,76183.11133,76293.6875,just copied from MUSC notes
+,NaN,NaN,
+3T_MP0043_D02,66331.18944,66370.82,looked for seizurey annotations and confirmed
+3T_MP0043_D02,67748.19725,67806.26,looked for seizurey annotations and confirmed
+3T_MP0043_D02,75235.23,75284.99,looked for seizurey annotations and confirmed
+3T_MP0043_D02,80960.79491,81004.98631,just copied from MUSC notes
+3T_MP0043_D02,141269.7025,141317.7875,just copied from MUSC notes
+3T_MP0043_D02,192048.4999,192105.5175,just copied from MUSC notes
+3T_MP0043_D02,244191.7339,244250.814,just copied from MUSC notes
+,NaN,NaN,
+3T_MP0044_D01,67556.68,67641.85,just copied from MUSC notes
+3T_MP0044_D01,89962.09479,90031.04596,just copied from MUSC notes
+3T_MP0044_D01,568913.6594,568929.53,just copied from MUSC notes
+3T_MP0044_D01,733620.17,733813.15,just copied from MUSC notes
+3T_MP0044_D02,20464.83594,20470.02148,just copied from MUSC notes
+3T_MP0044_D02,25010.90039,25025.02344,just copied from MUSC notes
+3T_MP0044_D02,34166,34255.02539,just copied from MUSC notes
+3T_MP0044_D02,58750.26563,58758.01758,just copied from MUSC notes
+3T_MP0044_D02,97925.93649,97935.98336,just copied from MUSC notes
+3T_MP0044_D02,110681.0381,110699.9521,just copied from MUSC notes
+3T_MP0044_D02,125075.5224,125100.9365,just copied from MUSC notes
+3T_MP0044_D02,131497.7744,131515.2822,just copied from MUSC notes
+3T_MP0044_D02,190377.6379,190445.0247,just copied from MUSC notes
+3T_MP0044_D02,206926.9075,206944.9544,just copied from MUSC notes
+3T_MP0044_D02,209673.6184,209802.5598,just copied from MUSC notes
+3T_MP0044_D02,223469.0442,223499.6809,just copied from MUSC notes
+3T_MP0044_D02,230356.8098,230386.1399,just copied from MUSC notes
+3T_MP0044_D02,297350.3464,297380.7097,just copied from MUSC notes
+3T_MP0044_D02,299134.655,299159.7097,just copied from MUSC notes
+3T_MP0044_D02,302640.237,302671.6315,just copied from MUSC notes
+3T_MP0044_D02,304388.2526,304415.9089,just copied from MUSC notes
+,NaN,NaN,
+3T_MP0045_D01,183036.6012,183088.79,
