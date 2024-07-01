@@ -26,13 +26,118 @@ code_path = os.path.dirname('/mnt/leif/littlab/users/aguilac/Interictal_Spike_An
 sys.path.append(code_path)
 from ied_fx_v3 import *
 
-hup_ei = pd.read_csv('../data/all_EI_results_summary_15052024.csv')
+hup_ei = pd.read_csv('../data/self_run/HUP_all_hfer.csv')
+musc_ei = pd.read_csv('../data/self_run/MUSC_all_hfer.csv')
+# hup_ei = pd.read_csv('../data/all_EI_results_summary_15052024.csv')
+
+#%% 
+
+###################################
+# GET MUSC 
+###################################
+
+musc_ei['EI'] = musc_ei['EI'].apply(lambda x: list(map(float, x.strip('[]').split())))
+# Function to convert string representation of list to actual list
+def convert_to_list(string_list):
+    return ast.literal_eval(string_list)
+# Apply the function to the 'name' column
+musc_ei['name'] = musc_ei['name'].apply(convert_to_list)
+
+# Remove rows where 'EI' is a list of all zeros
+df_filtered = musc_ei[musc_ei['EI'].apply(lambda x: not np.all(np.array(x) == 0.0))]
+
+##############
+#HERE WE WILL ADD THE NORMALIZATION ACROSS EACH SEIZURE (PER ROW)
+def z_score(values):
+    mean = sum(values) / len(values)
+    std_dev = (sum((x - mean) ** 2 for x in values) / len(values)) ** 0.5
+    z_scores = [(x - mean) / std_dev for x in values]
+    return z_scores
+
+df_filtered['EI'] = df_filtered['EI'].apply(z_score)
+##############
+
+# Explode the EI and name columns to unnest the lists
+df_exploded = df_filtered.explode(['EI', 'name'])
+
+# Reset index if needed
+df_exploded = df_exploded.reset_index(drop=True)
+
+musc_ei = df_exploded #reassign back to this variable for the rest of the analysis.
+
+musc_ei['EI'] = pd.to_numeric(musc_ei['EI'], errors='coerce')
+musc_ei = musc_ei.dropna(subset=['EI'])
+
+grouped = musc_ei.groupby(['MUSC_ID','name'])['EI'].quantile(0.75).reset_index()
+
+grouped['name'] = grouped['name'].str.replace("'", "", regex=False)
+
+grouped = grouped.rename(columns={
+    'MUSC_ID': 'pt_id',
+    'name': 'channel_label',
+    'EI': 'EI'  # EI remains the same, but included for clarity
+})
+
+grouped['channel_label'] = grouped.apply(
+    lambda row: decompose_labels(row['channel_label'], row['pt_id']),
+    axis=1
+)
+
+musc_files = pd.read_csv('../data/MUSC_files.csv', index_col = 0)
+
+all_spikes = grouped.merge(musc_files[['pt_id','channel_label']], on = 'pt_id', how = 'inner')
+
+# Function to convert string representation of list to actual list if needed
+def convert_to_list(string_list):
+    if isinstance(string_list, str):
+        return ast.literal_eval(string_list)
+    return string_list
+
+# Convert string representations of lists to actual lists if needed
+all_spikes['channel_label_y'] = all_spikes['channel_label_y'].apply(convert_to_list)
+
+def is_channel_in_list(row):
+    return row['channel_label_x'] in row['channel_label_y']
+
+# Filter rows where channel_label_x is in channel_label_y
+all_spikes = all_spikes[all_spikes.apply(is_channel_in_list, axis=1)].reset_index(drop=True)
+
+chs_tokeep = ['RA','LA','LPH','RPH','LAH','RAH']
+
+#if channel_label contains any of the strings in chs_tokeep, keep it
+all_spikes = all_spikes[all_spikes['channel_label_x'].str.contains('|'.join(chs_tokeep))].reset_index(drop=True)
+
+all_spikes = all_spikes[~all_spikes['channel_label_x'].str.contains('I|LAP|T|S|C')].reset_index(drop=True)
+
+#strip the letters from the channel_label column and keep only the numerical portion
+all_spikes['channel_label_x'] = all_spikes['channel_label_x'].str.replace('L|R|A|H|P', '', regex = True)
+
+musc_sozs = pd.read_csv('../data/MUSC_sozs.csv', index_col = 0)
+uniques_sozs = musc_sozs[['pt_id','region']].drop_duplicates()
+# merge them
+all_spikes = all_spikes.merge(uniques_sozs, on = 'pt_id', how='inner')
+all_spikes = all_spikes.drop(columns = 'channel_label_y')
+
+musc_all_spikes = all_spikes
+
+def SOZ_assigner1(row):
+    if row['region'] == 1:
+        return 'mesial temporal'
+    elif row['region'] == 2:
+        return 'temporal neocortical'
+
+musc_all_spikes['region'] = musc_all_spikes.apply(SOZ_assigner1, axis = 1)
+musc_all_spikes = musc_all_spikes.rename(columns = {'region':'SOZ'})
+
 
 #%%
+###################################
+# GET HUP 
+###################################
+
 # remove any row that has all 0's for EI# Assuming 'df' is your DataFrame
 hup_ei['EI'] = hup_ei['EI'].apply(lambda x: list(map(float, x.strip('[]').split())))
 
-import ast
 # Function to convert string representation of list to actual list
 def convert_to_list(string_list):
     return ast.literal_eval(string_list)
@@ -42,13 +147,24 @@ hup_ei['name'] = hup_ei['name'].apply(convert_to_list)
 # Remove rows where 'EI' is a list of all zeros
 df_filtered = hup_ei[hup_ei['EI'].apply(lambda x: not np.all(np.array(x) == 0.0))]
 
+##############
+#HERE WE WILL ADD THE NORMALIZATION ACROSS EACH SEIZURE (PER ROW)
+def z_score(values):
+    mean = sum(values) / len(values)
+    std_dev = (sum((x - mean) ** 2 for x in values) / len(values)) ** 0.5
+    z_scores = [(x - mean) / std_dev for x in values]
+    return z_scores
+
+df_filtered['EI'] = df_filtered['EI'].apply(z_score)
+##############
+
 # Explode the EI and name columns to unnest the lists
 df_exploded = df_filtered.explode(['EI', 'name'])
 
 # Reset index if needed
 df_exploded = df_exploded.reset_index(drop=True)
 
-#%%
+##%%
 hup_ei = df_exploded #reassign back to this variable for the rest of the analysis.
 
 hup_ei['EI'] = pd.to_numeric(hup_ei['EI'], errors='coerce')
@@ -105,10 +221,18 @@ uniques_sozs = hup_sozs[['pt_id','SOZ']].drop_duplicates()
 all_spikes = all_spikes.merge(uniques_sozs, on = 'pt_id', how='inner')
 all_spikes = all_spikes.drop(columns = 'channel_label_y')
 
+hup_all_spikes = all_spikes
+
+
+#%% 
+#combine them
+all_spikes = pd.concat([hup_all_spikes, musc_all_spikes])
+
 # %%
 #concatenate mesial_temp_spikes_avg and non_mesial_temp_spikes_avg
 def quantile_75(x):
     return np.percentile(x, 75)
+
 
 all_spikes_avg = all_spikes.pivot_table(index=['pt_id','SOZ'], columns='channel_label_x', values="EI", aggfunc='median')
 all_spikes_avg = all_spikes_avg.reindex(columns=['1','2','3','4','5','6','7','8','9','10','11','12'])
@@ -298,7 +422,7 @@ order = [1,2]
 ax = sns.boxplot(x='SOZ', y='correlation', data=corr_df, palette=my_palette, order = order, showfliers = False)
 sns.stripplot(x="SOZ", y="correlation", data=corr_df, color="black", alpha=0.5)
 annotator = Annotator(ax, pairs, data=corr_df, x="SOZ", y="correlation", order=order)
-annotator.configure(test='Mann-Whitney', text_format='simple', loc='inside', verbose = True)
+annotator.configure(test='Mann-Whitney', text_format='star', loc='inside', comparisons_correction='Benjamini-Hochberg', verbose = True)
 annotator.apply_and_annotate()
 
 
@@ -330,7 +454,7 @@ order = [1,2]
 ax = sns.boxplot(x='SOZ', y='correlation', data=pearson_df, palette=my_palette, order=order, showfliers = False)
 sns.stripplot(x="SOZ", y="correlation", data=pearson_df, color="black", alpha=0.5)
 annotator = Annotator(ax, pairs, data=pearson_df, x="SOZ", y="correlation", order=order)
-annotator.configure(test='Mann-Whitney', text_format='simple', loc='inside', verbose = True)
+annotator.configure(test='Mann-Whitney', text_format='star', loc='inside', comparisons_correction='Benjamini-Hochberg', verbose = True)
 annotator.apply_and_annotate()
 
 plt.xlabel('SOZ Type', fontsize=12)
@@ -451,7 +575,7 @@ plt.figure(figsize=(8,6))
 #change font to arial
 plt.rcParams['font.family'] = 'Arial'
 
-my_palette = {1:'#E64B35FF', 3:'#7E6148FF', 2:'#00A087FF'}
+my_palette = {1:'#E64B35FF', 3:'#7E6148FF', 2:'#3C5488FF'}
 # my_palette = {1:'#E64B35FF', 2:'#3C5488FF'}
 pairs=[(1, 2),(1,3), (2,3)]
 order = [1,2,3]
@@ -459,7 +583,7 @@ order = [1,2,3]
 ax = sns.boxplot(x='SOZ', y='correlation', data=corr_df, palette=my_palette, order = order, showfliers = False)
 sns.stripplot(x="SOZ", y="correlation", data=corr_df, color="black", alpha=0.5)
 annotator = Annotator(ax, pairs, data=corr_df, x="SOZ", y="correlation", order=order)
-annotator.configure(test='Mann-Whitney', text_format='simple', loc='inside', verbose = True)
+annotator.configure(test='Mann-Whitney', text_format='star', loc='inside', comparisons_correction='Benjamini-Hochberg', verbose = True)
 annotator.apply_and_annotate()
 
 
@@ -482,7 +606,7 @@ plt.figure(figsize=(8,6))
 #change font to arial
 plt.rcParams['font.family'] = 'Arial'
 
-my_palette = {1:'#E64B35FF', 3:'#7E6148FF', 2:'#00A087FF'}
+my_palette = {1:'#E64B35FF', 3:'#7E6148FF', 2:'#3C5488FF'}
 # my_palette = {1:'#E64B35FF', 2:'#3C5488FF'}
 pairs=[(1, 2),(1,3), (2,3)]
 order = [1,2,3]
@@ -490,7 +614,7 @@ order = [1,2,3]
 ax = sns.boxplot(x='SOZ', y='correlation', data=pearson_df, palette=my_palette, order=order, showfliers = False)
 sns.stripplot(x="SOZ", y="correlation", data=pearson_df, color="black", alpha=0.5)
 annotator = Annotator(ax, pairs, data=pearson_df, x="SOZ", y="correlation", order=order)
-annotator.configure(test='Mann-Whitney', text_format='simple', loc='inside', verbose = True)
+annotator.configure(test='Mann-Whitney', text_format='star', loc='inside', comparisons_correction='Benjamini-Hochberg', verbose = True)
 annotator.apply_and_annotate()
 
 plt.xlabel('SOZ Type', fontsize=12)
@@ -513,8 +637,19 @@ from scipy.stats import kruskal, shapiro, levene, f_oneway
 ei = pearson_df[['SOZ','correlation']]
 
 #change if you want anova, but really no different in results
+print("Pearson Correlations")
 print(kruskal(ei[ei['SOZ'] == 1]['correlation'], ei[ei['SOZ'] == 2]['correlation'],ei[ei['SOZ'] == 3]['correlation']))
 print(f_oneway(ei[ei['SOZ'] == 1]['correlation'], ei[ei['SOZ'] == 2]['correlation'],ei[ei['SOZ'] == 3]['correlation']))
 
 
 # %%
+
+#EI ANOVA
+from scipy.stats import kruskal, shapiro, levene, f_oneway
+
+ei = corr_df[['SOZ','correlation']]
+
+#change if you want anova, but really no different in results
+print("Spearman Correlations")
+print(kruskal(ei[ei['SOZ'] == 1]['correlation'], ei[ei['SOZ'] == 2]['correlation'],ei[ei['SOZ'] == 3]['correlation']))
+print(f_oneway(ei[ei['SOZ'] == 1]['correlation'], ei[ei['SOZ'] == 2]['correlation'],ei[ei['SOZ'] == 3]['correlation']))
