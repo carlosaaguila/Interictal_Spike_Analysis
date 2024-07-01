@@ -44,8 +44,8 @@ MUSC_spikes = MUSC_spikes[~MUSC_spikes['pt_id'].isin(pts_to_remove)]
 # ADD MUSC PATIENTS
 # KEEP THE SAME SIDE, PLUS FOR BILATERAL TAKE BOTH SIDES
 
-vs_other = True #CHANGE if you want to compare 2 groups, or 3. [False: you compare mtle, tle, other] [True: you compare mtle vs. other]
-side = 'ipsi' #CHANGE if you want to look at the same-side as laterality ('same'), or 'contra' to get the other side of the SOZ.
+vs_other = False #CHANGE if you want to compare 2 groups, or 3. [False: you compare mtle, tle, other] [True: you compare mtle vs. other]
+side = 'same' #CHANGE if you want to look at the same-side as laterality ('same'), or 'contra' to get the other side of the SOZ.
 
 list_of_feats = ['spike_rate', 'rise_amp','decay_amp','sharpness','linelen','recruiment_latency','spike_width','slow_width','slow_amp']
 list_of_feats = ['spike_rate', 'rise_amp']
@@ -138,8 +138,8 @@ for Feat_of_interest in list_of_feats:
     ########################################
 
     #strip the letters from the channel_label column and keep only the numerical portion
-    mesial_temp_spikes['channel_label'] = mesial_temp_spikes['channel_label'].str.replace('L|R|A|H|P', '')
-    non_mesial_temp_spikes['channel_label'] = non_mesial_temp_spikes['channel_label'].str.replace('L|R|A|H|P', '')
+    mesial_temp_spikes['channel_label'] = mesial_temp_spikes['channel_label'].str.replace('L|R|A|H|P', '', regex = True)
+    non_mesial_temp_spikes['channel_label'] = non_mesial_temp_spikes['channel_label'].str.replace('L|R|A|H|P', '', regex = True)
 
     #replace "sharpness" with the absolute value of it
     mesial_temp_spikes[Feat_of_interest] = abs(mesial_temp_spikes[Feat_of_interest])
@@ -212,7 +212,7 @@ for Feat_of_interest in list_of_feats:
 
         plt.legend(handles=[mesial_patch, neocort_patch, other_patch], loc='upper right')
 
-        plt.savefig(f'../figures/MUSC/pos_controls/soz_analysis/{side}_{Feat_of_interest}_allptsbySOZ.pdf')
+        # plt.savefig(f'../figures/MUSC/pos_controls/soz_analysis/{side}_{Feat_of_interest}_allptsbySOZ.pdf')
         plt.show()
 
     if vs_other == True:
@@ -222,7 +222,7 @@ for Feat_of_interest in list_of_feats:
         neocort_patch = mpatches.Patch(color='#3C5488FF', label='Other Patients') #change this to other (despite misleading variable name)
         plt.legend(handles=[mesial_patch, neocort_patch], loc='upper right')
 
-        plt.savefig(f'../figures/MUSC/pos_controls/soz_analysis/vs_other/{side}_{Feat_of_interest}_allptsbySOZ.pdf')
+        # plt.savefig(f'../figures/MUSC/pos_controls/soz_analysis/vs_other/{side}_{Feat_of_interest}_allptsbySOZ.pdf')
         plt.show()
 
     #########################
