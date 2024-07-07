@@ -119,7 +119,6 @@ from sklearn.model_selection import GridSearchCV
 
 feature_importances_TEST = list()
 for train_ix, test_ix in LOO.split(unique_ids):
-
     #get data
     X_train = all_feats[all_feats['pt_id'].isin(unique_ids[train_ix])]
     X_test = all_feats[all_feats['pt_id'].isin(unique_ids[test_ix])]
@@ -153,8 +152,9 @@ y_true_clean = [x for x in y_true for x in x]
 y_pred_clean = [x for x in y_pred for x in x]
 y_predprob_clean = [x for x in y_predprob for x in x]
 
-combined_y = y_pred_clean
-combine_true = y_true_clean
+combined_ids = unique_ids
+combined_y = y_predprob_clean
+combined_true = y_true_clean
 
 acc = accuracy_score(y_true_clean, y_pred_clean)
 print('Accuracy: %.3f' % acc)
@@ -270,7 +270,8 @@ y_true_clean = [x for x in y_true for x in x]
 y_pred_clean = [x for x in y_pred for x in x]
 y_predprob_clean = [x for x in y_predprob for x in x]
 
-inter_y = y_pred_clean
+inter_ids = unique_ids
+inter_y = y_predprob_clean
 inter_true = y_true_clean
 
 acc = accuracy_score(y_true_clean, y_pred_clean)
@@ -388,7 +389,8 @@ y_true_clean = [x for x in y_true for x in x]
 y_pred_clean = [x for x in y_pred for x in x]
 y_predprob_clean = [x for x in y_predprob for x in x]
 
-ictal_y = y_pred_clean
+ictal_ids = unique_ids
+ictal_y = y_predprob_clean
 ictal_true = y_true_clean
 
 acc = accuracy_score(y_true_clean, y_pred_clean)
@@ -440,7 +442,7 @@ for label in plt.gca().get_xticklabels():
 for label in plt.gca().get_yticklabels():
     label.set_weight('bold')
 
-plt.savefig('figures/ML/all_ROCS_w_CI.pdf')
+# plt.savefig('figures/ML/all_ROCS_w_CI.pdf')
 
 plt.show()
 
@@ -456,9 +458,79 @@ plt.show()
 
 
 # %%
+def rearrange_order(combined_ids, target_ids, target_true, target_y):
+    # Create a dictionary to map ids to their true and predicted values
+    id_to_true = {id_: true for id_, true in zip(target_ids, target_true)}
+    id_to_y = {id_: y for id_, y in zip(target_ids, target_y)}
+    
+    # Rearrange the target lists to match the order of combined_ids
+    rearranged_ids = [id_ for id_ in combined_ids]
+    rearranged_true = [id_to_true[id_] for id_ in combined_ids]
+    rearranged_y = [id_to_y[id_] for id_ in combined_ids]
+    
+    return rearranged_ids, rearranged_true, rearranged_y
 
-combined_y
-ictal_y
-inter_y
 
-delong_roc_test(np.array(combine_true), np.array(combined_y), np.array(ictal_y))
+# Rearrange ictal lists
+ictal_ids_rearranged, ictal_true_rearranged, ictal_y_rearranged = rearrange_order(combined_ids, ictal_ids, ictal_true, ictal_y)
+
+# Rearrange inter lists
+inter_ids_rearranged, inter_true_rearranged, inter_y_rearranged = rearrange_order(combined_ids, inter_ids, inter_true, inter_y)
+
+#%%
+print(ictal_ids_rearranged)
+print(inter_ids_rearranged)
+print(combined_ids)
+# %%
+
+#Run the delong test on the pairs
+
+print('Difference between COMBINED vs. ICTAL-ONLY:')
+auc1, cov1, p1 = (delong_roc_test(np.array(combined_true), np.array(combined_y), np.array(ictal_y_rearranged)))
+print("AUC:",auc1)
+print("COV:",cov1)
+print("p-value:",np.exp(np.log(10)*p1)) #needed extra math to calculate the ture p-val, this was implemented from the github
+
+print('Difference between INTER-ONLY vs. ICTAL-ONLY:')
+auc2, cov2, p2 = (delong_roc_test(np.array(combined_true), np.array(inter_y_rearranged), np.array(ictal_y_rearranged)))
+print("AUC:",auc2)
+print("COV:",cov2)
+print("p-value:",np.exp(np.log(10)*p2))
+
+print('Difference between INTER-ONLY vs. COMBINED:')
+auc3, cov3, p3 = (delong_roc_test(np.array(combined_true), np.array(inter_y_rearranged), np.array(combined_y)))
+print("AUC:",auc3)
+print("COV:",cov3)
+print("p-value:",np.exp(np.log(10)*p3)) 
+
+
+# %%
+
+p_values =  [p1,p2,p3]
+p_values = [np.exp(np.log(10)*p) for p in p_values]
+desired_fdr = 0.05
+
+def benjamini_hochberg(p_values, fdr):
+    m = len(p_values)
+    sorted_p_values = np.sort(p_values)
+    sorted_index = np.argsort(p_values)
+    bh_critical_values = np.arange(1, m + 1) / m * fdr
+
+    # Determine the largest p-value that is less than or equal to its BH critical value
+    significant = sorted_p_values <= bh_critical_values
+    if significant.any():
+        max_significant_index = np.where(significant)[0][-1]
+        threshold_p_value = sorted_p_values[max_significant_index]
+    else:
+        threshold_p_value = None
+
+    # Determine which p-values are significant
+    significant_p_values = p_values <= threshold_p_value if threshold_p_value is not None else np.zeros_like(p_values, dtype=bool)
+
+    return significant_p_values, threshold_p_value
+
+significant_p_values, threshold_p_value = benjamini_hochberg(p_values, desired_fdr)
+
+print("P-values:", p_values)
+print("Significant p-values:", significant_p_values)
+print("Threshold p-value:", threshold_p_value)
