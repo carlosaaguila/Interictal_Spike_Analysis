@@ -65,8 +65,8 @@ all_spikes_list = [MUSC_full, MUSC_thresh]
 # KEEP THE SAME SIDE, PLUS FOR BILATERAL TAKE BOTH SIDES
 
 vs_other = True #CHANGE if you want to compare 2 groups, or 3. [False: you compare mtle, tle, other] [True: you compare mtle vs. other]
-list_of_feats = ['spike_rate', 'rise_amp','decay_amp','sharpness','linelen','recruiment_latency','spike_width','slow_width','slow_amp']
-list_of_feats = ['spike_rate','recruitment_latency_thresh']
+list_of_feats = ['spike_rate', 'rise_amp','decay_amp','sharpness','linelen','recruitment_latency_thresh','spike_width','slow_width','slow_amp']
+# list_of_feats = ['spike_rate','recruitment_latency_thresh']
 
 df_to_use = []
 for Feat_of_interest in list_of_feats:
@@ -151,8 +151,8 @@ for i, Feat_of_interest in enumerate(list_of_feats):
     ########################################
 
     #strip the letters from the channel_label column and keep only the numerical portion
-    mesial_temp_spikes['channel_label'] = mesial_temp_spikes['channel_label'].str.replace('L|R|A|H|P', '')
-    non_mesial_temp_spikes['channel_label'] = non_mesial_temp_spikes['channel_label'].str.replace('L|R|A|H|P', '')
+    mesial_temp_spikes['channel_label'] = mesial_temp_spikes['channel_label'].str.replace('L|R|A|H|P', '', regex = True)
+    non_mesial_temp_spikes['channel_label'] = non_mesial_temp_spikes['channel_label'].str.replace('L|R|A|H|P', '', regex = True)
 
     #replace "sharpness" with the absolute value of it
     mesial_temp_spikes[Feat_of_interest] = abs(mesial_temp_spikes[Feat_of_interest])
@@ -287,38 +287,38 @@ for i, Feat_of_interest in enumerate(list_of_feats):
     pearson_df['SOZ'] = [x[1] for x in label]
     pearson_df['pt_id'] = [x[0] for x in label]
 
-    ### New METRIC
-    coeff_5 = []
-    coeff_10 = []
-    firstonly = []
-    m_label = []
-    for row in range(len(all_spikes_avg)):
-        # #if the row has less than 8 channels, omit from analysis
-        # if len(all_spikes_avg.iloc[row].dropna()) < 8:
-        #     continue
-        gradient = all_spikes_avg.iloc[row].to_list()
-        channel_labels = ['1','2','3','4','5','6','7','8','9','10']
-        channel_labels = [int(x) for x in channel_labels]
-        # for each nan in the graident list, remove the corresponding channel_labels
-        list_to_remove = []
-        for i in range(len(channel_labels)):
-            if np.isnan(gradient[i]):
-                list_to_remove.append(i)
+    # ### New METRIC
+    # coeff_5 = []
+    # coeff_10 = []
+    # firstonly = []
+    # m_label = []
+    # for row in range(len(all_spikes_avg)):
+    #     # #if the row has less than 8 channels, omit from analysis
+    #     # if len(all_spikes_avg.iloc[row].dropna()) < 8:
+    #     #     continue
+    #     gradient = all_spikes_avg.iloc[row].to_list()
+    #     channel_labels = ['1','2','3','4','5','6','7','8','9','10']
+    #     channel_labels = [int(x) for x in channel_labels]
+    #     # for each nan in the graident list, remove the corresponding channel_labels
+    #     list_to_remove = []
+    #     for i in range(len(channel_labels)):
+    #         if np.isnan(gradient[i]):
+    #             list_to_remove.append(i)
 
-        #remove list_to_remove from channel_labels and gradient
-        channel_labels = [i for j, i in enumerate(channel_labels) if j not in list_to_remove]
-        gradient = [i for j, i in enumerate(gradient) if j not in list_to_remove]
-        m_label.append(all_spikes_avg.index[row])
+    #     #remove list_to_remove from channel_labels and gradient
+    #     channel_labels = [i for j, i in enumerate(channel_labels) if j not in list_to_remove]
+    #     gradient = [i for j, i in enumerate(gradient) if j not in list_to_remove]
+    #     m_label.append(all_spikes_avg.index[row])
 
-        coeff_5.append((gradient[4]-gradient[0])/len(gradient[0:5]))
-        coeff_10.append((gradient[-1]-gradient[0])/len(gradient))
-        firstonly.append(gradient[0])
+    #     coeff_5.append((gradient[4]-gradient[0])/len(gradient[0:5]))
+    #     coeff_10.append((gradient[-1]-gradient[0])/len(gradient))
+    #     firstonly.append(gradient[0])
 
-    slope_df = pd.DataFrame(data = coeff_5, columns = ['coef5'])
-    slope_df['coef10'] = coeff_10
-    slope_df['first_value'] = firstonly
-    slope_df['SOZ'] = [x[1] for x in m_label]
-    slope_df['pt_id'] = [x[0] for x in m_label]
+    # slope_df = pd.DataFrame(data = coeff_5, columns = ['coef5'])
+    # slope_df['coef10'] = coeff_10
+    # slope_df['first_value'] = firstonly
+    # slope_df['SOZ'] = [x[1] for x in m_label]
+    # slope_df['pt_id'] = [x[0] for x in m_label]
 
     ########################
     # MANUAL PLOTS (STATS) #

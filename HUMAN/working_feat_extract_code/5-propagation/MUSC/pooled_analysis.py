@@ -42,7 +42,9 @@ take_spike_leads = False
 #WHAT DO YOU WANT TO REMOVE FROM THE CORE PLOT (CHOICES: 'frontal','mesial temporal','other cortex', 'temporal neocortical','temporal')
 soz_to_remove = ['temporal']
 
-list_of_feats = ['spike_rate','recruitment_latency_thresh','decay_amp','sharpness','linelen','slow_amp']
+# list_of_feats = ['spike_rate','recruitment_latency_thresh','decay_amp','sharpness','linelen','slow_amp', 'rise_amp','spike_width','']
+list_of_feats = ['spike_rate', 'rise_amp','decay_amp','sharpness','linelen','recruitment_latency_thresh','spike_width','slow_width','slow_amp']
+
 
 df_to_use = []
 for Feat_of_interest in list_of_feats:
@@ -182,7 +184,8 @@ all_spikes_list = [MUSC_full, MUSC_thresh]
 
 # vs_other = True #CHANGE if you want to compare 2 groups, or 3. [False: you compare mtle, tle, other] [True: you compare mtle vs. other]
 # list_of_feats = ['spike_rate', 'rise_amp','decay_amp','sharpness','linelen','recruiment_latency','spike_width','slow_width','slow_amp']
-list_of_feats = ['spike_rate','recruitment_latency_thresh','decay_amp','sharpness','linelen','slow_amp']
+# list_of_feats = ['spike_rate','recruitment_latency_thresh','decay_amp','sharpness','linelen','slow_amp']
+list_of_feats = ['spike_rate', 'rise_amp','decay_amp','sharpness','linelen','recruitment_latency_thresh','spike_width','slow_width','slow_amp']
 
 df_to_use = []
 for Feat_of_interest in list_of_feats:
@@ -328,8 +331,7 @@ all_pts_df['pt_id'] = all_pts_df['pt_id'].str.replace('3T_MP0', '').str.replace(
 merged_df = all_pts_df
 from sklearn.preprocessing import MinMaxScaler
 # scaler = MinMaxScaler()
-# to_normalize = ['decay_amp', 'rise_amp','sharpness','linelen','spike_width','slow_width','slow_amp']
-
+# to_normalize = ['decay_amp', 'rise_amp','sharpness','linelen','spike_width','slow_width','slow_amp','spike_rate','recruitment_latency_thresh']
 # merged_df[to_normalize] = scaler.fit_transform(merged_df[to_normalize])
 
 corr_df = pd.DataFrame()
@@ -716,7 +718,7 @@ else:
 # Show the plot
 sns.despine()
 plt.axhline(y=0, color='k', linestyle='--')
-plt.savefig(f'../figures/MUSC+HUP/official/ALL_pearson_CLEAN.pdf')
+# plt.savefig(f'../figures/MUSC+HUP/official/ALL_pearson_CLEAN.pdf')
 plt.show()
 
 
