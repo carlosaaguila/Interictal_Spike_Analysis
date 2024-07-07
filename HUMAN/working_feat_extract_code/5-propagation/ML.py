@@ -6,46 +6,97 @@ from resampy import resample
 import re
 import scipy.stats as stats
 import matplotlib.pyplot as plt
+from sklearn.utils import resample as sklearn_resample
+from sklearn.metrics import roc_curve, auc
+from sklearn.metrics import confusion_matrix as C_M
+import seaborn as sns
 
 import warnings
 warnings.filterwarnings('ignore')
 
 # Import custom functions
 import sys, os
-code_v2_path = os.path.dirname('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/spike_detector/')
-sys.path.append(code_v2_path)
-from get_iEEG_data import *
-from spike_detector import *
-from iEEG_helper_functions import *
-from spike_morphology_v2 import *
-
 code_path = os.path.dirname('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/functions/')
 sys.path.append(code_path)
 from ied_fx_v3 import *
+from delongs_test import *
 
 data_directory = ['/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2', '/mnt/leif/littlab/data/Human_Data']
 
+def bootstrap_roc(y_true, y_pred, n_bootstraps=1000, alpha=0.95):
+
+    rng_seed = 42  # reproducibility
+    bootstrapped_tpr = []
+    bootstrapped_fpr = np.linspace(0, 1, 100)  
+    boot_aucs = []
+    
+    for i in range(n_bootstraps):
+        # Bootstrap by sampling with replacement on the prediction indices
+        indices = sklearn_resample(np.arange(len(y_pred)), random_state=rng_seed + i)
+        if len(np.unique(y_true[indices])) < 2:
+            # We need at least one positive and one negative sample for ROC AUC
+            continue
+
+        score = y_pred[indices]
+        true = y_true[indices]
+        fpr_, tpr_, _ = roc_curve(true, score)
+        boot_aucs.append(auc(fpr_, tpr_))
+        tpr_interp = np.interp(bootstrapped_fpr, fpr_, tpr_)
+        bootstrapped_tpr.append(tpr_interp)
+
+    bootstrapped_tpr = np.array(bootstrapped_tpr)
+
+    sort_idx = np.argsort(boot_aucs)
+    bootstrapped_tpr = bootstrapped_tpr[sort_idx]
+
+    lower_percentile = ((1.0 - alpha) / 2.0)
+    upper_percentile = (alpha + ((1.0 - alpha) / 2.0))
+
+    tpr_lower = bootstrapped_tpr[int(lower_percentile*n_bootstraps)]
+    tpr_upper = bootstrapped_tpr[int(upper_percentile*n_bootstraps)]
+    mean_tpr = np.mean(bootstrapped_tpr, axis=0)
+
+    return bootstrapped_fpr, mean_tpr, tpr_lower, tpr_upper
+
+
+def plot_roc_with_ci(bootstrapped_fpr, tpr_lower, tpr_upper, color):
+    plt.fill_between(bootstrapped_fpr, tpr_lower, tpr_upper, color=color, alpha=0.2)
+
 # %%
-subset = True
+# pearson_df = pd.read_csv('dataset/ML_data/pearson_ML_v3.csv', index_col=0) #GIVES AUC = 0.82
+# pearson_df['pt_id'] = pearson_df['pt_id'].str.replace('3T_MP0', '').str.replace('HUP', '')
+# pearson_df['pt_id'] = pearson_df['pt_id'].astype(int)
 
-
-pearson_df = pd.read_csv('dataset/ML_data/pearson_ML_v3.csv', index_col=0)
+pearson_df = pd.read_csv('dataset/ML_data/MUSC/pooled_pearson_all_norm.csv', index_col = 0) #THIS GIVES AUC = 0.8 
+# pearson_df = pd.read_csv('dataset/ML_data/MUSC/pooled_spearman_all_norm.csv', index_col=0)
 pearson_df['SOZ'] = pearson_df['SOZ'].replace(2, 0)
-spearman_df = pd.read_csv('dataset/ML_data/spearman_ML_v2.csv', index_col=0)
-if subset == True:
-    EI_df = pd.read_csv('dataset/ML_data/EI_corr_subset_pearson.csv', index_col = 0)[['EI_corr','pt_id']]
-elif subset == False:
-    EI_df = pd.read_csv('dataset/ML_data/EI_corr_full_pearson.csv', index_col = 0)[['correlation','pt_id']]
+pearson_df['SOZ'] = pearson_df['SOZ'].replace(3, 0)
+pearson_df['pt_id'] = pearson_df['pt_id'].astype(int)
 
-combine_pearson = pearson_df.merge(EI_df, on='pt_id')
 
+
+# musc_pearson_df = pd.read_csv('dataset/ML_data/musc_ML_2.csv')
+
+# spearman_df = pd.read_csv('dataset/ML_data/spearman_ML_v2.csv', index_col=0)
+EI_df = pd.read_csv('dataset/ML_data/EI_pooled_corr.csv', index_col=0)[['correlation','pt_id']] #using HFER
+EI_df['pt_id'] = EI_df['pt_id'].str.replace('3T_MP0', '').str.replace('HUP', '')
+EI_df['pt_id'] = EI_df['pt_id'].astype(int)
+
+combine_pearson = pearson_df.merge(EI_df, on='pt_id')#, how = 'left')
+#so you should have NaN's in the correlation for some of the MUSC patients
 #%%
 ########################
 # LEAVE ONE OUT - Logistic Regression
 # ########################
 
+###############################################
+# ALL FEATURES
+###############################################
+
+
 # all_feats = pearson_df.merge(spearman_df, on=['SOZ', 'pt_id'])
 all_feats = combine_pearson
+all_feats = all_feats.dropna(subset = 'correlation')
 
 #Split the data according to IDs 
 #from all_feats dataframe, get the unique id's
@@ -85,6 +136,7 @@ for train_ix, test_ix in LOO.split(unique_ids):
     # evaluate model
     yhat = rfc.predict(X_test)
     y_pred_prob = rfc.predict_proba(X_test)[:,1]
+
     # store
     y_predprob.append(y_pred_prob)
     y_true.append(y_test['SOZ'].to_numpy())
@@ -100,6 +152,9 @@ from sklearn.metrics import accuracy_score
 y_true_clean = [x for x in y_true for x in x]
 y_pred_clean = [x for x in y_pred for x in x]
 y_predprob_clean = [x for x in y_predprob for x in x]
+
+combined_y = y_pred_clean
+combine_true = y_true_clean
 
 acc = accuracy_score(y_true_clean, y_pred_clean)
 print('Accuracy: %.3f' % acc)
@@ -120,11 +175,11 @@ plt.title('ROC Curves for Classifying MTLE', fontsize = 24, fontweight = 'bold')
 plt.xlabel('False Positive Rate', fontsize = 20,fontweight = 'bold')
 plt.ylabel('True Positive Rate', fontsize = 20,fontweight = 'bold')
 
-# plt.savefig('figures/ML/all_feats_ROC.pdf')
+# Bootstrap ROC to get 95% confidence intervals
+bootstrapped_fpr, mean_tpr, tpr_lower, tpr_upper = bootstrap_roc(np.array(y_true_clean), np.array(y_predprob_clean))
 
-################ Confusion Matrix
-from sklearn.metrics import confusion_matrix as C_M
-import seaborn as sns
+# Plot ROC curve with confidence intervals
+plot_roc_with_ci(bootstrapped_fpr, tpr_lower, tpr_upper, color='#E64B35FF')
 
 # rfc_confusion = C_M(y_true_clean, y_pred_clean)
 # rfc_conf_mat_df = pd.DataFrame(rfc_confusion)
@@ -146,13 +201,19 @@ import seaborn as sns
 # bal_accuracy = (sensitivity + specificity) / 2
 # print("Balanced Accuracy:", bal_accuracy)
 
-########################
-# LEAVE ONE OUT - Logistic Regression
-# ########################
+###############################################
+#INTERICTAL FEATURES
+###############################################
 
-#ONLY SPIKE RATE
 
-all_feats = pd.read_csv('dataset/ML_data/pearson_ML_v2.csv', index_col = 0)
+# all_feats = pd.read_csv('dataset/ML_data/pearson_ML_v3.csv', index_col = 0)
+# all_feats['SOZ'] = all_feats['SOZ'].replace(2, 0)
+
+pearson_df = pd.read_csv('dataset/ML_data/MUSC/pooled_pearson_all_norm.csv', index_col = 0) #AUC = 0.8
+pearson_df['SOZ'] = pearson_df['SOZ'].replace(2, 0)
+pearson_df['SOZ'] = pearson_df['SOZ'].replace(3, 0)
+
+all_feats = pearson_df
 
 #Split the data according to IDs 
 #from all_feats dataframe, get the unique id's
@@ -209,6 +270,9 @@ y_true_clean = [x for x in y_true for x in x]
 y_pred_clean = [x for x in y_pred for x in x]
 y_predprob_clean = [x for x in y_predprob for x in x]
 
+inter_y = y_pred_clean
+inter_true = y_true_clean
+
 acc = accuracy_score(y_true_clean, y_pred_clean)
 print('Accuracy: %.3f' % acc)
 
@@ -224,6 +288,14 @@ fpr2, tpr2,_ = roc_curve(y_true_clean, y_predprob_clean)
 roc_auc2 = auc(fpr2, tpr2)
 plt.plot(fpr2, tpr2, color='#7E6148FF', lw=3, label='Interictal (AUC = %0.2f)' % roc_auc2)
 plt.plot(np.linspace(0,1,100), np.linspace(0,1,100), '--', color='black')
+
+# Bootstrap ROC to get 95% confidence intervals
+bootstrapped_fpr, mean_tpr, tpr_lower, tpr_upper = bootstrap_roc(np.array(y_true_clean), np.array(y_predprob_clean))
+
+# Plot ROC curve with confidence intervals
+plot_roc_with_ci(bootstrapped_fpr, tpr_lower, tpr_upper, color='#7E6148FF')
+
+
 # plt.grid()
 # plt.title('FPR vs. TPR ROC Curve of LR Testing Performance (spike rate)')
 # plt.savefig('figures/ML/rate_only_roc.pdf')
@@ -256,10 +328,9 @@ plt.plot(np.linspace(0,1,100), np.linspace(0,1,100), '--', color='black')
 # #ONLY ICTAL DATA
 # ########################
 
-if subset == False: 
-    all_feats = combine_pearson[['correlation','pt_id','SOZ']]
-else:
-    all_feats = combine_pearson[['EI_corr','pt_id','SOZ']]
+
+all_feats = combine_pearson[['correlation','pt_id','SOZ']]
+all_feats = all_feats.dropna(subset = 'correlation')
 
 
 #Split the data according to IDs 
@@ -317,6 +388,9 @@ y_true_clean = [x for x in y_true for x in x]
 y_pred_clean = [x for x in y_pred for x in x]
 y_predprob_clean = [x for x in y_predprob for x in x]
 
+ictal_y = y_pred_clean
+ictal_true = y_true_clean
+
 acc = accuracy_score(y_true_clean, y_pred_clean)
 print('Accuracy: %.3f' % acc)
 
@@ -329,6 +403,13 @@ from sklearn.metrics import precision_recall_fscore_support
 fpr3, tpr3,_ = roc_curve(y_true_clean, y_predprob_clean)
 roc_auc3 = auc(fpr3, tpr3)
 plt.plot(fpr3, tpr3, color='#00A087FF', lw=3, label='Ictal (AUC = %0.2f)' % roc_auc3)
+
+# Bootstrap ROC to get 95% confidence intervals
+bootstrapped_fpr, mean_tpr, tpr_lower, tpr_upper = bootstrap_roc(np.array(y_true_clean), np.array(y_predprob_clean))
+
+# Plot ROC curve with confidence intervals
+plot_roc_with_ci(bootstrapped_fpr, tpr_lower, tpr_upper, color='#00A087FF')
+
 plt.legend(loc="lower right", prop={'size': 16, 'weight': 'bold'})
 sns.despine()
 # plt.figure(figsize = (8,8))
@@ -359,7 +440,7 @@ for label in plt.gca().get_xticklabels():
 for label in plt.gca().get_yticklabels():
     label.set_weight('bold')
 
-# plt.savefig('figures/ML/all_ROCS_AES.pdf')
+plt.savefig('figures/ML/all_ROCS_w_CI.pdf')
 
 plt.show()
 
@@ -373,4 +454,11 @@ plt.show()
 # bal_accuracy = (sensitivity + specificity) / 2
 # print("Balanced Accuracy:", bal_accuracy)
 
+
 # %%
+
+combined_y
+ictal_y
+inter_y
+
+delong_roc_test(np.array(combine_true), np.array(combined_y), np.array(ictal_y))
