@@ -64,6 +64,29 @@ which = ['1','2','1a']
 mesial_pts['G/O v2'] = mesial_pts['ilae'].apply(lambda x: map_ilae_to_go(x, which))
 
 pts_oi = mesial_pts[['HUP_id','G/O v1','G/O v2']]
+
+#%%
+#NEW outcomes - look through them
+pec_outcomes = pd.read_csv('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/PEC_outcomes.csv')
+pec_outcomes = pec_outcomes.dropna(subset='HUP Number')
+pec_outcomes = pec_outcomes.drop(columns = 'Follow Up #1 Status (9-15 months from surgery):')
+pec_outcomes.columns = ['rid', 'hup_id', 'procedure','resection_laterality','resection_target','ablation_target',
+                        'ablation_specific_target','months_f1','ilae_f1','engel_f1',
+                        'months_f2','ilae_f2','engel_f2']
+
+pec_outcomes = pec_outcomes[pec_outcomes['procedure'] == 'resection or laser']
+pec_outcomes = pec_outcomes.dropna(subset=['ablation_target'])
+other_tokeep = ['amygdala and hippocampus','laser ablation of left temporal lobe, hippocampus, and amygdala','hippocampus',
+                'Right laser thermal ablation of the hippocampus and amygdala','left hippocampal ablation','amygdala',
+                'left Planum Polare and Amygdala (partial)', 'hippocampal', 'left hippocampal ablation and amygdala cyst biopsy',
+                'Right Hippocampus', 'left amygdala-hippocampal ablation', 'left parahippocampal focal cortical dysplasia']
+
+pec_outcomes = pec_outcomes[(pec_outcomes['ablation_specific_target'].isin(other_tokeep)) | (pec_outcomes['ablation_target'] == 'Mesial Temporal')]
+
+
+
+# ' left periventricular heterotopia', 'right insular cortex', 'right posterior insula', 'right insular LITT'
+
 # %%  ADD BILATERAL PATIENTS
 # KEEP THE SAME SIDE, PLUS FOR BILATERAL TAKE BOTH SIDES
 
