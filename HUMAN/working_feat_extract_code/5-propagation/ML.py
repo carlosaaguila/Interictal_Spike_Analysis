@@ -615,6 +615,9 @@ ILAE_conversion = {'Rare seizures (1-3 seizure days per year)': 2,
                    'Auras only, no other seizures':1,
                    'No change (between 50% seizure reduction and 100% seizure increase': 4
 }
+
+
+Engel_good = ['IA','IB']
 combine_pred_df['ilae_f1'] = combine_pred_df['ilae_f1'].map(ILAE_conversion)
 combine_pred_df['engel_f1'] = combine_pred_df['engel_f1'].str.split(':').str[0]
 combine_pred_df['ilae_f2'] = combine_pred_df['ilae_f2'].map(ILAE_conversion)
@@ -633,7 +636,7 @@ combine_pred_df['outcome2_f1'] = combine_pred_df.apply(lambda row: 1 if (row['il
 def calculate_outcome(row):
     if pd.isna(row['engel_f1']):
         return row['G/O v1']
-    elif 'A' in str(row['engel_f1']):
+    elif str(row['engel_f1']) in Engel_good:
         return 1
     else:
         return 0
@@ -641,22 +644,10 @@ def calculate_outcome(row):
 # Apply the function to each row to create the outcome3 column
 combine_pred_df['outcome3_f1'] = combine_pred_df.apply(calculate_outcome, axis=1)
 
-def calculate_outcome2(row):
-    if pd.isna(row['engel_f1']):
-        return row['G/O v2']
-    elif 'A' in str(row['engel_f1']):
-        return 1
-    elif 'B' in str(row['engel_f1']):
-        return 1
-    else:
-        return 0
-
-combine_pred_df['outcome4_f1'] = combine_pred_df.apply(calculate_outcome2, axis = 1)
-
 
 # %%
 
-for i, x_data in enumerate(['outcome1_f1','outcome2_f1','outcome3_f1','outcome4_f1']):
+for i, x_data in enumerate(['outcome1_f1','outcome2_f1','outcome3_f1']):
     plt.figure(figsize=(10, 6))
     sns.boxplot(x=x_data, y='Y prob', data=combine_pred_df)
     sns.stripplot(x=x_data, y='Y prob', data=combine_pred_df, color= 'k')
@@ -669,9 +660,7 @@ for i, x_data in enumerate(['outcome1_f1','outcome2_f1','outcome3_f1','outcome4_
 
     plt.show()
 
-
 # %%
-
 combine_pred_df['outcome1_f2'] = combine_pred_df.apply(lambda row: 1 if row['ilae_f2'] == 1 else (row['G/O v1'] if pd.isna(row['ilae_f2']) else 0), axis=1)
 combine_pred_df['outcome2_f2'] = combine_pred_df.apply(lambda row: 1 if (row['ilae_f2'] == 1) | (row['ilae_f2'] == 2) else (row['G/O v2'] if pd.isna(row['ilae_f2']) else 0), axis=1)
 #outcomes that are based on anything with an engel classification of A to be GOOD, everything else under is BAD.
@@ -679,7 +668,7 @@ combine_pred_df['outcome2_f2'] = combine_pred_df.apply(lambda row: 1 if (row['il
 def calculate_outcome(row):
     if pd.isna(row['engel_f2']):
         return row['G/O v1']
-    elif 'A' in str(row['engel_f2']):
+    elif str(row['engel_f2']) in Engel_good:
         return 1
     else:
         return 0
@@ -687,19 +676,8 @@ def calculate_outcome(row):
 # Apply the function to each row to create the outcome3 column
 combine_pred_df['outcome3_f2'] = combine_pred_df.apply(calculate_outcome, axis=1)
 
-def calculate_outcome2(row):
-    if pd.isna(row['engel_f2']):
-        return row['G/O v2']
-    elif 'A' in str(row['engel_f2']):
-        return 1
-    elif 'B' in str(row['engel_f2']):
-        return 1
-    else:
-        return 0
 
-combine_pred_df['outcome4_f2'] = combine_pred_df.apply(calculate_outcome2, axis = 1)
-
-for i, x_data in enumerate(['outcome1_f2','outcome2_f2','outcome3_f2','outcome4_f2']):
+for i, x_data in enumerate(['outcome1_f2','outcome2_f2','outcome3_f2']):
     plt.figure(figsize=(10, 6))
     sns.boxplot(x=x_data, y='Y prob', data=combine_pred_df)
     sns.stripplot(x=x_data, y='Y prob', data=combine_pred_df, color= 'k')
@@ -712,6 +690,12 @@ for i, x_data in enumerate(['outcome1_f2','outcome2_f2','outcome3_f2','outcome4_
 
     plt.show()
 # %%
+
+###########################################################
+# IMPLEMENT ML TO PREDICT GOOD/BAD
+###########################################################
+
+
 new_predict_mat = combine_pred_df[['hup_id','outcome3_f2']]
 new_predict_mat = new_predict_mat.rename(columns = {'hup_id':'pt_id',
                                                     'outcome3_f2':'outcome'})
