@@ -134,7 +134,7 @@ for train_ix, test_ix in LOO.split(unique_ids):
 
     # evaluate model
     yhat = rfc.predict(X_test)
-    y_pred_prob = rfc.predict_proba(X_test)[:,1]
+    y_pred_prob= rfc.predict_proba(X_test)[:,1]
 
     # store
     y_predprob.append(y_pred_prob)
@@ -534,3 +534,435 @@ significant_p_values, threshold_p_value = benjamini_hochberg(p_values, desired_f
 print("P-values:", p_values)
 print("Significant p-values:", significant_p_values)
 print("Threshold p-value:", threshold_p_value)
+
+#%%
+
+#NEW outcomes - look through them
+pec_outcomes = pd.read_csv('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/PEC_outcomes.csv')
+pec_outcomes = pec_outcomes.dropna(subset='HUP Number')
+pec_outcomes = pec_outcomes.drop(columns = 'Follow Up #1 Status (9-15 months from surgery):')
+pec_outcomes.columns = ['rid', 'hup_id', 'procedure','resection_laterality','resection_target','ablation_target',
+                        'ablation_specific_target','months_f1','ilae_f1','engel_f1',
+                        'months_f2','ilae_f2','engel_f2']
+
+pec_outcomes = pec_outcomes[pec_outcomes['procedure'] == 'resection or laser']
+pec_outcomes = pec_outcomes.dropna(subset=['ablation_target'])
+other_tokeep = ['amygdala and hippocampus','laser ablation of left temporal lobe, hippocampus, and amygdala','hippocampus',
+                'Right laser thermal ablation of the hippocampus and amygdala','left hippocampal ablation','amygdala',
+                'left Planum Polare and Amygdala (partial)', 'hippocampal', 'left hippocampal ablation and amygdala cyst biopsy',
+                'Right Hippocampus', 'left amygdala-hippocampal ablation', 'left parahippocampal focal cortical dysplasia']
+
+pec_outcomes = pec_outcomes[(pec_outcomes['ablation_specific_target'].isin(other_tokeep)) | (pec_outcomes['ablation_target'] == 'Mesial Temporal')]
+
+#load in the outcome data
+redcap = pd.read_excel('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/Erin_Carlos_RedCAP_data.xlsx')
+
+#create our 2 search queries. We want to look down LOCATION and SURGERY NOTES to get Mesial Temporal targets
+outcomes = redcap[~redcap['Location?'].isna()]
+outcomes_2 = redcap[~redcap['Surgery NOTES'].isna()]
+
+#grab only mesial temporal structure targetted interventions
+outcomes = outcomes[outcomes['Location?'].str.contains('Mesial|mesial|Hippo|hippo|amygd|Amygd')]
+outcomes = outcomes[~outcomes['Procedure?'].str.contains('Resection|resection')]
+outcomes = outcomes[outcomes['Location?'].str.contains('Mesial Temporal')]
+
+#do the same but across outcomes_2
+# outcomes_2 = outcomes_2[outcomes_2['Surgery NOTES'].str.contains('Mesial|mesial|Hippo|hippo|amygd|Amygd')]
+
+#now merge them to see what we have
+# mesial_pts = pd.concat([outcomes, outcomes_2])
+mesial_pts = outcomes
+mesial_pts = mesial_pts.drop_duplicates().reset_index(drop = True)
+mesial_pts = mesial_pts[~mesial_pts['Outcomes?'].isna()]
+mesial_pts = mesial_pts[~mesial_pts['Outcomes?'].str.contains('NONE|OTHER|None')]
+
+#seperate between good and bad
+split_outcomes = mesial_pts['Outcomes?'].str.split()
+ilae_indices = split_outcomes.apply(lambda x: x[-1] for x in split_outcomes)
+mesial_pts['ilae'] = ilae_indices.iloc[:, 1]
+
+def map_ilae_to_go(ilae_value, which):
+    if ilae_value in which:
+        return 1
+    else:
+        return 0
+    
+which = ['1','1a']
+mesial_pts['G/O v1'] = mesial_pts['ilae'].apply(lambda x: map_ilae_to_go(x, which))
+which = ['1','2','1a']
+mesial_pts['G/O v2'] = mesial_pts['ilae'].apply(lambda x: map_ilae_to_go(x, which))
+
+pts_oi = mesial_pts[['HUP_id','G/O v1','G/O v2']]
+pts_oi['HUP_id'] = pts_oi['HUP_id'].str.replace('3T_MP0', '').str.replace('HUP', '')
+pts_oi = pts_oi.rename(columns = {'HUP_id':'hup_id'})
+
+pts_oi['hup_id'] = pts_oi['hup_id'].astype(int)
+pec_outcomes['hup_id'] = pec_outcomes['hup_id'].astype(int)
+
+pec_outcomes = pec_outcomes.merge(pts_oi, on= 'hup_id', how = 'left')
+
+# %%
+combine_pred_df = pd.DataFrame({'hup_id': combined_ids,
+              'Y prob': combined_y
+              })
+combine_pred_df['hup_id'] = combine_pred_df['hup_id'].astype(int)
+
+combine_pred_df = combine_pred_df.merge(pec_outcomes, on='hup_id', how = 'inner')
+
+ILAE_conversion = {'Rare seizures (1-3 seizure days per year)': 2,
+                   'Seizure free since surgery, no auras':1,
+                   'Seizure reduction >50% (but >3 seizure days/year)':3,
+                   'Auras only, no other seizures':1,
+                   'No change (between 50% seizure reduction and 100% seizure increase': 4
+}
+combine_pred_df['ilae_f1'] = combine_pred_df['ilae_f1'].map(ILAE_conversion)
+combine_pred_df['engel_f1'] = combine_pred_df['engel_f1'].str.split(':').str[0]
+combine_pred_df['ilae_f2'] = combine_pred_df['ilae_f2'].map(ILAE_conversion)
+combine_pred_df['engel_f2'] = combine_pred_df['engel_f2'].str.split(':').str[0]
+
+combine_pred_df = combine_pred_df.drop(columns = ['resection_laterality','resection_target','rid','procedure'])
+
+#outcomes that basically say that are based off ILAE1 being good and everything else BAD
+combine_pred_df['outcome1_f1'] = combine_pred_df.apply(lambda row: 1 if row['ilae_f1'] == 1 else (row['G/O v1'] if pd.isna(row['ilae_f1']) else 0), axis=1)
+
+#outcomes that are based off ILAE 2 being good and everything else BAD
+combine_pred_df['outcome2_f1'] = combine_pred_df.apply(lambda row: 1 if (row['ilae_f1'] == 1) | (row['ilae_f1'] == 2) else (row['G/O v2'] if pd.isna(row['ilae_f1']) else 0), axis=1)
+
+#outcomes that are based on anything with an engel classification of A to be GOOD, everything else under is BAD.
+# Define the function to create outcome3
+def calculate_outcome(row):
+    if pd.isna(row['engel_f1']):
+        return row['G/O v1']
+    elif 'A' in str(row['engel_f1']):
+        return 1
+    else:
+        return 0
+
+# Apply the function to each row to create the outcome3 column
+combine_pred_df['outcome3_f1'] = combine_pred_df.apply(calculate_outcome, axis=1)
+
+def calculate_outcome2(row):
+    if pd.isna(row['engel_f1']):
+        return row['G/O v2']
+    elif 'A' in str(row['engel_f1']):
+        return 1
+    elif 'B' in str(row['engel_f1']):
+        return 1
+    else:
+        return 0
+
+combine_pred_df['outcome4_f1'] = combine_pred_df.apply(calculate_outcome2, axis = 1)
+
+
+# %%
+
+for i, x_data in enumerate(['outcome1_f1','outcome2_f1','outcome3_f1','outcome4_f1']):
+    plt.figure(figsize=(10, 6))
+    sns.boxplot(x=x_data, y='Y prob', data=combine_pred_df)
+    sns.stripplot(x=x_data, y='Y prob', data=combine_pred_df, color= 'k')
+    plt.xticks([0, 1], ['Bad', 'Good'])
+
+    # Add title and labels
+    plt.title('Distribution of Outcome based Probabilities')
+    plt.xlabel('Outcome')
+    plt.ylabel('Probability of mTLE')
+
+    plt.show()
+
+
+# %%
+
+combine_pred_df['outcome1_f2'] = combine_pred_df.apply(lambda row: 1 if row['ilae_f2'] == 1 else (row['G/O v1'] if pd.isna(row['ilae_f2']) else 0), axis=1)
+combine_pred_df['outcome2_f2'] = combine_pred_df.apply(lambda row: 1 if (row['ilae_f2'] == 1) | (row['ilae_f2'] == 2) else (row['G/O v2'] if pd.isna(row['ilae_f2']) else 0), axis=1)
+#outcomes that are based on anything with an engel classification of A to be GOOD, everything else under is BAD.
+# Define the function to create outcome3
+def calculate_outcome(row):
+    if pd.isna(row['engel_f2']):
+        return row['G/O v1']
+    elif 'A' in str(row['engel_f2']):
+        return 1
+    else:
+        return 0
+
+# Apply the function to each row to create the outcome3 column
+combine_pred_df['outcome3_f2'] = combine_pred_df.apply(calculate_outcome, axis=1)
+
+def calculate_outcome2(row):
+    if pd.isna(row['engel_f2']):
+        return row['G/O v2']
+    elif 'A' in str(row['engel_f2']):
+        return 1
+    elif 'B' in str(row['engel_f2']):
+        return 1
+    else:
+        return 0
+
+combine_pred_df['outcome4_f2'] = combine_pred_df.apply(calculate_outcome2, axis = 1)
+
+for i, x_data in enumerate(['outcome1_f2','outcome2_f2','outcome3_f2','outcome4_f2']):
+    plt.figure(figsize=(10, 6))
+    sns.boxplot(x=x_data, y='Y prob', data=combine_pred_df)
+    sns.stripplot(x=x_data, y='Y prob', data=combine_pred_df, color= 'k')
+    plt.xticks([0, 1], ['Bad', 'Good'])
+
+    # Add title and labels
+    plt.title('Distribution of Outcome based Probabilities')
+    plt.xlabel('Outcome')
+    plt.ylabel('Probability of mTLE')
+
+    plt.show()
+# %%
+new_predict_mat = combine_pred_df[['hup_id','outcome3_f2']]
+new_predict_mat = new_predict_mat.rename(columns = {'hup_id':'pt_id',
+                                                    'outcome3_f2':'outcome'})
+
+new_predict_mat['outcome'] = new_predict_mat['outcome'].astype(int)
+new_predict_mat = new_predict_mat.merge(combine_pearson, on='pt_id', how = 'inner')
+
+####################### COMBINED
+
+
+#Split the data according to IDs 
+#from all_feats dataframe, get the unique id's
+unique_ids = new_predict_mat['pt_id'].unique()
+#split into two lists of unique ids in a random order
+np.random.shuffle(unique_ids)
+
+#create LeaveOneOut model
+from sklearn.model_selection import LeaveOneOut
+LOO = LeaveOneOut()
+
+# Initialize the model and fit it on the training set
+# enumerate splits
+y_true, y_pred = list(), list()
+y_predprob = list()
+from sklearn.linear_model import LogisticRegression
+
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import GridSearchCV
+
+feature_importances_TEST = list()
+for train_ix, test_ix in LOO.split(unique_ids):
+
+    #get data
+    X_train = new_predict_mat[new_predict_mat['pt_id'].isin(unique_ids[train_ix])]
+    X_test = new_predict_mat[new_predict_mat['pt_id'].isin(unique_ids[test_ix])]
+    y_train = X_train[['outcome']]
+    y_test = X_test[['outcome']]
+    #drop columns 'isSOZ' and 'id'
+    X_train = X_train.drop(columns = ['SOZ','outcome', 'pt_id'])
+    X_test = X_test.drop(columns = ['SOZ','outcome', 'pt_id'])
+
+    # fit model
+    # rfc = RandomForestClassifier(n_estimators = 100, random_state = 42, max_depth = None).fit(X_train, y_train)
+    # rfc = LogisticRegression(penalty = 'l2', solver = 'liblinear', l1_ratio = 0.5).fit(X_train, y_train)
+    rfc = LogisticRegression().fit(X_train, y_train)
+
+    # evaluate model
+    yhat = rfc.predict(X_test)
+    y_pred_prob = rfc.predict_proba(X_test)[:,1]
+    # store
+    y_predprob.append(y_pred_prob)
+    y_true.append(y_test['outcome'].to_numpy())
+    y_pred.append(yhat)
+    # calculate accuracy
+    # for random forest, feature_importances_ is the feature importance
+    # feature_importances_TEST.append(rfc.feature_importances_)
+    #for logistic regression, feature_importances_ is the coefficients
+    feature_importances_TEST.append(rfc.coef_[0])
+
+################ evaluate predictions
+from sklearn.metrics import accuracy_score
+y_true_clean = [x for x in y_true for x in x]
+y_pred_clean = [x for x in y_pred for x in x]
+y_predprob_clean = [x for x in y_predprob for x in x]
+
+#calculate accuracy
+acc = accuracy_score(y_true_clean, y_pred_clean)
+print('Accuracy: %.3f' % acc)
+
+################ AUC curve
+
+plt.figure(figsize = (8,8))
+fpr2, tpr2,_ = roc_curve(y_true_clean, y_predprob_clean)
+roc_auc2 = auc(fpr2, tpr2)
+plt.plot(fpr2, tpr2, color='#E64B35FF', lw=3, label='Combined (AUC = %0.2f)' % roc_auc2)
+plt.plot(np.linspace(0,1,100), np.linspace(0,1,100), '--', color='black')
+
+# Bootstrap ROC to get 95% confidence intervals
+bootstrapped_fpr, mean_tpr, tpr_lower, tpr_upper = bootstrap_roc(n_bootstraps = 2000, alpha = 0.95, y_true = np.array(y_true_clean),y_pred= np.array(y_predprob_clean))
+
+# Plot ROC curve with confidence intervals
+plot_roc_with_ci(bootstrapped_fpr, tpr_lower, tpr_upper, color='#E64B35FF')
+
+
+
+
+
+
+################ INTER ONLY
+
+inter = new_predict_mat.drop(columns = ['correlation'])
+#Split the data according to IDs 
+#from all_feats dataframe, get the unique id's
+unique_ids = inter['pt_id'].unique()
+#split into two lists of unique ids in a random order
+np.random.shuffle(unique_ids)
+
+#create LeaveOneOut model
+from sklearn.model_selection import LeaveOneOut
+LOO = LeaveOneOut()
+
+# Initialize the model and fit it on the training set
+# enumerate splits
+y_true, y_pred = list(), list()
+y_predprob = list()
+from sklearn.linear_model import LogisticRegression
+
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import GridSearchCV
+
+feature_importances_TEST = list()
+for train_ix, test_ix in LOO.split(unique_ids):
+
+    #get data
+    X_train = inter[inter['pt_id'].isin(unique_ids[train_ix])]
+    X_test = inter[inter['pt_id'].isin(unique_ids[test_ix])]
+    y_train = X_train[['outcome']]
+    y_test = X_test[['outcome']]
+    #drop columns 'isSOZ' and 'id'
+    X_train = X_train.drop(columns = ['SOZ','outcome', 'pt_id'])
+    X_test = X_test.drop(columns = ['SOZ','outcome', 'pt_id'])
+
+    # fit model
+    # rfc = RandomForestClassifier(n_estimators = 100, random_state = 42, max_depth = None).fit(X_train, y_train)
+    # rfc = LogisticRegression(penalty = 'l2', solver = 'liblinear', l1_ratio = 0.5).fit(X_train, y_train)
+    rfc = LogisticRegression().fit(X_train, y_train)
+
+    # evaluate model
+    yhat = rfc.predict(X_test)
+    y_pred_prob = rfc.predict_proba(X_test)[:,1]
+    # store
+    y_predprob.append(y_pred_prob)
+    y_true.append(y_test['outcome'].to_numpy())
+    y_pred.append(yhat)
+    # calculate accuracy
+    # for random forest, feature_importances_ is the feature importance
+    # feature_importances_TEST.append(rfc.feature_importances_)
+    #for logistic regression, feature_importances_ is the coefficients
+    feature_importances_TEST.append(rfc.coef_[0])
+
+################ evaluate predictions
+from sklearn.metrics import accuracy_score
+y_true_clean = [x for x in y_true for x in x]
+y_pred_clean = [x for x in y_pred for x in x]
+y_predprob_clean = [x for x in y_predprob for x in x]
+
+#calculate accuracy
+acc = accuracy_score(y_true_clean, y_pred_clean)
+print('Accuracy: %.3f' % acc)
+
+################ AUC curve
+
+fpr2, tpr2,_ = roc_curve(y_true_clean, y_predprob_clean)
+roc_auc2 = auc(fpr2, tpr2)
+plt.plot(fpr2, tpr2, color='#7E6148FF', lw=3, label='Interictal (AUC = %0.2f)' % roc_auc2)
+plt.plot(np.linspace(0,1,100), np.linspace(0,1,100), '--', color='black')
+
+# Bootstrap ROC to get 95% confidence intervals
+bootstrapped_fpr, mean_tpr, tpr_lower, tpr_upper = bootstrap_roc(n_bootstraps = 2000, alpha = 0.95, y_true = np.array(y_true_clean),y_pred= np.array(y_predprob_clean))
+
+# Plot ROC curve with confidence intervals
+plot_roc_with_ci(bootstrapped_fpr, tpr_lower, tpr_upper, color='#7E6148FF')
+
+
+
+
+#################### ICTAL
+################ INTER ONLY
+
+ictal = new_predict_mat[['pt_id','SOZ','outcome','correlation']]
+#Split the data according to IDs 
+#from all_feats dataframe, get the unique id's
+unique_ids = inter['pt_id'].unique()
+#split into two lists of unique ids in a random order
+np.random.shuffle(unique_ids)
+
+#create LeaveOneOut model
+from sklearn.model_selection import LeaveOneOut
+LOO = LeaveOneOut()
+
+# Initialize the model and fit it on the training set
+# enumerate splits
+y_true, y_pred = list(), list()
+y_predprob = list()
+from sklearn.linear_model import LogisticRegression
+
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import GridSearchCV
+
+feature_importances_TEST = list()
+for train_ix, test_ix in LOO.split(unique_ids):
+
+    #get data
+    X_train = ictal[ictal['pt_id'].isin(unique_ids[train_ix])]
+    X_test = ictal[ictal['pt_id'].isin(unique_ids[test_ix])]
+    y_train = X_train[['outcome']]
+    y_test = X_test[['outcome']]
+    #drop columns 'isSOZ' and 'id'
+    X_train = X_train.drop(columns = ['SOZ','outcome', 'pt_id'])
+    X_test = X_test.drop(columns = ['SOZ','outcome', 'pt_id'])
+
+    # fit model
+    # rfc = RandomForestClassifier(n_estimators = 100, random_state = 42, max_depth = None).fit(X_train, y_train)
+    # rfc = LogisticRegression(penalty = 'l2', solver = 'liblinear', l1_ratio = 0.5).fit(X_train, y_train)
+    rfc = LogisticRegression().fit(X_train, y_train)
+
+    # evaluate model
+    yhat = rfc.predict(X_test)
+    y_pred_prob = rfc.predict_proba(X_test)[:,1]
+    # store
+    y_predprob.append(y_pred_prob)
+    y_true.append(y_test['outcome'].to_numpy())
+    y_pred.append(yhat)
+    # calculate accuracy
+    # for random forest, feature_importances_ is the feature importance
+    # feature_importances_TEST.append(rfc.feature_importances_)
+    #for logistic regression, feature_importances_ is the coefficients
+    feature_importances_TEST.append(rfc.coef_[0])
+
+################ evaluate predictions
+from sklearn.metrics import accuracy_score
+y_true_clean = [x for x in y_true for x in x]
+y_pred_clean = [x for x in y_pred for x in x]
+y_predprob_clean = [x for x in y_predprob for x in x]
+
+#calculate accuracy
+acc = accuracy_score(y_true_clean, y_pred_clean)
+print('Accuracy: %.3f' % acc)
+
+################ AUC curve
+
+fpr2, tpr2,_ = roc_curve(y_true_clean, y_predprob_clean)
+roc_auc2 = auc(fpr2, tpr2)
+plt.plot(fpr2, tpr2, color='#00A087FF', lw=3, label='Ictal (AUC = %0.2f)' % roc_auc2)
+plt.plot(np.linspace(0,1,100), np.linspace(0,1,100), '--', color='black')
+
+# Bootstrap ROC to get 95% confidence intervals
+bootstrapped_fpr, mean_tpr, tpr_lower, tpr_upper = bootstrap_roc(n_bootstraps = 2000, alpha = 0.95, y_true = np.array(y_true_clean),y_pred= np.array(y_predprob_clean))
+
+# Plot ROC curve with confidence intervals
+plot_roc_with_ci(bootstrapped_fpr, tpr_lower, tpr_upper, color='#00A087FF')
+
+
+plt.title('2-Yr Engel Prediction', fontsize = 24, fontweight = 'bold')
+plt.xlabel('False Positive Rate', fontsize = 20,fontweight = 'bold')
+plt.ylabel('True Positive Rate', fontsize = 20,fontweight = 'bold')
+plt.tick_params(axis='both', which='major', labelsize=16)
+
+plt.legend(loc="lower right", prop={'size': 16, 'weight': 'bold'})
+plt.show()
+
+
+
+# %%
