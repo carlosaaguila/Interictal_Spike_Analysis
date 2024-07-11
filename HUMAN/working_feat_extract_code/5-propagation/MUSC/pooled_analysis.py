@@ -425,10 +425,10 @@ for Feat_of_interest in list_of_feats:
     sns.despine()
 
     if interp == True:
-        plt.savefig(f'../figures/MUSC+HUP/{Feat_of_interest}_gradients_interp.pdf')
+        # plt.savefig(f'../figures/MUSC+HUP/{Feat_of_interest}_gradients_interp.pdf')
         continue
-    else: 
-        plt.savefig(f'../figures/MUSC+HUP/{Feat_of_interest}_gradients_small.pdf')
+    # else: 
+        # plt.savefig(f'../figures/MUSC+HUP/{Feat_of_interest}_gradients_small.pdf')
     
     #########################
     # Generate Correlations #
@@ -554,6 +554,8 @@ for Feat_of_interest in list_of_feats:
 # %%
 #SPEARMAN PLOTS MORPHOLOGY
 
+from scipy.stats import kruskal, mannwhitneyu
+
 plt.rcParams['font.family'] = 'Arial'
 corr_df['SOZ'] = corr_df['SOZ'].astype('category')
 
@@ -586,11 +588,11 @@ else:
                 'order':['decay_amp_corr','sharpness_corr','linelen_corr','slow_amp_corr'],
                 'hue_order':[1,2,3]}
 
-    significanceComparisons = [(('decay_amp_corr',1), ('decay_amp_corr',2)),
-                            (('decay_amp_corr',1), ('decay_amp_corr',3)),
+    significanceComparisons = [(('decay_amp_corr',1), ('decay_amp_corr',3)),
+                               (('sharpness_corr',1), ('sharpness_corr',3)),
+                            (('decay_amp_corr',1), ('decay_amp_corr',2)),
                             (('decay_amp_corr',2), ('decay_amp_corr',3)),
                             (('sharpness_corr',1), ('sharpness_corr',2)),
-                            (('sharpness_corr',1), ('sharpness_corr',3)),
                             (('sharpness_corr',2), ('sharpness_corr',3)),
                             (('linelen_corr',1), ('linelen_corr',2)),
                             (('linelen_corr',1), ('linelen_corr',3)),
@@ -599,18 +601,33 @@ else:
                             (('slow_amp_corr',1), ('slow_amp_corr',3)),
                             (('slow_amp_corr',2), ('slow_amp_corr',3))]
 
+# Perform Mann-Whitney U tests for significant metrics
+u_test_results = {}
+for comparison in significanceComparisons:
+    metric, soz1 = comparison[0]
+    _, soz2 = comparison[1]
+    group1 = melted_corr_df[(melted_corr_df['Metric'] == metric) & (melted_corr_df['SOZ'] == soz1)]['Value']
+    group2 = melted_corr_df[(melted_corr_df['Metric'] == metric) & (melted_corr_df['SOZ'] == soz2)]['Value']
+    u_stat, p_value = mannwhitneyu(group1, group2, alternative='less')
+    u_test_results[comparison] = p_value
+    # print(f'Mann-Whitney U test for {metric} between SOZ {soz1} and SOZ {soz2}: U={u_stat}, p={p_value}')
+
+
 sns.boxplot(ax=ax, showfliers = False,palette=my_palette, **fig_args)
 sns.stripplot(ax =ax, color = 'k', alpha = 0.5, dodge=True, jitter=True, size=5, **fig_args)
 
 annotator = Annotator(ax=ax, pairs=significanceComparisons,
                       **fig_args, plot='boxplot')
-configuration = {'test':'Kruskal',
+# Assign Mann-Whitney U test p-values to the annotator
+annotator.set_pvalues([u_test_results[comparison] for comparison in significanceComparisons])
+
+configuration = {'test':'Mann-Whitney',
                  'comparisons_correction':'Benjamini-Hochberg',
-                 'text_format':'simple',
+                 'text_format':'star',
                  'loc':'inside',
                  'verbose':True}
 annotator.configure(**configuration)
-annotator.apply_and_annotate()
+annotator.annotate()
 # Set plot title and labels
 plt.title('Distribution of Spearman Correlation by SOZ Type', fontsize = 20)
 
@@ -667,39 +684,93 @@ else:
                 'order':['decay_amp_corr','sharpness_corr','linelen_corr','slow_amp_corr'],
                 'hue_order':[1,2,3]}
 
-    significanceComparisons = [(('decay_amp_corr',1), ('decay_amp_corr',2)),
-                            (('decay_amp_corr',1), ('decay_amp_corr',3)),
+    significanceComparisons = [(('decay_amp_corr',1), ('decay_amp_corr',3)),
+                               (('sharpness_corr',1), ('sharpness_corr',3)),
+                            (('decay_amp_corr',1), ('decay_amp_corr',2)),
                             (('decay_amp_corr',2), ('decay_amp_corr',3)),
                             (('sharpness_corr',1), ('sharpness_corr',2)),
-                            (('sharpness_corr',1), ('sharpness_corr',3)),
                             (('sharpness_corr',2), ('sharpness_corr',3)),
                             (('linelen_corr',1), ('linelen_corr',2)),
                             (('linelen_corr',1), ('linelen_corr',3)),
-                            (('linelen_corr',2), ('linelen_corr',2)),
+                            (('linelen_corr',2), ('linelen_corr',3)),
                             (('slow_amp_corr',1), ('slow_amp_corr',2)),
                             (('slow_amp_corr',1), ('slow_amp_corr',3)),
                             (('slow_amp_corr',2), ('slow_amp_corr',3))]
-    
-    # significanceComparisons = [(('decay_amp_corr',1), ('decay_amp_corr',2), ('decay_amp_corr',3)),
-    #                            (('sharpness_corr',1), ('sharpness_corr',2), ('sharpness_corr',3)),
-    #                            (('linelen_corr',1), ('linelen_corr',2), ('linelen_corr',3)),
-    #                            (('slow_amp_corr',1), ('slow_amp_corr',2), ('slow_amp_corr',3))]
 
-sns.boxplot(ax=ax, showfliers = False,palette=my_palette, **fig_args)
-sns.stripplot(ax =ax, color = 'k', alpha = 0.5, dodge=True, jitter=True, size=5, **fig_args)
+##################
+##################
+##################
+##################
 
-annotator = Annotator(ax=ax, pairs=significanceComparisons,
-                      **fig_args, plot='boxplot')
-test = 'Mann-Whitney'
-# test = 'Kruskal'
-comp = 'BH'
-configuration = {'test':test,
-                 'comparisons_correction':comp,
-                 'text_format':'star',
-                 'loc':'inside',
-                 'verbose':True}
-annotator.configure(**configuration)
-annotator.apply_and_annotate()
+one_tailed = False
+
+##################
+##################
+##################
+##################
+
+if one_tailed == True:
+    # Perform Mann-Whitney U tests for significant metrics
+    u_test_results = {}
+    for comparison in significanceComparisons:
+        metric, soz1 = comparison[0]
+        _, soz2 = comparison[1]
+        group1 = melted_corr_df[(melted_corr_df['Metric'] == metric) & (melted_corr_df['SOZ'] == soz1)]['Value']
+        group2 = melted_corr_df[(melted_corr_df['Metric'] == metric) & (melted_corr_df['SOZ'] == soz2)]['Value']
+        if soz1 == 1:
+            u_stat, p_value = mannwhitneyu(group1, group2, alternative='less')
+        else:
+            u_stat, p_value = mannwhitneyu(group1, group2, alternative = 'two-sided')
+        u_test_results[comparison] = p_value
+        print(f'Mann-Whitney U test for {metric} between SOZ {soz1} and SOZ {soz2}: U={u_stat}, p={p_value}')
+
+    p_values = np.array(list(u_test_results.values()))
+    pairs = list(u_test_results.keys())
+
+    import statsmodels.stats.multitest as smm
+    _, corrected_p_values, _, _ = smm.multipletests(p_values, alpha=0.05, method='fdr_bh')
+
+    corrected_p_values_dict = dict(zip(pairs, corrected_p_values))
+
+    sns.boxplot(ax=ax, showfliers = False, palette=my_palette, **fig_args)
+    sns.stripplot(ax =ax, color = 'k', alpha = 0.5, dodge=True, jitter=True, size=5, **fig_args)
+
+    annotator = Annotator(ax=ax, pairs=significanceComparisons,
+                        **fig_args, plot='boxplot')
+
+    # Assign Mann-Whitney U test p-values to the annotator
+    annotator.set_pvalues([corrected_p_values_dict[comparison] for comparison in significanceComparisons])
+    test = 'Mann-Whitney'
+    # test = 'Kruskal'
+    comp = 'BH'
+    # configuration = {'test':test,
+    #                  'comparisons_correction':comp,
+    #                  'text_format':'star',
+    #                  'loc':'inside',
+    #                  'verbose':True}
+    # annotator.configure(**configuration)
+    annotator.annotate()
+
+else: 
+    sns.boxplot(ax=ax, showfliers = False, palette=my_palette, **fig_args)
+    sns.stripplot(ax =ax, color = 'k', alpha = 0.5, dodge=True, jitter=True, size=5, **fig_args)
+
+    annotator = Annotator(ax=ax, pairs=significanceComparisons,
+                        **fig_args, plot='boxplot')
+
+    # Assign Mann-Whitney U test p-values to the annotator
+    test = 'Mann-Whitney-ls'
+    # test = 'Kruskal'
+    comp = 'Holm-Bonferroni'
+    # comp = None
+    configuration = {'test':test,
+                     'comparisons_correction':comp,
+                     'text_format':'star',
+                     'loc':'inside',
+                     'verbose':True}
+    annotator.configure(**configuration)
+    annotator.apply_and_annotate()
+
 # Set plot title and labels
 plt.title('Distribution of Pearson Correlation by SOZ Type', fontsize = 20)
 
@@ -773,7 +844,7 @@ ax.legend(handles[:2], ['mTLE', 'Other'], loc='upper right', fontsize=12, bbox_t
 
 # Show the plot
 sns.despine()
-plt.savefig(f'../figures/MUSC+HUP/official/ALL_slope_CLEAN.pdf')
+# plt.savefig(f'../figures/MUSC+HUP/official/ALL_slope_CLEAN.pdf')
 plt.show()
 
 #%%
@@ -827,7 +898,7 @@ ax.legend(handles[:2], ['mTLE', 'Other'], loc='upper right', fontsize=12, bbox_t
 
 # Show the plot
 sns.despine()
-plt.savefig(f'../figures/MUSC+HUP/official/ALL_first_values_CLEAN.pdf')
+# plt.savefig(f'../figures/MUSC+HUP/official/ALL_first_values_CLEAN.pdf')
 plt.show()
 
 
@@ -879,10 +950,10 @@ if vs_other== False:
 #part to change
 plt.title('Spike Rate Directionality', fontsize=16)
 sns.despine()
-if vs_other == True:
-    plt.savefig(f'../figures/MUSC+HUP/official/spike_rate_pearon_CLEAN.pdf')
-if vs_other == False:
-    plt.savefig(f'../figures/MUSC+HUP/official/spike_rate_pearon_MULTI.pdf')
+# if vs_other == True:
+    # plt.savefig(f'../figures/MUSC+HUP/official/spike_rate_pearon_CLEAN.pdf')
+# if vs_other == False:
+    # plt.savefig(f'../figures/MUSC+HUP/official/spike_rate_pearon_MULTI.pdf')
 plt.show()
 
 
@@ -932,10 +1003,10 @@ if vs_other== False:
 #part to change
 plt.title('Spike Timing Directionality', fontsize=16)
 sns.despine()
-if vs_other == True:
-    plt.savefig(f'../figures/MUSC+HUP/official/timing_thresh_pearon_CLEAN.pdf')
-if vs_other == False:
-    plt.savefig(f'../figures/MUSC+HUP/official/timing_thresh_pearon_MULTI.pdf')
+# if vs_other == True:
+    # plt.savefig(f'../figures/MUSC+HUP/official/timing_thresh_pearon_CLEAN.pdf')
+# if vs_other == False:
+    # plt.savefig(f'../figures/MUSC+HUP/official/timing_thresh_pearon_MULTI.pdf')
 plt.show()
 # %%
 ####################################
