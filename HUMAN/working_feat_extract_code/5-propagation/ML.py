@@ -121,6 +121,7 @@ feature_importances_TEST = list()
 for train_ix, test_ix in LOO.split(unique_ids):
     #get data
     X_train = all_feats[all_feats['pt_id'].isin(unique_ids[train_ix])]
+    print(X_train.columns)
     X_test = all_feats[all_feats['pt_id'].isin(unique_ids[test_ix])]
     y_train = X_train[['SOZ']]
     y_test = X_test[['SOZ']]
@@ -145,6 +146,13 @@ for train_ix, test_ix in LOO.split(unique_ids):
     # feature_importances_TEST.append(rfc.feature_importances_)
     #for logistic regression, feature_importances_ is the coefficients
     feature_importances_TEST.append(rfc.coef_[0])
+
+avg_feature_importances = np.mean(feature_importances_TEST, axis = 0)
+
+feature_names = X_train.columns
+importance_df = pd.DataFrame({'feature': feature_names, 'importance': avg_feature_importances})
+importance_df = importance_df.sort_values('importance', ascending=False)
+
 
 ################ evaluate predictions
 from sklearn.metrics import accuracy_score
@@ -234,7 +242,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV
 
-feature_importances_TEST = list()
+feature_importances_interictal = list()
 for train_ix, test_ix in LOO.split(unique_ids):
 
     #get data
@@ -262,7 +270,15 @@ for train_ix, test_ix in LOO.split(unique_ids):
     # for random forest, feature_importances_ is the feature importance
     # feature_importances_TEST.append(rfc.feature_importances_)
     #for logistic regression, feature_importances_ is the coefficients
-    feature_importances_TEST.append(rfc.coef_[0])
+    feature_importances_interictal.append(rfc.coef_[0])
+
+avg_feature_importances_ii = np.mean(feature_importances_interictal, axis = 0)
+
+feature_names_ii = X_train.columns
+importance_df_ii = pd.DataFrame({'feature': feature_names_ii, 'importance': avg_feature_importances_ii})
+importance_df_ii = importance_df_ii.sort_values('importance', ascending=False)
+
+
 
 ################ evaluate predictions
 from sklearn.metrics import accuracy_score
@@ -353,7 +369,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV
 
-feature_importances_TEST = list()
+# feature_importances_TEST = list()
 for train_ix, test_ix in LOO.split(unique_ids):
 
     #get data
@@ -381,7 +397,7 @@ for train_ix, test_ix in LOO.split(unique_ids):
     # for random forest, feature_importances_ is the feature importance
     # feature_importances_TEST.append(rfc.feature_importances_)
     #for logistic regression, feature_importances_ is the coefficients
-    feature_importances_TEST.append(rfc.coef_[0])
+    # feature_importances_TEST.append(rfc.coef_[0])
 
 ################ evaluate predictions
 from sklearn.metrics import accuracy_score
@@ -455,6 +471,31 @@ plt.show()
 # specificity = TN / (TN + FP) 
 # bal_accuracy = (sensitivity + specificity) / 2
 # print("Balanced Accuracy:", bal_accuracy)
+
+#%%
+#plot feature importance for the combined model:
+
+print("Feature Importances:")
+print(importance_df)
+
+# Optionally, you can plot the feature importances:
+plt.figure(figsize=(10, 6))
+plt.bar(importance_df['feature'], importance_df['importance'])
+plt.xticks(rotation=90)
+plt.title("Feature Importances")
+plt.tight_layout()
+plt.show()
+
+print("Interictal Feat. Importance:")
+print(importance_df_ii)
+
+# Optionally, you can plot the feature importances:
+plt.figure(figsize=(10, 6))
+plt.bar(importance_df_ii['feature'], importance_df_ii['importance'])
+plt.xticks(rotation=90)
+plt.title("Feature Importances")
+plt.tight_layout()
+plt.show()
 
 
 # %%
