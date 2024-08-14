@@ -19,7 +19,7 @@ import os
 import re
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from multiprocessing import Pool
-from utils import get_iEEG_data
+from utils import get_iEEG_data, notch_filter
 
 
 # iEEG Functions
@@ -454,7 +454,7 @@ def process_single_patient(row, session, pw_path, ieeg_filename_df):
     # time points in seconds
     bl_start = (start_time - 100)
     bl_end = (start_time - 40)
-    target_end = (start_time + 200)
+    target_end = (start_time + 60)
 
     # time points in u seconds
     start_usec = bl_start*1e6
@@ -468,6 +468,28 @@ def process_single_patient(row, session, pw_path, ieeg_filename_df):
             start_time_usec=start_usec,
             stop_time_usec=stop_usec
         )
+
+        # Apply notch filters at 60 Hz and harmonics
+        data = notch_filter(df.to_numpy(), fs) # Change to Bandstop or remove the Phase and Amplitude of 60z & Harms
+
+        if fs > 500:
+            print(f'df before downsample = {df}')
+            # Downsample
+            # Target sampling frequency
+            target_fs = 500
+            fs = int(fs)
+            # Calculate the resampling factors
+            gcd = np.gcd(fs, target_fs)
+            up = target_fs // gcd
+            down = fs // gcd
+            # Resample each channel using polynomial interpolation
+            downsampled_data = signal.resample_poly(data, up, down, axis=0)
+            # Convert the downsampled numpy array back to a DataFrame
+            df_downsampled = pd.DataFrame(downsampled_data, columns=df.columns)
+            print(f'df after downsample = {df_downsampled}')
+            # New sampling frequency
+            fs = target_fs
+            data = df_downsampled
 
         try:
             # Include only channel labels from list
@@ -587,11 +609,6 @@ def process_all_patients(df, pw_path, ieeg_filename_df):
     return results
 
 
-# HUP Patients:
-
-# In[10]:
-
-
 pw_path = '/mnt/leif/littlab/users/aguilac/tools/agu_ieeglogin.bin'
 
 df = pd.read_csv('/mnt/leif/littlab/users/slavelle/iEEG_Atlas/Tables/sz_table.csv')
@@ -602,7 +619,7 @@ merged_df.drop(columns=["ictal_exists", "ictal_path", "interictal_exists", "inte
 
 all_results = process_all_patients(merged_df, pw_path, ieeg_filename_df)
 results_df = pd.DataFrame([result for result in all_results if result is not None])
-results_df.to_csv('../data/self_run/HUP_all_hfer.csv', index=False)
+results_df.to_csv('../data/self_run/hfer_HUP_60s.csv', index=False)
 print("All results saved.")
 
 
@@ -627,7 +644,7 @@ def process_single_patient(row, session, pw_path, ieeg_filename_df):
     
     bl_start = (start_time - 100)
     bl_end = (start_time - 40)
-    target_end = (start_time + 200)
+    target_end = (start_time + 60)
 
     start_usec = bl_start*1e6
     stop_usec = target_end*1e6
@@ -639,6 +656,28 @@ def process_single_patient(row, session, pw_path, ieeg_filename_df):
             start_time_usec=start_usec,
             stop_time_usec=stop_usec
         )
+
+        # Apply notch filters at 60 Hz and harmonics
+        data = notch_filter(df.to_numpy(), fs) # Change to Bandstop or remove the Phase and Amplitude of 60z & Harms
+
+        if fs > 500:
+            print(f'df before downsample = {df}')
+            # Downsample
+            # Target sampling frequency
+            target_fs = 500
+            fs = int(fs)
+            # Calculate the resampling factors
+            gcd = np.gcd(fs, target_fs)
+            up = target_fs // gcd
+            down = fs // gcd
+            # Resample each channel using polynomial interpolation
+            downsampled_data = signal.resample_poly(data, up, down, axis=0)
+            # Convert the downsampled numpy array back to a DataFrame
+            df_downsampled = pd.DataFrame(downsampled_data, columns=df.columns)
+            print(f'df after downsample = {df_downsampled}')
+            # New sampling frequency
+            fs = target_fs
+            data = df_downsampled
 
         try:
             channel_names = df.columns.tolist()
@@ -715,5 +754,5 @@ ieeg_filename_df = ieeg_filename_df.dropna()
 
 all_results = process_all_patients(df, pw_path, ieeg_filename_df)
 results_df = pd.DataFrame([result for result in all_results if result is not None])
-results_df.to_csv('../data/self_run/MUSC_all_hfer.csv', index=False)
+results_df.to_csv('../data/self_run/hfer_MUSC_60s.csv', index=False)
 print("All results saved.")

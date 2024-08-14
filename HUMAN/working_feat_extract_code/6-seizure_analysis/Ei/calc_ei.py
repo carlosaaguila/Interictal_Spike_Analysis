@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[3]:
+# In[4]:
 
 
 ##########################
@@ -24,7 +24,7 @@ from utils import get_iEEG_data, notch_filter
 
 # iEEG Functions
 
-# In[4]:
+# In[5]:
 
 
 #  Detect Artifacts : from Akash
@@ -182,7 +182,7 @@ def check_channel_types(ch_list, threshold=15):
 
 def open_ieeg_session(pw_path):
     with open(pw_path, 'r') as f:
-        session = Session('slavelle', f.read().strip())
+        session = Session('aguilac', f.read().strip())
     return session
 
 def get_ieeg_dataset(session, dataset_name):
@@ -221,7 +221,7 @@ def find_matching_row(numeric_part, ictal_start, df, time_tolerance=1):
 # EI Functions: https://github.com/allucas/IEEG_EI
 # 
 
-# In[5]:
+# In[6]:
 
 
 def compute_hfer(target_data, base_data, fs):
@@ -370,7 +370,7 @@ def save_ei(directory, fname, ei, ch_names):
 
 # HUP Patient Workflow (uncomment for HUP)
 
-# In[5]:
+# In[7]:
 
 
 # Function to initialize iEEG session
@@ -462,7 +462,7 @@ def process_single_patient(row, session, pw_path, ieeg_filename_df):
     try:
         # get iEEG_data
         df, fs = get_iEEG_data(
-            username='slavelle',
+            username='aguilac',
             password_bin_file=pw_path,
             iEEG_filename=dataset_name,
             start_time_usec=start_usec,
@@ -587,7 +587,8 @@ def process_single_patient(row, session, pw_path, ieeg_filename_df):
         print(f"Error processing patient {row['hupid']}: {e}")
 
 
-# In[ ]:
+# In[9]:
+
 
 import time
 
@@ -607,6 +608,7 @@ def process_all_patients(df, pw_path, ieeg_filename_df):
 
     return results
 
+
 pw_path = '/mnt/leif/littlab/users/aguilac/tools/agu_ieeglogin.bin'
 
 df = pd.read_csv('/mnt/leif/littlab/users/slavelle/iEEG_Atlas/Tables/sz_table.csv')
@@ -621,9 +623,9 @@ results_df.to_csv('../data/self_run/EI_HUP_60s.csv', index=False)
 print("All results saved.")
 
 
-# MUSC Patient workflow:
+# MUSC Patients
 
-# In[7]:
+# In[ ]:
 
 
 def process_single_patient(row, session, pw_path, ieeg_filename_df):
@@ -642,13 +644,13 @@ def process_single_patient(row, session, pw_path, ieeg_filename_df):
     
     bl_start = (start_time - 100)
     bl_end = (start_time - 40)
-    target_end = (start_time + 200)
+    target_end = (start_time + 60)
 
     start_usec = bl_start*1e6
     stop_usec = target_end*1e6
     try:
         df, fs = get_iEEG_data(
-            username='slavelle',
+            username='aguilac',
             password_bin_file=pw_path,
             iEEG_filename=dataset_name,
             start_time_usec=start_usec,
@@ -676,7 +678,6 @@ def process_single_patient(row, session, pw_path, ieeg_filename_df):
             # New sampling frequency
             fs = target_fs
             data = df_downsampled
-
 
         try:
             channel_names = df.columns.tolist()
@@ -738,7 +739,6 @@ def process_single_patient(row, session, pw_path, ieeg_filename_df):
     except Exception as e:
         print(f"Error processing patient {row['File']}: {e}")
 
-# MUSC Patients
 
 # In[10]:
 
@@ -756,16 +756,3 @@ all_results = process_all_patients(df, pw_path, ieeg_filename_df)
 results_df = pd.DataFrame([result for result in all_results if result is not None])
 results_df.to_csv('../data/self_run/EI_MUSC_60s.csv', index=False)
 print("All results saved.")
-
-
-# In[6]:
-
-
-# get_ipython().system("jupyter nbconvert --to script 'EI_for_Carlos_cleaned.ipynb'")
-
-
-# In[ ]:
-
-
-
-

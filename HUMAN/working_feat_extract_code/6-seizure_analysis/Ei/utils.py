@@ -676,16 +676,21 @@ def notch_filter(data: np.ndarray, fs: float) -> np.array:
 
     Returns:
         np.array: _description_
+    
+    #make this prettier, subjectively
     """
     # remove 60Hz noise
     b, a = iirnotch(60, 30, fs)
     d, c = iirnotch(120, 30, fs)
+    f, e = iirnotch(180, 30, fs)
+    h, g = iirnotch(240, 30, fs)
+    
     data_filt = filtfilt(b, a, data, axis=0)
     data_filt_filt = filtfilt(d, c, data_filt, axis = 0)
-    # TODO: add option for causal filter
-    # TODO: add optional argument for order
+    data_filt_filt_filt = filtfilt(f, e, data_filt_filt, axis = 0)
+    data_filt_filt_filt_filt = filtfilt(h, g, data_filt_filt_filt, axis = 0)
 
-    return data_filt_filt
+    return data_filt_filt_filt_filt
 
 
 def bandpass_filter(data: np.ndarray, fs: float, order=3, lo=1, hi=150) -> np.array:
