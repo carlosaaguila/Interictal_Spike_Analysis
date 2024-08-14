@@ -28,6 +28,8 @@ from ied_fx_v3 import *
 
 hup_ei = pd.read_csv('../data/self_run/HUP_all_hfer.csv')
 musc_ei = pd.read_csv('../data/self_run/MUSC_all_hfer.csv')
+# hup_ei = pd.read_csv('../data/self_run/hfer_HUP_60s.csv')
+# musc_ei = pd.read_csv('../data/self_run/hfer_MUSC_60s.csv')
 # hup_ei = pd.read_csv('../data/all_EI_results_summary_15052024.csv')
 
 #%% 
@@ -68,6 +70,7 @@ musc_ei = df_exploded #reassign back to this variable for the rest of the analys
 musc_ei['EI'] = pd.to_numeric(musc_ei['EI'], errors='coerce')
 musc_ei = musc_ei.dropna(subset=['EI'])
 
+# grouped = musc_ei.groupby(['MUSC_ID','name'])['EI'].max().reset_index()
 grouped = musc_ei.groupby(['MUSC_ID','name'])['EI'].quantile(0.75).reset_index()
 
 grouped['name'] = grouped['name'].str.replace("'", "", regex=False)
@@ -172,6 +175,7 @@ hup_ei = hup_ei.dropna(subset=['EI'])
 
 
 grouped = hup_ei.groupby(['hupID','name'])['EI'].quantile(0.75).reset_index()
+# grouped = hup_ei.groupby(['hupID','name'])['EI'].max().reset_index()
 
 grouped['name'] = grouped['name'].str.replace("'", "", regex=False)
 

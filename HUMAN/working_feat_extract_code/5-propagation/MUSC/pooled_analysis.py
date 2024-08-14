@@ -44,6 +44,7 @@ soz_to_remove = ['temporal']
 
 # list_of_feats = ['spike_rate','recruitment_latency_thresh','decay_amp','sharpness','linelen','slow_amp', 'rise_amp','spike_width','']
 list_of_feats = ['spike_rate', 'rise_amp','decay_amp','sharpness','linelen','recruitment_latency_thresh','spike_width','slow_width','slow_amp']
+list_of_feats = ['spike_rate', 'rise_amp']
 
 
 df_to_use = []
@@ -759,8 +760,8 @@ else:
                         **fig_args, plot='boxplot')
 
     # Assign Mann-Whitney U test p-values to the annotator
-    test = 'Mann-Whitney-ls'
-    # test = 'Kruskal'
+    # test = 'Mann-Whitney-ls'
+    test = 'Kruskal'
     comp = 'Holm-Bonferroni'
     # comp = None
     configuration = {'test':test,
@@ -1018,49 +1019,48 @@ plt.show()
 
 from scipy.stats import f_oneway, levene, shapiro, kruskal
 
-x = decay_amp_corr
-_,p1 = shapiro(x[x['SOZ'] == 1]['Value'])
-_,p2 = shapiro(x[x['SOZ'] == 2]['Value'])
-_,p3 = shapiro(x[x['SOZ'] == 3]['Value'])
-print(f"Shapiro-Wilk test p-values: group1={p1}, group2={p2}, group3={p3}")
-_, p_levene = levene(x[x['SOZ'] == 1]['Value'], x[x['SOZ'] == 2]['Value'], x[x['SOZ'] == 3]['Value'])
-print(f"Levene's test p-value: {p_levene}")
-
-k1,tp1 = f_oneway(x[x['SOZ'] == 1]['Value'],x[x['SOZ'] == 2]['Value'],x[x['SOZ'] == 3]['Value'])
-print('decay amp p:',p1)
+x = melted_corr_df[melted_corr_df['Metric'] == 'decay_amp_corr']
+# _,p1 = shapiro(x[x['SOZ'] == 1]['Value'])
+# _,p2 = shapiro(x[x['SOZ'] == 2]['Value'])
+# _,p3 = shapiro(x[x['SOZ'] == 3]['Value'])
+# print(f"Shapiro-Wilk test p-values: group1={p1}, group2={p2}, group3={p3}")
+# _, p_levene = levene(x[x['SOZ'] == 1]['Value'], x[x['SOZ'] == 2]['Value'], x[x['SOZ'] == 3]['Value'])
+# print(f"Levene's test p-value: {p_levene}")
+k1,tp1 = kruskal(x[x['SOZ'] == 1]['Value'],x[x['SOZ'] == 2]['Value'],x[x['SOZ'] == 3]['Value'])
+print('decay amp p:',tp1)
 print('---------------------')
 
-x = slow_amp_corr
-_,p1 = shapiro(x[x['SOZ'] == 1]['Value'])
-_,p2 = shapiro(x[x['SOZ'] == 2]['Value'])
-_,p3 = shapiro(x[x['SOZ'] == 3]['Value'])
-print(f"Shapiro-Wilk test p-values: group1={p1}, group2={p2}, group3={p3}")
-_, p_levene = levene(x[x['SOZ'] == 1]['Value'], x[x['SOZ'] == 2]['Value'], x[x['SOZ'] == 3]['Value'])
-print(f"Levene's test p-value: {p_levene}")
-k2,tp2 = f_oneway(x[x['SOZ'] == 1]['Value'],x[x['SOZ'] == 2]['Value'],x[x['SOZ'] == 3]['Value'])
-print('slow wave amp p',p2)
+x = melted_corr_df[melted_corr_df['Metric'] == 'slow_amp_corr']
+# _,p1 = shapiro(x[x['SOZ'] == 1]['Value'])
+# _,p2 = shapiro(x[x['SOZ'] == 2]['Value'])
+# _,p3 = shapiro(x[x['SOZ'] == 3]['Value'])
+# print(f"Shapiro-Wilk test p-values: group1={p1}, group2={p2}, group3={p3}")
+# _, p_levene = levene(x[x['SOZ'] == 1]['Value'], x[x['SOZ'] == 2]['Value'], x[x['SOZ'] == 3]['Value'])
+# print(f"Levene's test p-value: {p_levene}")
+k2,tp2 = kruskal(x[x['SOZ'] == 1]['Value'],x[x['SOZ'] == 2]['Value'],x[x['SOZ'] == 3]['Value'])
+print('slow wave amp p',tp2)
 print('---------------------')
 
-x = sharpness_corr
-_,p1 = shapiro(x[x['SOZ'] == 1]['Value'])
-_,p2 = shapiro(x[x['SOZ'] == 2]['Value'])
-_,p3 = shapiro(x[x['SOZ'] == 3]['Value'])
-print(f"Shapiro-Wilk test p-values: group1={p1}, group2={p2}, group3={p3}")
-_, p_levene = levene(x[x['SOZ'] == 1]['Value'], x[x['SOZ'] == 2]['Value'], x[x['SOZ'] == 3]['Value'])
-print(f"Levene's test p-value: {p_levene}")
-k3,tp3 = f_oneway(x[x['SOZ'] == 1]['Value'],x[x['SOZ'] == 2]['Value'],x[x['SOZ'] == 3]['Value'])
-print('sharpness corr',p3)
+x = melted_corr_df[melted_corr_df['Metric'] == 'sharpness_corr']
+# _,p1 = shapiro(x[x['SOZ'] == 1]['Value'])
+# _,p2 = shapiro(x[x['SOZ'] == 2]['Value'])
+# _,p3 = shapiro(x[x['SOZ'] == 3]['Value'])
+# print(f"Shapiro-Wilk test p-values: group1={p1}, group2={p2}, group3={p3}")
+# _, p_levene = levene(x[x['SOZ'] == 1]['Value'], x[x['SOZ'] == 2]['Value'], x[x['SOZ'] == 3]['Value'])
+# print(f"Levene's test p-value: {p_levene}")
+k3,tp3 = kruskal(x[x['SOZ'] == 1]['Value'],x[x['SOZ'] == 2]['Value'],x[x['SOZ'] == 3]['Value'])
+print('sharpness corr',tp3)
 print('---------------------')
 
-x = linelen_corr
-_,p1 = shapiro(x[x['SOZ'] == 1]['Value'])
-_,p2 = shapiro(x[x['SOZ'] == 2]['Value'])
-_,p3 = shapiro(x[x['SOZ'] == 3]['Value'])
-print(f"Shapiro-Wilk test p-values: group1={p1}, group2={p2}, group3={p3}")
-_, p_levene = levene(x[x['SOZ'] == 1]['Value'], x[x['SOZ'] == 2]['Value'], x[x['SOZ'] == 3]['Value'])
-print(f"Levene's test p-value: {p_levene}")
-k4,tp4 = f_oneway(x[x['SOZ'] == 1]['Value'],x[x['SOZ'] == 2]['Value'],x[x['SOZ'] == 3]['Value'])
-print('linelen p',p4)
+x = melted_corr_df[melted_corr_df['Metric'] == 'linelen_corr']
+# _,p1 = shapiro(x[x['SOZ'] == 1]['Value'])
+# _,p2 = shapiro(x[x['SOZ'] == 2]['Value'])
+# _,p3 = shapiro(x[x['SOZ'] == 3]['Value'])
+# print(f"Shapiro-Wilk test p-values: group1={p1}, group2={p2}, group3={p3}")
+# _, p_levene = levene(x[x['SOZ'] == 1]['Value'], x[x['SOZ'] == 2]['Value'], x[x['SOZ'] == 3]['Value'])
+# print(f"Levene's test p-value: {p_levene}")
+k4,tp4 = kruskal(x[x['SOZ'] == 1]['Value'],x[x['SOZ'] == 2]['Value'],x[x['SOZ'] == 3]['Value'])
+print('linelen p',tp4)
 print('---------------------')
 
 
@@ -1075,6 +1075,8 @@ print('decay amp, slow amp, sharpness, linelen')
 print(rejected)
 print(p_values_corrected)
 
+print('---------------------')
+
 #######
 #TIMING + RATE
 
@@ -1084,3 +1086,5 @@ latency = pearson_df[['SOZ','recruitment_latency_thresh_corr']]
 #change if you want anova, but really no different in results
 print(kruskal(rate[rate['SOZ'] == 1]['spike_rate_corr'], rate[rate['SOZ'] == 2]['spike_rate_corr'],rate[rate['SOZ'] == 3]['spike_rate_corr']))
 print(kruskal(latency[latency['SOZ'] == 1]['recruitment_latency_thresh_corr'], latency[latency['SOZ'] == 2]['recruitment_latency_thresh_corr'],latency[latency['SOZ'] == 3]['recruitment_latency_thresh_corr']))
+
+# %%
