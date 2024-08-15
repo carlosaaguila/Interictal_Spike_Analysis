@@ -404,6 +404,8 @@ for filename in all_corrs['pt_id'].unique():
 print('mean corr:', np.mean((group_correlation)))
 print('std corr:', np.std((group_correlation)))
 
+print('median corr:', np.median((group_correlation)))
+print('IQR:', np.percentile(group_correlation, 75) - np.percentile(group_correlation, 25))
 
 #%%
 

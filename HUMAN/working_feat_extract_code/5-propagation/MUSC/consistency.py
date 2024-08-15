@@ -235,6 +235,10 @@ print('mean corr:', np.mean((group_correlation)))
 print('std corr:', np.std((group_correlation)))
 
 
+print('median corr:', np.median((group_correlation)))
+print('IQR:', np.percentile(group_correlation, 75) - np.percentile(group_correlation, 25))
+
+
 #%%
 #add a pt_id, and then average those with multiple pt_id's
 cor_coefs_w_id = pd.DataFrame(data = {'corr':group_correlation, 'filenames':all_corrs['filename'].unique()})
