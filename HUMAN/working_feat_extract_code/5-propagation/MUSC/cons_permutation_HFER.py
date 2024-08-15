@@ -445,10 +445,4 @@ for _ in range(n_permutations):
 
 #%%
 # Flatten the permuted correlations array
-permuted_correlations_flat = permuted_stats.flatten()
-
-# Perform Mann-Whitney U test
-statistic, p_value = stats.mannwhitneyu(og_corrs, permuted_correlations_flat, alternative='two-sided')
-
-print(f"Mann-Whitney U statistic: {statistic}")
-print(f"p-value: {p_value}")
+np.save('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/consistency/permutation_test/1000_permuted_hfer_200s.npy',permuted_stats)
