@@ -26,10 +26,17 @@ code_path = os.path.dirname('/mnt/leif/littlab/users/aguilac/Interictal_Spike_An
 sys.path.append(code_path)
 from ied_fx_v3 import *
 
-hup_ei = pd.read_csv('../data/self_run/HUP_all_hfer.csv')
-musc_ei = pd.read_csv('../data/self_run/MUSC_all_hfer.csv')
-# hup_ei = pd.read_csv('../data/self_run/hfer_HUP_60s.csv')
-# musc_ei = pd.read_csv('../data/self_run/hfer_MUSC_60s.csv')
+# HFER (200s)
+# hup_ei = pd.read_csv('../data/self_run/HUP_all_hfer.csv')
+# musc_ei = pd.read_csv('../data/self_run/MUSC_all_hfer.csv')
+
+#hfer NEW (60s)
+hup_ei = pd.read_csv('../data/self_run/hfer_HUP_60s.csv')
+musc_ei = pd.read_csv('../data/self_run/hfer_MUSC_60s.csv')
+
+# EI NEW (60s)
+# hup_ei = pd.read_csv('../data/self_run/EI_HUP_60s.csv')
+# musc_ei = pd.read_csv('../data/self_run/EI_MUSC_60s.csv')
 # hup_ei = pd.read_csv('../data/all_EI_results_summary_15052024.csv')
 
 #%% 
