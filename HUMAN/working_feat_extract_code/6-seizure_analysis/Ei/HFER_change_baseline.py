@@ -249,7 +249,7 @@ def determine_threshold_onset(target, base):
     target_data = target.copy()
     sigma = np.std(base_data, axis=1, ddof=1)
     channel_max_base = np.max(base_data, axis=1)
-    thresh_value = channel_max_base + 10 * sigma
+    thresh_value = channel_max_base + (9 * sigma)
     print(f"Threshold value: {thresh_value}")
     onset_location = np.zeros(shape=(target_data.shape[0],))
     for channel_idx in range(target_data.shape[0]):
@@ -452,10 +452,11 @@ def process_single_patient(row, session, pw_path, ieeg_filename_df):
         print(f"No matching dataset found for HUP ID {hupid}, {numeric_part}")
         return
     # time points in seconds
-    bl_start = (start_time - 100)
-    bl_end = (start_time - 40)
-    target_end = (start_time + 60)
-
+    bl_start = (start_time - 200)
+    bl_end = (start_time - 140)
+    #change the target window
+    target_start = (start_time - 60)
+    target_end = (start_time + 100)
     # time points in u seconds
     start_usec = bl_start*1e6
     stop_usec = target_end*1e6
@@ -567,12 +568,13 @@ def process_single_patient(row, session, pw_path, ieeg_filename_df):
         try: 
             bl_start_samples = int(bl_start*fs)
             bl_end_samples = int(bl_end*fs)
+            target_start_samples = int(target_start*fs)
             target_end_samples = int(target_end*fs)
-            print(f'bl start samples = {bl_start_samples}, bl end samples = {bl_end_samples}, target end samples = {target_end_samples}')
-            print((bl_end_samples - bl_start_samples), (bl_end_samples - bl_start_samples), (target_end_samples- bl_start_samples))
 
-            ei = get_ei_from_data(clean_data, fs, [0, bl_end_samples - bl_start_samples], [bl_end_samples - bl_start_samples, target_end_samples- bl_start_samples])
-            print(f"EI calulated for {row['hupid']}")
+            print(f'bl start samples = {bl_start_samples}, bl end samples = {bl_end_samples},|| target_start_samples = {target_start_samples}, target end samples = {target_end_samples}')
+            # print((bl_end_samples - bl_start_samples), (bl_end_samples - bl_start_samples), (target_end_samples- bl_start_samples))
+            ei = get_ei_from_data(clean_data, fs, [0, bl_end_samples - bl_start_samples], [(bl_end_samples - bl_start_samples) + (target_start_samples-bl_end_samples), target_end_samples- target_start_samples])
+            print(f"EI calulated for {row['hupid']}") 
             return {
                 'hupID': row['hupid'],
                 'rid': row['rid'],
@@ -619,7 +621,7 @@ merged_df.drop(columns=["ictal_exists", "ictal_path", "interictal_exists", "inte
 
 all_results = process_all_patients(merged_df, pw_path, ieeg_filename_df)
 results_df = pd.DataFrame([result for result in all_results if result is not None])
-results_df.to_csv('../data/self_run/hfer_HUP_60s.csv', index=False)
+results_df.to_csv('../data/self_run/HUP_HFER_baseline_pushedback.csv', index=False)
 print("All results saved.")
 
 
@@ -641,13 +643,16 @@ def process_single_patient(row, session, pw_path, ieeg_filename_df):
     if dataset_name == '':
         print(f"No matching dataset found for HUP ID {pt_id}, {start_time}")
         return
-    
-    bl_start = (start_time - 100)
-    bl_end = (start_time - 40)
-    target_end = (start_time + 60)
-
+    # time points in seconds
+    bl_start = (start_time - 200)
+    bl_end = (start_time - 140)
+    #change the target window
+    target_start = (start_time - 60)
+    target_end = (start_time + 100)
+    # time points in u seconds
     start_usec = bl_start*1e6
     stop_usec = target_end*1e6
+
     try:
         df, fs = get_iEEG_data(
             username='aguilac',
@@ -722,10 +727,11 @@ def process_single_patient(row, session, pw_path, ieeg_filename_df):
             bl_start_samples = int(bl_start*fs)
             bl_end_samples = int(bl_end*fs)
             target_end_samples = int(target_end*fs)
-            print(f'bl start samples = {bl_start_samples}, bl end samples = {bl_end_samples}, target end samples = {target_end_samples}')
-            print((bl_end_samples - bl_start_samples), (bl_end_samples - bl_start_samples), (target_end_samples- bl_start_samples))
+            target_start_samples = int(target_start*fs)
+            print(f'bl start samples = {bl_start_samples}, bl end samples = {bl_end_samples}, target start samples = {target_start_samples}, target end samples = {target_end_samples}')
+            # print((bl_end_samples - bl_start_samples), (bl_end_samples - bl_start_samples), (target_end_samples- bl_start_samples))
 
-            ei = get_ei_from_data(clean_data, fs, [0, bl_end_samples - bl_start_samples], [bl_end_samples - bl_start_samples, target_end_samples- bl_start_samples])
+            ei = get_ei_from_data(clean_data, fs, [0, bl_end_samples - bl_start_samples], [(bl_end_samples - bl_start_samples) + (target_start_samples-bl_end_samples), target_end_samples- target_start_samples])
             print(f"EI calculated for {row['File']}")
             return {
                 'MUSC_ID': row['File'],
@@ -754,5 +760,5 @@ ieeg_filename_df = ieeg_filename_df.dropna()
 
 all_results = process_all_patients(df, pw_path, ieeg_filename_df)
 results_df = pd.DataFrame([result for result in all_results if result is not None])
-results_df.to_csv('../data/self_run/hfer_MUSC_60s.csv', index=False)
+results_df.to_csv('../data/self_run/MUSC_HFER_baseline_pushedback.csv', index=False)
 print("All results saved.")
