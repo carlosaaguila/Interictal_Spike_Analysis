@@ -19,3 +19,9 @@ HUMAN/working_feat_extract_code/6-seizure_analysis/data/self_run/EI_HUP_60s.csv
 HUMAN/working_feat_extract_code/6-seizure_analysis/data/self_run/hfer_HUP_60s.csv
 HUMAN/working_feat_extract_code/6-seizure_analysis/data/self_run/hfer_MUSC_60s.csv
 HUMAN/working_feat_extract_code/6-seizure_analysis/data/self_run/EI_MUSC_60s.csv
+HUMAN/working_feat_extract_code/6-seizure_analysis/data/HUP_files_v2.csv
+HUMAN/working_feat_extract_code/6-seizure_analysis/data/processed_HUP_files.csv
+HUMAN/working_feat_extract_code/6-seizure_analysis/data/self_run/hfer_HUP_21s.csv
+HUMAN/working_feat_extract_code/6-seizure_analysis/data/self_run/hfer_MUSC_21s.csv
+HUMAN/working_feat_extract_code/6-seizure_analysis/data/self_run/HUP_HFER_baseline_pushedback.csv
+HUMAN/working_feat_extract_code/6-seizure_analysis/data/self_run/MUSC_HFER_baseline_pushedback.csv
