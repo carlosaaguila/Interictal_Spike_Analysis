@@ -612,14 +612,19 @@ def process_all_patients(df, pw_path, ieeg_filename_df):
 pw_path = '/mnt/leif/littlab/users/aguilac/tools/agu_ieeglogin.bin'
 
 df = pd.read_csv('/mnt/leif/littlab/users/slavelle/iEEG_Atlas/Tables/sz_table.csv')
-channel_names_df = pd.read_csv('../data/HUP_files.csv')
+
+channel_names_df = pd.read_csv('../data/HUP_files.csv') 
+channel_names_df = pd.read_csv('../data/processed_HUP_files.csv', index_col = 0).reset_index(drop = True)
+channel_names_df['channel_label'] = channel_names_df['processed_channels']
+channel_names_df = channel_names_df.drop(columns = ['processed_channels'])
+
 ieeg_filename_df = pd.read_csv('/mnt/leif/littlab/users/slavelle/iEEG_Atlas/Tables/Master_Table_EIs/Manual_validation_seizures.csv')
 merged_df = pd.merge(df, channel_names_df, left_on='hupid', right_on='pt_id', how='right')
 merged_df.drop(columns=["ictal_exists", "ictal_path", "interictal_exists", "interictal_path", "both_exists"])
 
 all_results = process_all_patients(merged_df, pw_path, ieeg_filename_df)
 results_df = pd.DataFrame([result for result in all_results if result is not None])
-results_df.to_csv('../data/self_run/EI_HUP_60s.csv', index=False)
+results_df.to_csv('../data/self_run/EI_base/EI_HUP_60s.csv', index=False)
 print("All results saved.")
 
 
@@ -754,5 +759,5 @@ ieeg_filename_df = ieeg_filename_df.dropna()
 
 all_results = process_all_patients(df, pw_path, ieeg_filename_df)
 results_df = pd.DataFrame([result for result in all_results if result is not None])
-results_df.to_csv('../data/self_run/EI_MUSC_60s.csv', index=False)
+results_df.to_csv('../data/self_run/EI_base/EI_MUSC_60s.csv', index=False)
 print("All results saved.")

@@ -255,31 +255,31 @@ def compute_ei_index(target, base, fs):
     target, base = compute_hfer(target, base, fs)
     ei = np.zeros([1, target.shape[0]])
     hfer = np.zeros([1, target.shape[0]])
-    onset_rank = np.zeros([1, target.shape[0]])
-    channel_onset = determine_threshold_onset(target, base)
-    print(f'channel onset: {channel_onset}')
-    #added this
-    if channel_onset.size == 0:
-        print("No seizure onset detected.")
-        return np.array([])
+    # onset_rank = np.zeros([1, target.shape[0]])
+    # # channel_onset = determine_threshold_onset(target, base)
+    # print(f'channel onset: {channel_onset}')
+    # #added this
+    # if channel_onset.size == 0:
+    #     print("No seizure onset detected.")
+    #     return np.array([])
     
-    seizure_location = np.min(channel_onset)
-    onset_channel = np.argmin(channel_onset)
-    hfer = np.sum(target[:, int(seizure_location):int(seizure_location + 0.25 * fs)], axis=1) / (fs * 0.25)
-    print(f'seizure location: {seizure_location}')
-    print(f'onset channel: {onset_channel}')
+    # seizure_location = np.min(channel_onset)
+    # onset_channel = np.argmin(channel_onset)
+    hfer = np.sum(target[:, (int(39)*fs):(int(60)*fs)], axis=1) / (fs * int(21))
+    # print(f'seizure location: {seizure_location}')
+    # print(f'onset channel: {onset_channel}')
     print(f"HFER: {hfer}")
-    onset_asend = np.sort(channel_onset)
-    time_rank_tmp = np.argsort(channel_onset)
-    onset_rank = np.argsort(time_rank_tmp) + 1
-    onset_rank = np.ones((onset_rank.shape[0],)) / np.float32(onset_rank)
-    print(f'onset rank: {onset_rank}')
-    ei = np.sqrt(hfer * onset_rank)
-    for i in range(len(ei)):
-        if np.isnan(ei[i]) or np.isinf(ei[i]):
-            ei[i] = 0
-    if np.max(ei) > 0:
-        ei = ei / np.max(ei)
+    # onset_asend = np.sort(channel_onset)
+    # time_rank_tmp = np.argsort(channel_onset)
+    # onset_rank = np.argsort(time_rank_tmp) + 1
+    # onset_rank = np.ones((onset_rank.shape[0],)) / np.float32(onset_rank)
+    # print(f'onset rank: {onset_rank}')
+    # ei = np.sqrt(hfer * onset_rank)
+    # for i in range(len(ei)):
+    #     if np.isnan(ei[i]) or np.isinf(ei[i]):
+    #         ei[i] = 0
+    # if np.max(ei) > 0:
+    #     ei = ei / np.max(ei)
     return hfer #ei
 
 def get_threshold(norm_base_data, sd_val=10):
@@ -443,9 +443,9 @@ def process_single_patient(row, session, pw_path, ieeg_filename_df):
         print(f"No matching dataset found for HUP ID {hupid}, {numeric_part}")
         return
     # time points in seconds
-    bl_start = (start_time - 200)
-    bl_end = (start_time - 140)
-    target_end = (start_time + 80)
+    bl_start = (start_time - 100)
+    bl_end = (start_time - 40)
+    target_end = (start_time + 60)
 
     # time points in u seconds
     start_usec = bl_start*1e6
@@ -610,7 +610,7 @@ merged_df.drop(columns=["ictal_exists", "ictal_path", "interictal_exists", "inte
 
 all_results = process_all_patients(merged_df, pw_path, ieeg_filename_df)
 results_df = pd.DataFrame([result for result in all_results if result is not None])
-results_df.to_csv('../data/self_run/hfer_HUP_60s.csv', index=False)
+results_df.to_csv('../data/self_run/hfer_HUP_21s.csv', index=False)
 print("All results saved.")
 
 
@@ -745,5 +745,5 @@ ieeg_filename_df = ieeg_filename_df.dropna()
 
 all_results = process_all_patients(df, pw_path, ieeg_filename_df)
 results_df = pd.DataFrame([result for result in all_results if result is not None])
-results_df.to_csv('../data/self_run/hfer_MUSC_60s.csv', index=False)
+results_df.to_csv('../data/self_run/hfer_MUSC_21s.csv', index=False)
 print("All results saved.")

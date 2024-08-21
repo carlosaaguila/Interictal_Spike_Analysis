@@ -1,8 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[3]:
-
 
 ##########################
 import numpy as np
@@ -20,14 +15,9 @@ import re
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from multiprocessing import Pool
 from utils import get_iEEG_data, notch_filter
-
-
 # iEEG Functions
 
-# In[4]:
-
-
-#  Detect Artifacts : from Akash
+#  Detect Artifacts from akash
 def detect_artifacts(data: np.ndarray, fs: float, discon=1/12, noise=15000, win_size=1) -> np.ndarray:
     win_size_samples = int(win_size * fs)
     print(f'ceiling of datashape {np.ceil(data.shape[0])}')
@@ -454,7 +444,7 @@ def process_single_patient(row, session, pw_path, ieeg_filename_df):
     # time points in seconds
     bl_start = (start_time - 100)
     bl_end = (start_time - 40)
-    target_end = (start_time + 60)
+    target_end = (start_time + 200)
 
     # time points in u seconds
     start_usec = bl_start*1e6
@@ -586,7 +576,6 @@ def process_single_patient(row, session, pw_path, ieeg_filename_df):
     except Exception as e:
         print(f"Error processing patient {row['hupid']}: {e}")
 
-
 # In[ ]:
 
 import time
@@ -610,14 +599,19 @@ def process_all_patients(df, pw_path, ieeg_filename_df):
 pw_path = '/mnt/leif/littlab/users/aguilac/tools/agu_ieeglogin.bin'
 
 df = pd.read_csv('/mnt/leif/littlab/users/slavelle/iEEG_Atlas/Tables/sz_table.csv')
-channel_names_df = pd.read_csv('../data/HUP_files.csv')
+channel_names_df = pd.read_csv('../data/HUP_files.csv') 
+channel_names_df = pd.read_csv('../data/processed_HUP_files.csv', index_col = 0).reset_index(drop = True)
+channel_names_df['channel_label'] = channel_names_df['processed_channels']
+channel_names_df = channel_names_df.drop(columns = ['processed_channels'])
+
+# change this to the correct ones (HUP096 has RAT and RAF electrodes)
 ieeg_filename_df = pd.read_csv('/mnt/leif/littlab/users/slavelle/iEEG_Atlas/Tables/Master_Table_EIs/Manual_validation_seizures.csv')
 merged_df = pd.merge(df, channel_names_df, left_on='hupid', right_on='pt_id', how='right')
 merged_df.drop(columns=["ictal_exists", "ictal_path", "interictal_exists", "interictal_path", "both_exists"])
 
 all_results = process_all_patients(merged_df, pw_path, ieeg_filename_df)
 results_df = pd.DataFrame([result for result in all_results if result is not None])
-results_df.to_csv('../data/self_run/EI_HUP_60s.csv', index=False)
+results_df.to_csv('../data/self_run/EI_base/EI_HUP_200s.csv', index=False)
 print("All results saved.")
 
 
@@ -754,7 +748,7 @@ ieeg_filename_df = ieeg_filename_df.dropna()
 
 all_results = process_all_patients(df, pw_path, ieeg_filename_df)
 results_df = pd.DataFrame([result for result in all_results if result is not None])
-results_df.to_csv('../data/self_run/EI_MUSC_60s.csv', index=False)
+results_df.to_csv('../data/self_run/EI_base/EI_MUSC_200s.csv', index=False)
 print("All results saved.")
 
 
