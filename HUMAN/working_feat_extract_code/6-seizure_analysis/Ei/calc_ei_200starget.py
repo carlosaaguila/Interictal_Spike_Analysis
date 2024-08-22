@@ -1,3 +1,8 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[4]:
+
 
 ##########################
 import numpy as np
@@ -15,9 +20,14 @@ import re
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from multiprocessing import Pool
 from utils import get_iEEG_data, notch_filter
+
+
 # iEEG Functions
 
-#  Detect Artifacts from akash
+# In[5]:
+
+
+#  Detect Artifacts : from Akash
 def detect_artifacts(data: np.ndarray, fs: float, discon=1/12, noise=15000, win_size=1) -> np.ndarray:
     win_size_samples = int(win_size * fs)
     print(f'ceiling of datashape {np.ceil(data.shape[0])}')
@@ -172,7 +182,7 @@ def check_channel_types(ch_list, threshold=15):
 
 def open_ieeg_session(pw_path):
     with open(pw_path, 'r') as f:
-        session = Session('slavelle', f.read().strip())
+        session = Session('aguilac', f.read().strip())
     return session
 
 def get_ieeg_dataset(session, dataset_name):
@@ -211,7 +221,7 @@ def find_matching_row(numeric_part, ictal_start, df, time_tolerance=1):
 # EI Functions: https://github.com/allucas/IEEG_EI
 # 
 
-# In[5]:
+# In[6]:
 
 
 def compute_hfer(target_data, base_data, fs):
@@ -279,7 +289,7 @@ def compute_ei_index(target, base, fs):
             ei[i] = 0
     if np.max(ei) > 0:
         ei = ei / np.max(ei)
-    return ei
+    return ei, seizure_location, onset_channel
 
 def get_threshold(norm_base_data, sd_val=10):
     '''
@@ -344,10 +354,10 @@ def get_ei_from_data(data, fs,  bl_range, target_range):
     data_filt = signal.filtfilt(b, a, data)
     try:
         # ei = get_ei_all(data_filt[:,20000:60000],data_filt[:,:20000],fs=fs)
-        ei = compute_ei_index(data_filt[:, target_range[0]:target_range[1]], data_filt[:, bl_range[0]:bl_range[1]], fs=fs)
+        ei, seizure_location, onset_ch = compute_ei_index(data_filt[:, target_range[0]:target_range[1]], data_filt[:, bl_range[0]:bl_range[1]], fs=fs)
     except Exception as e:
             print(f"An error occurred in EI calc: {e}, {bl_range}, {target_range}")
-    return ei
+    return ei, seizure_location, onset_ch
 
 def save_ei(directory, fname, ei, ch_names):
     ei_table = []
@@ -360,7 +370,7 @@ def save_ei(directory, fname, ei, ch_names):
 
 # HUP Patient Workflow (uncomment for HUP)
 
-# In[5]:
+# In[7]:
 
 
 # Function to initialize iEEG session
@@ -452,7 +462,7 @@ def process_single_patient(row, session, pw_path, ieeg_filename_df):
     try:
         # get iEEG_data
         df, fs = get_iEEG_data(
-            username='slavelle',
+            username='aguilac',
             password_bin_file=pw_path,
             iEEG_filename=dataset_name,
             start_time_usec=start_usec,
@@ -561,7 +571,7 @@ def process_single_patient(row, session, pw_path, ieeg_filename_df):
             print(f'bl start samples = {bl_start_samples}, bl end samples = {bl_end_samples}, target end samples = {target_end_samples}')
             print((bl_end_samples - bl_start_samples), (bl_end_samples - bl_start_samples), (target_end_samples- bl_start_samples))
 
-            ei = get_ei_from_data(clean_data, fs, [0, bl_end_samples - bl_start_samples], [bl_end_samples - bl_start_samples, target_end_samples- bl_start_samples])
+            ei, seizure_location, onset_ch = get_ei_from_data(clean_data, fs, [0, bl_end_samples - bl_start_samples], [bl_end_samples - bl_start_samples, target_end_samples- bl_start_samples])
             print(f"EI calulated for {row['hupid']}")
             return {
                 'hupID': row['hupid'],
@@ -569,14 +579,18 @@ def process_single_patient(row, session, pw_path, ieeg_filename_df):
                 'ictal_start_time': start_time,
                 'EI': ei,
                 'name': updated_channel_names,
-                'removed_channels': removed_channels
+                'removed_channels': removed_channels,
+                'onset_algorithm': seizure_location,
+                'onset_ch' : onset_ch
             }
         except Exception as e:
             print(f"An error occurred in EI calc: {e}")
     except Exception as e:
         print(f"Error processing patient {row['hupid']}: {e}")
 
-# In[ ]:
+
+# In[9]:
+
 
 import time
 
@@ -596,25 +610,28 @@ def process_all_patients(df, pw_path, ieeg_filename_df):
 
     return results
 
+#%%
 pw_path = '/mnt/leif/littlab/users/aguilac/tools/agu_ieeglogin.bin'
 
-df = pd.read_csv('/mnt/leif/littlab/users/slavelle/iEEG_Atlas/Tables/sz_table.csv')
+# df = pd.read_csv('/mnt/leif/littlab/users/slavelle/iEEG_Atlas/Tables/sz_table.csv')
+
 # channel_names_df = pd.read_csv('../data/HUP_files.csv') 
-channel_names_df = pd.read_csv('../data/processed_HUP_files.csv', index_col = 0).reset_index(drop = True)
-channel_names_df['channel_label'] = channel_names_df['processed_channels']
-channel_names_df = channel_names_df.drop(columns = ['processed_channels'])
-ieeg_filename_df = pd.read_csv('/mnt/leif/littlab/users/slavelle/iEEG_Atlas/Tables/Master_Table_EIs/Manual_validation_seizures.csv')
-merged_df = pd.merge(df, channel_names_df, left_on='hupid', right_on='pt_id', how='right')
-merged_df.drop(columns=["ictal_exists", "ictal_path", "interictal_exists", "interictal_path", "both_exists"])
-all_results = process_all_patients(merged_df, pw_path, ieeg_filename_df)
-results_df = pd.DataFrame([result for result in all_results if result is not None])
-results_df.to_csv('../data/self_run/EI_base/EI_HUP_200s.csv', index=False)
-print("All results saved.")
+# channel_names_df = pd.read_csv('../data/processed_HUP_files.csv', index_col = 0).reset_index(drop = True)
+# channel_names_df['channel_label'] = channel_names_df['processed_channels']
+# channel_names_df = channel_names_df.drop(columns = ['processed_channels'])
 
+# ieeg_filename_df = pd.read_csv('/mnt/leif/littlab/users/slavelle/iEEG_Atlas/Tables/Master_Table_EIs/Manual_validation_seizures.csv')
+# merged_df = pd.merge(df, channel_names_df, left_on='hupid', right_on='pt_id', how='right')
+# merged_df.drop(columns=["ictal_exists", "ictal_path", "interictal_exists", "interictal_path", "both_exists"])
 
-# MUSC Patient workflow:
+# all_results = process_all_patients(merged_df, pw_path, ieeg_filename_df)
+# results_df = pd.DataFrame([result for result in all_results if result is not None])
+# results_df.to_csv('../data/self_run/EI_base/EI_HUP_200s.csv', index=False)
+# print("All results saved.")
 
-# In[7]:
+# MUSC Patients
+
+# In[ ]:
 
 
 def process_single_patient(row, session, pw_path, ieeg_filename_df):
@@ -626,6 +643,7 @@ def process_single_patient(row, session, pw_path, ieeg_filename_df):
     print(f"start time: {row['Onset time']}")
     pt_id = row['File'] 
     dataset_name = pt_id
+    selected_channels = row['channel_label']
     print(dataset_name)
     if dataset_name == '':
         print(f"No matching dataset found for HUP ID {pt_id}, {start_time}")
@@ -639,7 +657,7 @@ def process_single_patient(row, session, pw_path, ieeg_filename_df):
     stop_usec = target_end*1e6
     try:
         df, fs = get_iEEG_data(
-            username='slavelle',
+            username='aguilac',
             password_bin_file=pw_path,
             iEEG_filename=dataset_name,
             start_time_usec=start_usec,
@@ -668,7 +686,6 @@ def process_single_patient(row, session, pw_path, ieeg_filename_df):
             fs = target_fs
             data = df_downsampled
 
-
         try:
             channel_names = df.columns.tolist()
             print(f'CHANNEL NAMES ORIGINAL: {channel_names}')
@@ -695,14 +712,42 @@ def process_single_patient(row, session, pw_path, ieeg_filename_df):
             cleaned_channel_names = [str(item).strip().upper() for item in cleaned_channel_names]
             cleaned_valid_channel_names = [str(item).strip().upper() for item in cleaned_valid_channel_names]
 
-            clean_channel_indices = [i for i, ch in enumerate(cleaned_channel_names) if ch in cleaned_valid_channel_names]
+            if all(len(item) == 1 for item in selected_channels):
+                # It seems like selected_channels was split into characters, let's join them back
+                joined_string = ''.join(selected_channels)
+                
+                selected_channels = re.findall(r'[A-Z]+[0-9]+', joined_string)
 
-            print(f"Cleaned channel indices = {clean_channel_indices}")
-            data = data[:, clean_channel_indices]
+            print("\nTypes in selected_channels:")
+            for item in selected_channels:
+                print(type(item), item)
+                
+            set_channel_names_clean = set(cleaned_channel_names)
+            set_valid_channel_names_clean = set(cleaned_valid_channel_names)
+            set_selected_channels_clean = set(selected_channels)
 
-            print(f"Data after removing types: {data.shape}")
+            # Find mutual names
+            mutual_names = set_selected_channels_clean & set_channel_names_clean 
+
+            print(f'Mutual names: {mutual_names}')
+
+            # Check if there are mismatches
+            for ch in selected_channels:
+                if ch not in cleaned_channel_names:
+                    print(f'{ch} from selected channels is not in cleaned channel names')
+
+            # Find indices of selected channels that are valid and exist in the cleaned list
+            selected_valid_indices = [
+                cleaned_channel_names.index(ch)
+                for ch in selected_channels
+                if ch in cleaned_valid_channel_names and ch in cleaned_channel_names
+            ]
+
+            data = data[:, selected_valid_indices]
+
+            print(f" Data after removing types: {data.shape}")
             artifacts = detect_artifacts(data, fs)
-            clean_data, updated_channel_names, removed_channels, interpolated_channels = remove_or_interpolate(data, artifacts, [channel_names[i] for i in clean_channel_indices])
+            clean_data, updated_channel_names, removed_channels, interpolated_channels = remove_or_interpolate(data, artifacts, [channel_names[i] for i in selected_valid_indices])
         except Exception as e:
             print(f"An error occurred in artifact removal: {e}")
             
@@ -715,22 +760,22 @@ def process_single_patient(row, session, pw_path, ieeg_filename_df):
             print(f'bl start samples = {bl_start_samples}, bl end samples = {bl_end_samples}, target end samples = {target_end_samples}')
             print((bl_end_samples - bl_start_samples), (bl_end_samples - bl_start_samples), (target_end_samples- bl_start_samples))
 
-            ei = get_ei_from_data(clean_data, fs, [0, bl_end_samples - bl_start_samples], [bl_end_samples - bl_start_samples, target_end_samples- bl_start_samples])
-            
+            ei, seizure_location, onset_ch = get_ei_from_data(clean_data, fs, [0, bl_end_samples - bl_start_samples], [bl_end_samples - bl_start_samples, target_end_samples- bl_start_samples])
             print(f"EI calculated for {row['File']}")
             return {
                 'MUSC_ID': row['File'],
                 'ictal_start_time': start_time,
                 'EI': ei,
                 'name': updated_channel_names,
-                'removed_channels': removed_channels
+                'removed_channels': removed_channels,
+                'onset_algorithm': seizure_location,
+                'onset_ch' : onset_ch
             }
         except Exception as e:
             print(f"An error occurred in EI calculation: {e}")
     except Exception as e:
         print(f"Error processing patient {row['File']}: {e}")
 
-# MUSC Patients
 
 # In[10]:
 
@@ -740,6 +785,7 @@ pw_path = '/mnt/leif/littlab/users/aguilac/tools/agu_ieeglogin.bin'
 df = pd.read_csv('../data/MUSC_seizure_times.csv')
 channel_names_df = pd.read_csv('../data/MUSC_files.csv')
 ieeg_filename_df = pd.read_csv('../data/MUSC_seizure_times.csv')
+df = df.merge(channel_names_df, left_on = 'File', right_on='filename',how = 'left')
 
 df = df.dropna()
 ieeg_filename_df = ieeg_filename_df.dropna()
@@ -748,16 +794,3 @@ all_results = process_all_patients(df, pw_path, ieeg_filename_df)
 results_df = pd.DataFrame([result for result in all_results if result is not None])
 results_df.to_csv('../data/self_run/EI_base/EI_MUSC_200s.csv', index=False)
 print("All results saved.")
-
-
-# In[6]:
-
-
-# get_ipython().system("jupyter nbconvert --to script 'EI_for_Carlos_cleaned.ipynb'")
-
-
-# In[ ]:
-
-
-
-
