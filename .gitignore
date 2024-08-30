@@ -29,3 +29,9 @@ HUMAN/working_feat_extract_code/6-seizure_analysis/data/self_run/EI_base/EI_HUP_
 HUMAN/working_feat_extract_code/6-seizure_analysis/data/self_run/EI_base/EI_HUP_200s.csv
 HUMAN/working_feat_extract_code/6-seizure_analysis/data/self_run/EI_base/EI_MUSC_60s.csv
 HUMAN/working_feat_extract_code/6-seizure_analysis/data/self_run/EI_base/EI_MUSC_200s.csv
+HUMAN/working_feat_extract_code/6-seizure_analysis/data/self_run/EI_new_onset_detector/EI_HUP_40_60s.csv
+HUMAN/working_feat_extract_code/6-seizure_analysis/data/self_run/EI_new_onset_detector/EI_HUP_80_80s.csv
+HUMAN/working_feat_extract_code/6-seizure_analysis/data/self_run/EI_new_onset_detector/EI_HUP_120_120s.csv
+HUMAN/working_feat_extract_code/6-seizure_analysis/data/self_run/EI_new_onset_detector/EI_MUSC_40_60s.csv
+HUMAN/working_feat_extract_code/6-seizure_analysis/data/self_run/EI_new_onset_detector/EI_MUSC_80_80s.csv
+HUMAN/working_feat_extract_code/6-seizure_analysis/data/self_run/EI_new_onset_detector/EI_MUSC_120_120s.csv

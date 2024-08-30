@@ -12,6 +12,7 @@ from ieeg.auth import Session
 from scipy.signal import convolve2d
 from scipy import stats
 from scipy import signal
+from scipy.signal import argrelmin as argmins
 import mne
 import json
 import pandas as pd
@@ -243,21 +244,36 @@ def compute_hfer(target_data, base_data, fs):
     norm_base_energy = base_energy / base_de_matrix.astype(np.float32)
     return norm_target_energy, norm_base_energy
 
-#% Extra functions
+def cum_sum_avg(ER,n):
+    return np.mean(ER[:n])
+
+# MA = list(map(lambda x: cum_sum_avg(ER,x),np.arange(len(ER))))
+# plt.plot(np.cumsum(ER[1:]-MA[1:])) #gives UN
+# # UN = list(map(lambda x: np.sum(np.array(ER[:x])-np.array(MA[:x])), np.arange(len(ER)))) #this is the long version
+# un = np.cumsum(ER[1:]-MA[1:])
+# argmins(un)[0][np.where(np.diff(un[argmins(un)[0]])>500)[0][0]] #gives the exact time point 
+
+#% Extra functions 
 def determine_threshold_onset(target, base):
     base_data = base.copy()
     target_data = target.copy()
     sigma = np.std(base_data, axis=1, ddof=1)
     channel_max_base = np.max(base_data, axis=1)
-    thresh_value = channel_max_base + 10 * sigma
+    thresh_value = channel_max_base + 5 * sigma
     print(f"Threshold value: {thresh_value}")
     onset_location = np.zeros(shape=(target_data.shape[0],))
     for channel_idx in range(target_data.shape[0]):
-        logic_vec = target_data[channel_idx, :] > thresh_value[channel_idx]
-        if np.sum(logic_vec) == 0:
-            onset_location[channel_idx] = len(logic_vec)
-        else:
-            onset_location[channel_idx] = np.where(logic_vec != 0)[0][0]
+        ER = target_data[channel_idx,:]
+        MA = list(map(lambda x: cum_sum_avg(ER,x),np.arange(len(ER))))
+        un = np.cumsum(ER[1:]-MA[1:]-np.repeat(1.5, np.shape(ER[1:])))
+        thresh = 1000
+        diff = un - np.minimum.accumulate(un)
+        try:
+            onset_location[channel_idx] = np.where(diff > thresh)[0][0]
+        # try:
+        #     onset_location[channel_idx] = argmins(un)[0][np.where(np.diff(un[argmins(un)[0]])>thresh)[0][0]] #gives the exact time point 
+        except:
+            onset_location[channel_idx] = len(target_data[channel_idx,:])
     return onset_location
 
 def compute_ei_index(target, base, fs):
@@ -614,21 +630,21 @@ def process_all_patients(df, pw_path, ieeg_filename_df):
 pw_path = '/mnt/leif/littlab/users/aguilac/tools/agu_ieeglogin.bin'
 
 
-# df = pd.read_csv('/mnt/leif/littlab/users/slavelle/iEEG_Atlas/Tables/sz_table.csv')
+df = pd.read_csv('/mnt/leif/littlab/users/slavelle/iEEG_Atlas/Tables/sz_table.csv')
 
-# channel_names_df = pd.read_csv('../data/HUP_files.csv') 
-# channel_names_df = pd.read_csv('../data/processed_HUP_files.csv', index_col = 0).reset_index(drop = True)
-# channel_names_df['channel_label'] = channel_names_df['processed_channels']
-# channel_names_df = channel_names_df.drop(columns = ['processed_channels'])
+channel_names_df = pd.read_csv('../data/HUP_files.csv') 
+channel_names_df = pd.read_csv('../data/processed_HUP_files.csv', index_col = 0).reset_index(drop = True)
+channel_names_df['channel_label'] = channel_names_df['processed_channels']
+channel_names_df = channel_names_df.drop(columns = ['processed_channels'])
 
-# ieeg_filename_df = pd.read_csv('/mnt/leif/littlab/users/slavelle/iEEG_Atlas/Tables/Master_Table_EIs/Manual_validation_seizures.csv')
-# merged_df = pd.merge(df, channel_names_df, left_on='hupid', right_on='pt_id', how='right')
-# merged_df.drop(columns=["ictal_exists", "ictal_path", "interictal_exists", "interictal_path", "both_exists"])
+ieeg_filename_df = pd.read_csv('/mnt/leif/littlab/users/slavelle/iEEG_Atlas/Tables/Master_Table_EIs/Manual_validation_seizures.csv')
+merged_df = pd.merge(df, channel_names_df, left_on='hupid', right_on='pt_id', how='right')
+merged_df.drop(columns=["ictal_exists", "ictal_path", "interictal_exists", "interictal_path", "both_exists"])
 
-# all_results = process_all_patients(merged_df, pw_path, ieeg_filename_df)
-# results_df = pd.DataFrame([result for result in all_results if result is not None])
-# results_df.to_csv('../data/self_run/EI_base/EI_HUP_60s.csv', index=False)
-# print("All results saved.")
+all_results = process_all_patients(merged_df, pw_path, ieeg_filename_df)
+results_df = pd.DataFrame([result for result in all_results if result is not None])
+results_df.to_csv('../data/self_run/EI_new_onset_detector/EI_HUP_v1-5.csv', index=False)
+print("All results saved.")
 
 # MUSC Patients
 
@@ -802,5 +818,6 @@ ieeg_filename_df = ieeg_filename_df.dropna()
 
 all_results = process_all_patients(df, pw_path, ieeg_filename_df)
 results_df = pd.DataFrame([result for result in all_results if result is not None])
-results_df.to_csv('../data/self_run/EI_base/EI_MUSC_60s.csv', index=False)
+results_df.to_csv('../data/self_run/EI_new_onset_detector/EI_MUSC_v1-5.csv', index=False)
+
 print("All results saved.")
