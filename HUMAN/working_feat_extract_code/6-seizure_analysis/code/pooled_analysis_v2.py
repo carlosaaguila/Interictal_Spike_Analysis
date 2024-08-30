@@ -31,10 +31,12 @@ from ied_fx_v3 import *
 # musc_ei = pd.read_csv('../data/self_run/MUSC_all_hfer.csv')
 
 #hfer NEW (60s)
-hup_ei = pd.read_csv('../data/self_run/EI_base/EI_HUP_60s.csv')
-musc_ei = pd.read_csv('../data/self_run/EI_base/EI_MUSC_60s.csv')
+# hup_ei = pd.read_csv('../data/self_run/EI_base/EI_HUP_60s.csv')
+# musc_ei = pd.read_csv('../data/self_run/EI_base/EI_MUSC_60s.csv')
 
-musc_ei
+hup_ei = pd.read_csv('../data/self_run/EI_new_onset_detector/EI_HUP_120_120s.csv')
+musc_ei = pd.read_csv('../data/self_run/EI_new_onset_detector/EI_MUSC_120_120s.csv')
+
 
 # EI NEW (60s)
 # hup_ei = pd.read_csv('../data/self_run/EI_HUP_60s.csv')
@@ -452,6 +454,8 @@ sns.despine()
 # plt.savefig(f'figures/sameside_perSOZ/bilateral/statistical_test/spearman/{Feat_of_interest}-ranksum_CLEAN.pdf')
 plt.show()
 
+#%%
+
 #Pearson Correlation PLOTS
 #create a boxplot comparing the distribution of correlation across SOZ types
 plt.figure(figsize=(8,6))
@@ -613,6 +617,19 @@ sns.despine()
 # plt.savefig(f'figures/sameside_perSOZ/bilateral/statistical_test/spearman/{Feat_of_interest}-ranksum_CLEAN.pdf')
 plt.show()
 
+all_effect_szs = []
+for comparison in pairs:
+    # print(comparison)
+    soz1 = comparison[0]
+    soz2 = comparison[1]
+    group1 = corr_df[corr_df['SOZ'] == soz1]['correlation']
+    group2 = corr_df[corr_df['SOZ'] == soz2]['correlation']
+    all_effect_szs.append(['Spearman Corr EI', soz1, soz2, cohend(group1, group2)])
+
+print(all_effect_szs)
+
+#%%
+
 #Pearson Correlation PLOTS
 #create a boxplot comparing the distribution of correlation across SOZ types
 plt.figure(figsize=(8,6))
@@ -641,6 +658,18 @@ plt.title(f'Feature = EI, Directionality', fontsize=16)
 sns.despine()
 # plt.savefig(f'figures/sameside_perSOZ/bilateral/statistical_test/pearson/{Feat_of_interest}-ranksum_CLEAN.pdf')
 plt.show()
+
+all_effect_szs = []
+for comparison in pairs:
+    # print(comparison)
+    soz1 = comparison[0]
+    soz2 = comparison[1]
+    group1 = pearson_df[pearson_df['SOZ'] == soz1]['correlation']
+    group2 = pearson_df[pearson_df['SOZ'] == soz2]['correlation']
+
+    all_effect_szs.append(['Pearson Corr EI', soz1, soz2, cohend(group1, group2)])
+
+print(all_effect_szs)
 # %%
 
 #######

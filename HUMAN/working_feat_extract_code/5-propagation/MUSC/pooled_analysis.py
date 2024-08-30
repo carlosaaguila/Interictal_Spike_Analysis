@@ -44,7 +44,7 @@ soz_to_remove = ['temporal']
 
 # list_of_feats = ['spike_rate','recruitment_latency_thresh','decay_amp','sharpness','linelen','slow_amp', 'rise_amp','spike_width','']
 list_of_feats = ['spike_rate', 'rise_amp','decay_amp','sharpness','linelen','recruitment_latency_thresh','spike_width','slow_width','slow_amp']
-list_of_feats = ['spike_rate', 'rise_amp']
+# list_of_feats = ['spike_rate', 'rise_amp']
 
 
 df_to_use = []
@@ -139,7 +139,6 @@ for i, df in enumerate(ALL_HUP_FEATS[1:], start=2):
                          on=['pt_id', 'channel_label', 'SOZ'], 
                          how='outer')
     
-#%%
 #######################
 #Grab the MUSC DATASET#
 #######################
@@ -304,7 +303,6 @@ for i, df in enumerate(ALL_MUSC_FEATS[1:], start=2):
                          on=['pt_id', 'channel_label', 'region'], 
                          how='outer')
 
-#%%
 #NOW we want to get heatmaps, when we combine them.
 merged_MUSC_df = merged_MUSC_df.rename(columns = {'region':'SOZ'})
 
@@ -320,11 +318,9 @@ def soz_assigner(row):
 
 merged_MUSC_df['SOZ'] = merged_MUSC_df.apply(soz_assigner, axis = 1)
 
-# %%
 all_pts_df = pd.concat([merged_hup_df, merged_MUSC_df], axis = 0)
 all_pts_df['pt_id'] = all_pts_df['pt_id'].str.replace('3T_MP0', '').str.replace('HUP', '')
 
-#%%
 #############################
 # WE LOOK TO PLOT EVERYTHING
 #############################
@@ -552,103 +548,103 @@ for Feat_of_interest in list_of_feats:
         slope_df['SOZ'] = slope_df.apply(soz_assigner, axis = 1)
 
 
-# %%
-#SPEARMAN PLOTS MORPHOLOGY
+# # %%
+# #SPEARMAN PLOTS MORPHOLOGY
 
-from scipy.stats import kruskal, mannwhitneyu
+# from scipy.stats import kruskal, mannwhitneyu
 
-plt.rcParams['font.family'] = 'Arial'
-corr_df['SOZ'] = corr_df['SOZ'].astype('category')
+# plt.rcParams['font.family'] = 'Arial'
+# corr_df['SOZ'] = corr_df['SOZ'].astype('category')
 
-# Melt the dataframe to long format
-melted_corr_df = corr_df.melt(id_vars='SOZ', 
-                              value_vars=['decay_amp_corr', 'sharpness_corr', 'linelen_corr', 'slow_amp_corr'],
-                              var_name='Metric', value_name='Value')
+# # Melt the dataframe to long format
+# melted_corr_df = corr_df.melt(id_vars='SOZ', 
+#                               value_vars=['decay_amp_corr', 'sharpness_corr', 'linelen_corr', 'slow_amp_corr'],
+#                               var_name='Metric', value_name='Value')
 
-# Set up the matplotlib figure
-fig, ax = plt.subplots(1,1, figsize=(12,6))
-if vs_other == True:
-    my_palette = {1:'#E64B35FF', 2:'#3C5488FF'}
-    fig_args = {'x':'Metric',
-                'y':'Value',
-                'hue':'SOZ',
-                'data':melted_corr_df,
-                'order':['decay_amp_corr','sharpness_corr','linelen_corr','slow_amp_corr'],
-                'hue_order':[1,2]}
+# # Set up the matplotlib figure
+# fig, ax = plt.subplots(1,1, figsize=(12,6))
+# if vs_other == True:
+#     my_palette = {1:'#E64B35FF', 2:'#3C5488FF'}
+#     fig_args = {'x':'Metric',
+#                 'y':'Value',
+#                 'hue':'SOZ',
+#                 'data':melted_corr_df,
+#                 'order':['decay_amp_corr','sharpness_corr','linelen_corr','slow_amp_corr'],
+#                 'hue_order':[1,2]}
 
-    significanceComparisons = [(('decay_amp_corr',1), ('decay_amp_corr',2)),
-                            (('sharpness_corr',1), ('sharpness_corr',2)),
-                            (('linelen_corr',1), ('linelen_corr',2)),
-                            (('slow_amp_corr',1), ('slow_amp_corr',2))]
-else:
-    my_palette = {1:'#E64B35FF', 3:'#7E6148FF', 2:'#00A087FF'}
-    fig_args = {'x':'Metric',
-                'y':'Value',
-                'hue':'SOZ',
-                'data':melted_corr_df,
-                'order':['decay_amp_corr','sharpness_corr','linelen_corr','slow_amp_corr'],
-                'hue_order':[1,2,3]}
+#     significanceComparisons = [(('decay_amp_corr',1), ('decay_amp_corr',2)),
+#                             (('sharpness_corr',1), ('sharpness_corr',2)),
+#                             (('linelen_corr',1), ('linelen_corr',2)),
+#                             (('slow_amp_corr',1), ('slow_amp_corr',2))]
+# else:
+#     my_palette = {1:'#E64B35FF', 3:'#7E6148FF', 2:'#00A087FF'}
+#     fig_args = {'x':'Metric',
+#                 'y':'Value',
+#                 'hue':'SOZ',
+#                 'data':melted_corr_df,
+#                 'order':['decay_amp_corr','sharpness_corr','linelen_corr','slow_amp_corr'],
+#                 'hue_order':[1,2,3]}
 
-    significanceComparisons = [(('decay_amp_corr',1), ('decay_amp_corr',3)),
-                               (('sharpness_corr',1), ('sharpness_corr',3)),
-                            (('decay_amp_corr',1), ('decay_amp_corr',2)),
-                            (('decay_amp_corr',2), ('decay_amp_corr',3)),
-                            (('sharpness_corr',1), ('sharpness_corr',2)),
-                            (('sharpness_corr',2), ('sharpness_corr',3)),
-                            (('linelen_corr',1), ('linelen_corr',2)),
-                            (('linelen_corr',1), ('linelen_corr',3)),
-                            (('linelen_corr',2), ('linelen_corr',2)),
-                            (('slow_amp_corr',1), ('slow_amp_corr',2)),
-                            (('slow_amp_corr',1), ('slow_amp_corr',3)),
-                            (('slow_amp_corr',2), ('slow_amp_corr',3))]
+#     significanceComparisons = [(('decay_amp_corr',1), ('decay_amp_corr',3)),
+#                                (('sharpness_corr',1), ('sharpness_corr',3)),
+#                             (('decay_amp_corr',1), ('decay_amp_corr',2)),
+#                             (('decay_amp_corr',2), ('decay_amp_corr',3)),
+#                             (('sharpness_corr',1), ('sharpness_corr',2)),
+#                             (('sharpness_corr',2), ('sharpness_corr',3)),
+#                             (('linelen_corr',1), ('linelen_corr',2)),
+#                             (('linelen_corr',1), ('linelen_corr',3)),
+#                             (('linelen_corr',2), ('linelen_corr',2)),
+#                             (('slow_amp_corr',1), ('slow_amp_corr',2)),
+#                             (('slow_amp_corr',1), ('slow_amp_corr',3)),
+#                             (('slow_amp_corr',2), ('slow_amp_corr',3))]
 
-# Perform Mann-Whitney U tests for significant metrics
-u_test_results = {}
-for comparison in significanceComparisons:
-    metric, soz1 = comparison[0]
-    _, soz2 = comparison[1]
-    group1 = melted_corr_df[(melted_corr_df['Metric'] == metric) & (melted_corr_df['SOZ'] == soz1)]['Value']
-    group2 = melted_corr_df[(melted_corr_df['Metric'] == metric) & (melted_corr_df['SOZ'] == soz2)]['Value']
-    u_stat, p_value = mannwhitneyu(group1, group2, alternative='less')
-    u_test_results[comparison] = p_value
-    # print(f'Mann-Whitney U test for {metric} between SOZ {soz1} and SOZ {soz2}: U={u_stat}, p={p_value}')
-
-
-sns.boxplot(ax=ax, showfliers = False,palette=my_palette, **fig_args)
-sns.stripplot(ax =ax, color = 'k', alpha = 0.5, dodge=True, jitter=True, size=5, **fig_args)
-
-annotator = Annotator(ax=ax, pairs=significanceComparisons,
-                      **fig_args, plot='boxplot')
-# Assign Mann-Whitney U test p-values to the annotator
-annotator.set_pvalues([u_test_results[comparison] for comparison in significanceComparisons])
-
-configuration = {'test':'Mann-Whitney',
-                 'comparisons_correction':'Benjamini-Hochberg',
-                 'text_format':'star',
-                 'loc':'inside',
-                 'verbose':True}
-annotator.configure(**configuration)
-annotator.annotate()
-# Set plot title and labels
-plt.title('Distribution of Spearman Correlation by SOZ Type', fontsize = 20)
-
-new_labels = ['Decay Amplitude', 'Sharpness', 'Line Length', 'Slow Wave Amplitude']
-ax.set_xticklabels(new_labels, fontsize=12)
-plt.ylabel('Value', fontsize = 12)
-ax.set(xlabel=None)
-
-# Update the legend to prevent duplication
-handles, labels = ax.get_legend_handles_labels()
-if vs_other == True:
-    ax.legend(handles[:2], ['mTLE', 'Other'], loc='upper right', fontsize=12, bbox_to_anchor=(1.05, 1))
-else: 
-    ax.legend(handles[:3], ['mTLE', 'Neo', 'Other'], loc='upper right', fontsize=12, bbox_to_anchor=(1.05, 1))
+# # Perform Mann-Whitney U tests for significant metrics
+# u_test_results = {}
+# for comparison in significanceComparisons:
+#     metric, soz1 = comparison[0]
+#     _, soz2 = comparison[1]
+#     group1 = melted_corr_df[(melted_corr_df['Metric'] == metric) & (melted_corr_df['SOZ'] == soz1)]['Value']
+#     group2 = melted_corr_df[(melted_corr_df['Metric'] == metric) & (melted_corr_df['SOZ'] == soz2)]['Value']
+#     u_stat, p_value = mannwhitneyu(group1, group2, alternative='less')
+#     u_test_results[comparison] = p_value
+#     # print(f'Mann-Whitney U test for {metric} between SOZ {soz1} and SOZ {soz2}: U={u_stat}, p={p_value}')
 
 
-# Show the plot
-sns.despine()
-# plt.savefig(f'../figures/MUSC+HUP/official/ALL_spearman_CLEAN.pdf')
-plt.show()
+# sns.boxplot(ax=ax, showfliers = False,palette=my_palette, **fig_args)
+# sns.stripplot(ax =ax, color = 'k', alpha = 0.5, dodge=True, jitter=True, size=5, **fig_args)
+
+# annotator = Annotator(ax=ax, pairs=significanceComparisons,
+#                       **fig_args, plot='boxplot')
+# # Assign Mann-Whitney U test p-values to the annotator
+# annotator.set_pvalues([u_test_results[comparison] for comparison in significanceComparisons])
+
+# configuration = {'test':'Mann-Whitney',
+#                  'comparisons_correction':'Benjamini-Hochberg',
+#                  'text_format':'star',
+#                  'loc':'inside',
+#                  'verbose':True}
+# annotator.configure(**configuration)
+# annotator.annotate()
+# # Set plot title and labels
+# plt.title('Distribution of Spearman Correlation by SOZ Type', fontsize = 20)
+
+# new_labels = ['Decay Amplitude', 'Sharpness', 'Line Length', 'Slow Wave Amplitude']
+# ax.set_xticklabels(new_labels, fontsize=12)
+# plt.ylabel('Value', fontsize = 12)
+# ax.set(xlabel=None)
+
+# # Update the legend to prevent duplication
+# handles, labels = ax.get_legend_handles_labels()
+# if vs_other == True:
+#     ax.legend(handles[:2], ['mTLE', 'Other'], loc='upper right', fontsize=12, bbox_to_anchor=(1.05, 1))
+# else: 
+#     ax.legend(handles[:3], ['mTLE', 'Neo', 'Other'], loc='upper right', fontsize=12, bbox_to_anchor=(1.05, 1))
+
+
+# # Show the plot
+# sns.despine()
+# # plt.savefig(f'../figures/MUSC+HUP/official/ALL_spearman_CLEAN.pdf')
+# plt.show()
 
 #%%
 
@@ -658,20 +654,22 @@ pearson_df['SOZ'] = pearson_df['SOZ'].astype('category')
 
 # Melt the dataframe to long format
 melted_pearson_df = pearson_df.melt(id_vars='SOZ', 
-                              value_vars=['decay_amp_corr', 'sharpness_corr', 'linelen_corr', 'slow_amp_corr'],
+                              value_vars=['rise_amp_corr', 'sharpness_corr', 'spike_width_corr'],
                               var_name='Metric', value_name='Value')
 
 # Set up the matplotlib figure
-fig, ax = plt.subplots(1,1, figsize=(12,6))
+fig, ax = plt.subplots(1,1, figsize=(10,6))
 if vs_other == True:
     my_palette = {1:'#E64B35FF', 2:'#3C5488FF'}
     fig_args = {'x':'Metric',
                 'y':'Value',
                 'hue':'SOZ',
                 'data':melted_pearson_df,
-                'order':['decay_amp_corr','sharpness_corr','linelen_corr','slow_amp_corr'],
-                'hue_order':[1,2]}
-
+                'order': ['rise_amp_corr','sharpness_corr','spike_width_corr'],
+                'hue_order':[1,2]
+                }
+ #'order':['decay_amp_corr','sharpness_corr','linelen_corr','slow_amp_corr'],
+ 
     significanceComparisons = [(('decay_amp_corr',1), ('decay_amp_corr',2)),
                             (('sharpness_corr',1), ('sharpness_corr',2)),
                             (('linelen_corr',1), ('linelen_corr',2)),
@@ -682,21 +680,34 @@ else:
                 'y':'Value',
                 'hue':'SOZ',
                 'data':melted_pearson_df,
-                'order':['decay_amp_corr','sharpness_corr','linelen_corr','slow_amp_corr'],
+                'order': ['rise_amp_corr','sharpness_corr','spike_width_corr'],
                 'hue_order':[1,2,3]}
 
-    significanceComparisons = [(('decay_amp_corr',1), ('decay_amp_corr',3)),
-                               (('sharpness_corr',1), ('sharpness_corr',3)),
-                            (('decay_amp_corr',1), ('decay_amp_corr',2)),
-                            (('decay_amp_corr',2), ('decay_amp_corr',3)),
+    significanceComparisons = [
+                            (('rise_amp_corr',1), ('rise_amp_corr',3)),
+                            (('rise_amp_corr',1), ('rise_amp_corr',2)),
+                            (('rise_amp_corr',2), ('rise_amp_corr',3)),
+                            (('sharpness_corr',1), ('sharpness_corr',3)),
                             (('sharpness_corr',1), ('sharpness_corr',2)),
                             (('sharpness_corr',2), ('sharpness_corr',3)),
-                            (('linelen_corr',1), ('linelen_corr',2)),
-                            (('linelen_corr',1), ('linelen_corr',3)),
-                            (('linelen_corr',2), ('linelen_corr',3)),
-                            (('slow_amp_corr',1), ('slow_amp_corr',2)),
-                            (('slow_amp_corr',1), ('slow_amp_corr',3)),
-                            (('slow_amp_corr',2), ('slow_amp_corr',3))]
+                            (('spike_width_corr',1),('spike_width_corr',3)),
+                            (('spike_width_corr',1),('spike_width_corr',2)),
+                            (('spike_width_corr',2),('spike_width_corr',3))
+                            ]
+    
+    
+                            # [(('rise_amp_corr',1), ('rise_amp_corr',3)),
+                            # (('rise_amp_corr',1), ('rise_amp_corr',2)),
+                            # (('rise_amp_corr',2), ('rise_amp_corr',3)),
+                            # (('sharpness_corr',1), ('sharpness_corr',3)),
+                            # (('sharpness_corr',1), ('sharpness_corr',2)),
+                            # (('sharpness_corr',2), ('sharpness_corr',3)),
+                            # (('linelen_corr',1), ('linelen_corr',2)),
+                            # (('linelen_corr',1), ('linelen_corr',3)),
+                            # (('linelen_corr',2), ('linelen_corr',3)),
+                            # (('slow_amp_corr',1), ('slow_amp_corr',2)),
+                            # (('slow_amp_corr',1), ('slow_amp_corr',3)),
+                            # (('slow_amp_corr',2), ('slow_amp_corr',3))]
 
 ##################
 ##################
@@ -760,10 +771,8 @@ else:
                         **fig_args, plot='boxplot')
 
     # Assign Mann-Whitney U test p-values to the annotator
-    # test = 'Mann-Whitney-ls'
-    test = 'Kruskal'
-    comp = 'Holm-Bonferroni'
-    # comp = None
+    test = 'Mann-Whitney'
+    comp = 'BH' #benjamani hochberg correction
     configuration = {'test':test,
                      'comparisons_correction':comp,
                      'text_format':'star',
@@ -775,9 +784,9 @@ else:
 # Set plot title and labels
 plt.title('Distribution of Pearson Correlation by SOZ Type', fontsize = 20)
 
-new_labels = ['Decay Amplitude', 'Sharpness', 'Line Length', 'Slow Wave Amplitude']
+new_labels = ['Rise Amplitude', 'Sharpness', 'Width']
 ax.set_xticklabels(new_labels, fontsize=12)
-plt.ylabel('Value', fontsize = 12)
+plt.ylabel('Correlation Coef.', fontsize = 12)
 ax.set(xlabel=None)
 
 # Update the legend to prevent duplication
@@ -790,117 +799,127 @@ else:
 # Show the plot
 sns.despine()
 plt.axhline(y=0, color='k', linestyle='--')
-# plt.savefig(f'../figures/MUSC+HUP/official/ALL_pearson_CLEAN.pdf')
+# plt.savefig(f'../figures/MUSC+HUP/official/morphology_stats_pearson_CLEAN.pdf')
 plt.show()
 
+all_effect_szs = []
+for comparison in significanceComparisons:
+    print(comparison)
+    metric, soz1 = comparison[0]
+    _, soz2 = comparison[1]
+    group1 = melted_pearson_df[(melted_pearson_df['Metric'] == metric) & (melted_pearson_df['SOZ'] == soz1)]['Value']
+    group2 = melted_pearson_df[(melted_pearson_df['Metric'] == metric) & (melted_pearson_df['SOZ'] == soz2)]['Value']
+    all_effect_szs.append([metric, soz1, soz2, cohend(group1, group2)])
 
-# %%
-# SLOPE MORPHOLOGY PLOTS
+print(all_effect_szs)
 
-slope_df['SOZ'] = slope_df['SOZ'].astype('category')
+# # %%
+# # SLOPE MORPHOLOGY PLOTS
 
-# Melt the dataframe to long format
-melted_slope_df = slope_df.melt(id_vars='SOZ', 
-                              value_vars=['decay_amp_coef10', 'sharpness_coef10', 'linelen_coef10', 'slow_amp_coef10'],
-                              var_name='Metric', value_name='Value')
+# slope_df['SOZ'] = slope_df['SOZ'].astype('category')
 
-# Set up the matplotlib figure
-fig, ax = plt.subplots(1,1, figsize=(12,6))
-my_palette = {1:'#E64B35FF', 2:'#3C5488FF'}
-fig_args = {'x':'Metric',
-            'y':'Value',
-            'hue':'SOZ',
-            'data':melted_slope_df,
-            'order':['decay_amp_coef10','sharpness_coef10','linelen_coef10','slow_amp_coef10'],
-            'hue_order':[1,2]}
+# # Melt the dataframe to long format
+# melted_slope_df = slope_df.melt(id_vars='SOZ', 
+#                               value_vars=['decay_amp_coef10', 'sharpness_coef10', 'linelen_coef10', 'slow_amp_coef10'],
+#                               var_name='Metric', value_name='Value')
 
-significanceComparisons = [(('decay_amp_coef10',1), ('decay_amp_coef10',2)),
-                           (('sharpness_coef10',1), ('sharpness_coef10',2)),
-                           (('linelen_coef10',1), ('linelen_coef10',2)),
-                           (('slow_amp_coef10',1), ('slow_amp_coef10',2))]
+# # Set up the matplotlib figure
+# fig, ax = plt.subplots(1,1, figsize=(12,6))
+# my_palette = {1:'#E64B35FF', 2:'#3C5488FF'}
+# fig_args = {'x':'Metric',
+#             'y':'Value',
+#             'hue':'SOZ',
+#             'data':melted_slope_df,
+#             'order':['decay_amp_coef10','sharpness_coef10','linelen_coef10','slow_amp_coef10'],
+#             'hue_order':[1,2]}
 
-sns.boxplot(ax=ax, showfliers = False,palette=my_palette, **fig_args)
-sns.stripplot(ax =ax, color = 'k', alpha = 0.5, dodge=True, jitter=True, size=5, **fig_args)
+# significanceComparisons = [(('decay_amp_coef10',1), ('decay_amp_coef10',2)),
+#                            (('sharpness_coef10',1), ('sharpness_coef10',2)),
+#                            (('linelen_coef10',1), ('linelen_coef10',2)),
+#                            (('slow_amp_coef10',1), ('slow_amp_coef10',2))]
 
-annotator = Annotator(ax=ax, pairs=significanceComparisons,
-                      **fig_args, plot='boxplot')
-configuration = {'test':'Mann-Whitney',
-                 'comparisons_correction':'Benjamini-Hochberg',
-                 'text_format':'simple',
-                 'loc':'inside',
-                 'verbose':True}
-annotator.configure(**configuration)
-annotator.apply_and_annotate()
-# Set plot title and labels
-plt.title('Distribution of Slope by SOZ Type', fontsize = 20)
+# sns.boxplot(ax=ax, showfliers = False,palette=my_palette, **fig_args)
+# sns.stripplot(ax =ax, color = 'k', alpha = 0.5, dodge=True, jitter=True, size=5, **fig_args)
 
-new_labels = ['Decay Amplitude', 'Sharpness', 'Line Length', 'Slow Wave Amplitude']
-ax.set_xticklabels(new_labels, fontsize=12)
-plt.ylabel('Value', fontsize = 12)
-ax.set(xlabel=None)
+# annotator = Annotator(ax=ax, pairs=significanceComparisons,
+#                       **fig_args, plot='boxplot')
+# configuration = {'test':'Mann-Whitney',
+#                  'comparisons_correction':'Benjamini-Hochberg',
+#                  'text_format':'simple',
+#                  'loc':'inside',
+#                  'verbose':True}
+# annotator.configure(**configuration)
+# annotator.apply_and_annotate()
+# # Set plot title and labels
+# plt.title('Distribution of Slope by SOZ Type', fontsize = 20)
 
-# Update the legend to prevent duplication
-handles, labels = ax.get_legend_handles_labels()
-ax.legend(handles[:2], ['mTLE', 'Other'], loc='upper right', fontsize=12, bbox_to_anchor=(1.05, 1))
+# new_labels = ['Decay Amplitude', 'Sharpness', 'Line Length', 'Slow Wave Amplitude']
+# ax.set_xticklabels(new_labels, fontsize=12)
+# plt.ylabel('Value', fontsize = 12)
+# ax.set(xlabel=None)
 
-# Show the plot
-sns.despine()
-# plt.savefig(f'../figures/MUSC+HUP/official/ALL_slope_CLEAN.pdf')
-plt.show()
+# # Update the legend to prevent duplication
+# handles, labels = ax.get_legend_handles_labels()
+# ax.legend(handles[:2], ['mTLE', 'Other'], loc='upper right', fontsize=12)# , bbox_to_anchor=(1.05, 1))
 
-#%%
-#FIRST VALUE MORPHOLOGY PLOTS
+# # Show the plot
+# sns.despine()
+# # plt.savefig(f'../figures/MUSC+HUP/official/morphology_stats_pearson_CLEAN.pdf')
+# plt.show()
 
-slope_df['SOZ'] = slope_df['SOZ'].astype('category')
+# #%%
+# #FIRST VALUE MORPHOLOGY PLOTS
 
-# Melt the dataframe to long format
-melted_first_df = slope_df.melt(id_vars='SOZ', 
-                              value_vars=['decay_amp_first_value', 'sharpness_first_value', 'linelen_first_value', 'slow_amp_first_value'],
-                              var_name='Metric', value_name='Value')
+# slope_df['SOZ'] = slope_df['SOZ'].astype('category')
 
-# Set up the matplotlib figure
-fig, ax = plt.subplots(1,1, figsize=(12,6))
-my_palette = {1:'#E64B35FF', 2:'#3C5488FF'}
-fig_args = {'x':'Metric',
-            'y':'Value',
-            'hue':'SOZ',
-            'data':melted_first_df,
-            'order':['decay_amp_first_value','sharpness_first_value','linelen_first_value','slow_amp_first_value'],
-            'hue_order':[1,2]}
+# # Melt the dataframe to long format
+# melted_first_df = slope_df.melt(id_vars='SOZ', 
+#                               value_vars=['decay_amp_first_value', 'sharpness_first_value', 'linelen_first_value', 'slow_amp_first_value'],
+#                               var_name='Metric', value_name='Value')
 
-significanceComparisons = [(('decay_amp_first_value',1), ('decay_amp_first_value',2)),
-                           (('sharpness_first_value',1), ('sharpness_first_value',2)),
-                           (('linelen_first_value',1), ('linelen_first_value',2)),
-                           (('slow_amp_first_value',1), ('slow_amp_first_value',2))]
+# # Set up the matplotlib figure
+# fig, ax = plt.subplots(1,1, figsize=(12,6))
+# my_palette = {1:'#E64B35FF', 2:'#3C5488FF'}
+# fig_args = {'x':'Metric',
+#             'y':'Value',
+#             'hue':'SOZ',
+#             'data':melted_first_df,
+#             'order':['decay_amp_first_value','sharpness_first_value','linelen_first_value','slow_amp_first_value'],
+#             'hue_order':[1,2]}
 
-sns.boxplot(ax=ax, showfliers = False,palette=my_palette, **fig_args)
-sns.stripplot(ax =ax, color = 'k', alpha = 0.5, dodge=True, jitter=True, size=5, **fig_args)
+# significanceComparisons = [(('decay_amp_first_value',1), ('decay_amp_first_value',2)),
+#                            (('sharpness_first_value',1), ('sharpness_first_value',2)),
+#                            (('linelen_first_value',1), ('linelen_first_value',2)),
+#                            (('slow_amp_first_value',1), ('slow_amp_first_value',2))]
 
-annotator = Annotator(ax=ax, pairs=significanceComparisons,
-                      **fig_args, plot='boxplot')
-configuration = {'test':'Mann-Whitney',
-                 'comparisons_correction':'Benjamini-Hochberg',
-                 'text_format':'simple',
-                 'loc':'inside',
-                 'verbose':True}
-annotator.configure(**configuration)
-annotator.apply_and_annotate()
-# Set plot title and labels
-plt.title('Distribution of First Values by SOZ Type', fontsize = 20)
+# sns.boxplot(ax=ax, showfliers = False,palette=my_palette, **fig_args)
+# sns.stripplot(ax =ax, color = 'k', alpha = 0.5, dodge=True, jitter=True, size=5, **fig_args)
 
-new_labels = ['Decay Amplitude', 'Sharpness', 'Line Length', 'Slow Wave Amplitude']
-ax.set_xticklabels(new_labels, fontsize=12)
-plt.ylabel('Value', fontsize = 12)
-ax.set(xlabel=None)
+# annotator = Annotator(ax=ax, pairs=significanceComparisons,
+#                       **fig_args, plot='boxplot')
+# configuration = {'test':'Mann-Whitney',
+#                  'comparisons_correction':'Benjamini-Hochberg',
+#                  'text_format':'simple',
+#                  'loc':'inside',
+#                  'verbose':True}
+# annotator.configure(**configuration)
+# annotator.apply_and_annotate()
+# # Set plot title and labels
+# plt.title('Distribution of First Values by SOZ Type', fontsize = 20)
 
-# Update the legend to prevent duplication
-handles, labels = ax.get_legend_handles_labels()
-ax.legend(handles[:2], ['mTLE', 'Other'], loc='upper right', fontsize=12, bbox_to_anchor=(1.05, 1))
+# new_labels = ['Decay Amplitude', 'Sharpness', 'Line Length', 'Slow Wave Amplitude']
+# ax.set_xticklabels(new_labels, fontsize=12)
+# plt.ylabel('Value', fontsize = 12)
+# ax.set(xlabel=None)
 
-# Show the plot
-sns.despine()
-# plt.savefig(f'../figures/MUSC+HUP/official/ALL_first_values_CLEAN.pdf')
-plt.show()
+# # Update the legend to prevent duplication
+# handles, labels = ax.get_legend_handles_labels()
+# ax.legend(handles[:2], ['mTLE', 'Other'], loc='upper right', fontsize=12, bbox_to_anchor=(1.05, 1))
+
+# # Show the plot
+# sns.despine()
+# # plt.savefig(f'../figures/MUSC+HUP/official/ALL_first_values_CLEAN.pdf')
+# plt.show()
 
 
 # %%
@@ -957,6 +976,17 @@ sns.despine()
     # plt.savefig(f'../figures/MUSC+HUP/official/spike_rate_pearon_MULTI.pdf')
 plt.show()
 
+all_effect_szs = []
+for comparison in pairs:
+    # print(comparison)
+    soz1 = comparison[0]
+    soz2 = comparison[1]
+    group1 = pearson_df[pearson_df['SOZ'] == soz1]['spike_rate_corr']
+    group2 = pearson_df[pearson_df['SOZ'] == soz2]['spike_rate_corr']
+    all_effect_szs.append([metric, soz1, soz2, cohend(group1, group2)])
+
+print(all_effect_szs)
+
 
 #%%
 #############################
@@ -1009,6 +1039,19 @@ sns.despine()
 # if vs_other == False:
     # plt.savefig(f'../figures/MUSC+HUP/official/timing_thresh_pearon_MULTI.pdf')
 plt.show()
+
+all_effect_szs = []
+for comparison in pairs:
+    # print(comparison)
+    soz1 = comparison[0]
+    soz2 = comparison[1]
+    group1 = pearson_df[pearson_df['SOZ'] == soz1]['recruitment_latency_thresh_corr']
+    group2 = pearson_df[pearson_df['SOZ'] == soz2]['recruitment_latency_thresh_corr']
+    all_effect_szs.append([metric, soz1, soz2, cohend(group1, group2)])
+
+print(all_effect_szs)
+
+
 # %%
 ####################################
 # look for grouped stats (high level)
@@ -1019,7 +1062,9 @@ plt.show()
 
 from scipy.stats import f_oneway, levene, shapiro, kruskal
 
-x = melted_corr_df[melted_corr_df['Metric'] == 'decay_amp_corr']
+melted_corr_df = melted_pearson_df
+
+x = melted_corr_df[melted_corr_df['Metric'] == 'rise_amp_corr']
 # _,p1 = shapiro(x[x['SOZ'] == 1]['Value'])
 # _,p2 = shapiro(x[x['SOZ'] == 2]['Value'])
 # _,p3 = shapiro(x[x['SOZ'] == 3]['Value'])
@@ -1028,17 +1073,8 @@ x = melted_corr_df[melted_corr_df['Metric'] == 'decay_amp_corr']
 # print(f"Levene's test p-value: {p_levene}")
 k1,tp1 = kruskal(x[x['SOZ'] == 1]['Value'],x[x['SOZ'] == 2]['Value'],x[x['SOZ'] == 3]['Value'])
 print('decay amp p:',tp1)
-print('---------------------')
+print('K = ', k1)
 
-x = melted_corr_df[melted_corr_df['Metric'] == 'slow_amp_corr']
-# _,p1 = shapiro(x[x['SOZ'] == 1]['Value'])
-# _,p2 = shapiro(x[x['SOZ'] == 2]['Value'])
-# _,p3 = shapiro(x[x['SOZ'] == 3]['Value'])
-# print(f"Shapiro-Wilk test p-values: group1={p1}, group2={p2}, group3={p3}")
-# _, p_levene = levene(x[x['SOZ'] == 1]['Value'], x[x['SOZ'] == 2]['Value'], x[x['SOZ'] == 3]['Value'])
-# print(f"Levene's test p-value: {p_levene}")
-k2,tp2 = kruskal(x[x['SOZ'] == 1]['Value'],x[x['SOZ'] == 2]['Value'],x[x['SOZ'] == 3]['Value'])
-print('slow wave amp p',tp2)
 print('---------------------')
 
 x = melted_corr_df[melted_corr_df['Metric'] == 'sharpness_corr']
@@ -1050,33 +1086,51 @@ x = melted_corr_df[melted_corr_df['Metric'] == 'sharpness_corr']
 # print(f"Levene's test p-value: {p_levene}")
 k3,tp3 = kruskal(x[x['SOZ'] == 1]['Value'],x[x['SOZ'] == 2]['Value'],x[x['SOZ'] == 3]['Value'])
 print('sharpness corr',tp3)
+print('K = ', k3)
+
 print('---------------------')
 
-x = melted_corr_df[melted_corr_df['Metric'] == 'linelen_corr']
+
+x = melted_corr_df[melted_corr_df['Metric'] == 'spike_width_corr']
 # _,p1 = shapiro(x[x['SOZ'] == 1]['Value'])
 # _,p2 = shapiro(x[x['SOZ'] == 2]['Value'])
 # _,p3 = shapiro(x[x['SOZ'] == 3]['Value'])
 # print(f"Shapiro-Wilk test p-values: group1={p1}, group2={p2}, group3={p3}")
 # _, p_levene = levene(x[x['SOZ'] == 1]['Value'], x[x['SOZ'] == 2]['Value'], x[x['SOZ'] == 3]['Value'])
 # print(f"Levene's test p-value: {p_levene}")
-k4,tp4 = kruskal(x[x['SOZ'] == 1]['Value'],x[x['SOZ'] == 2]['Value'],x[x['SOZ'] == 3]['Value'])
-print('linelen p',tp4)
+k2,tp2 = kruskal(x[x['SOZ'] == 1]['Value'],x[x['SOZ'] == 2]['Value'],x[x['SOZ'] == 3]['Value'])
+print('slow wave amp p',tp2)
+print('K = ', k2)
 print('---------------------')
 
 
+
+# x = melted_corr_df[melted_corr_df['Metric'] == 'linelen_corr']
+# # _,p1 = shapiro(x[x['SOZ'] == 1]['Value'])
+# # _,p2 = shapiro(x[x['SOZ'] == 2]['Value'])
+# # _,p3 = shapiro(x[x['SOZ'] == 3]['Value'])
+# # print(f"Shapiro-Wilk test p-values: group1={p1}, group2={p2}, group3={p3}")
+# # _, p_levene = levene(x[x['SOZ'] == 1]['Value'], x[x['SOZ'] == 2]['Value'], x[x['SOZ'] == 3]['Value'])
+# # print(f"Levene's test p-value: {p_levene}")
+# k4,tp4 = kruskal(x[x['SOZ'] == 1]['Value'],x[x['SOZ'] == 2]['Value'],x[x['SOZ'] == 3]['Value'])
+# print('linelen p',tp4)
+# print('---------------------')
+
+
 # Collect all p-values
-p_values = np.array([tp1, tp2, tp3, tp4])
+p_values = np.array([tp1, tp3, tp2])
 
 from statsmodels.stats.multitest import multipletests
 # Apply FDR correction
 rejected, p_values_corrected, _, _ = multipletests(p_values, alpha=0.05, method='fdr_bh')
 
-print('decay amp, slow amp, sharpness, linelen')
+print('rise_amp_corr,sharpness_corr,spike_width_corr')
 print(rejected)
 print(p_values_corrected)
 
 print('---------------------')
 
+#%%
 #######
 #TIMING + RATE
 
@@ -1084,7 +1138,9 @@ rate = pearson_df[['spike_rate_corr','SOZ']]
 latency = pearson_df[['SOZ','recruitment_latency_thresh_corr']]
 
 #change if you want anova, but really no different in results
+print("SPIKE RATE:")
 print(kruskal(rate[rate['SOZ'] == 1]['spike_rate_corr'], rate[rate['SOZ'] == 2]['spike_rate_corr'],rate[rate['SOZ'] == 3]['spike_rate_corr']))
+print("SPIKE TIMING:")
 print(kruskal(latency[latency['SOZ'] == 1]['recruitment_latency_thresh_corr'], latency[latency['SOZ'] == 2]['recruitment_latency_thresh_corr'],latency[latency['SOZ'] == 3]['recruitment_latency_thresh_corr']))
 
 # %%
