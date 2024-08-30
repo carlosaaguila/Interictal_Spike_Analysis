@@ -35,3 +35,8 @@ HUMAN/working_feat_extract_code/6-seizure_analysis/data/self_run/EI_new_onset_de
 HUMAN/working_feat_extract_code/6-seizure_analysis/data/self_run/EI_new_onset_detector/EI_MUSC_40_60s.csv
 HUMAN/working_feat_extract_code/6-seizure_analysis/data/self_run/EI_new_onset_detector/EI_MUSC_80_80s.csv
 HUMAN/working_feat_extract_code/6-seizure_analysis/data/self_run/EI_new_onset_detector/EI_MUSC_120_120s.csv
+HUMAN/working_feat_extract_code/5-propagation/figures/MUSC+HUP/official/morphology_stats_pearson_CLEAN.pdf
+HUMAN/working_feat_extract_code/5-propagation/figures/MUSC+HUP/official/pearson_corr_morphology.pdf
+HUMAN/working_feat_extract_code/6-seizure_analysis/figures/mtle_barplot.pdf
+HUMAN/working_feat_extract_code/6-seizure_analysis/figures/mtle_sz.pdf
+HUMAN/working_feat_extract_code/6-seizure_analysis/figures/TNC_barplot.pdf
