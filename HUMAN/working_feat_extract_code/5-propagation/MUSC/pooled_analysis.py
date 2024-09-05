@@ -319,7 +319,7 @@ def soz_assigner(row):
 merged_MUSC_df['SOZ'] = merged_MUSC_df.apply(soz_assigner, axis = 1)
 
 all_pts_df = pd.concat([merged_hup_df, merged_MUSC_df], axis = 0)
-all_pts_df['pt_id'] = all_pts_df['pt_id'].str.replace('3T_MP0', '').str.replace('HUP', '')
+# all_pts_df['pt_id'] = all_pts_df['pt_id'].str.replace('3T_MP0', '').str.replace('HUP', '')
 
 #############################
 # WE LOOK TO PLOT EVERYTHING

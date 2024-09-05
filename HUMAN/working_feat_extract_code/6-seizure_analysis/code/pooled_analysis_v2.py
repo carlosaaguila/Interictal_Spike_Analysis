@@ -34,9 +34,8 @@ from ied_fx_v3 import *
 # hup_ei = pd.read_csv('../data/self_run/EI_base/EI_HUP_60s.csv')
 # musc_ei = pd.read_csv('../data/self_run/EI_base/EI_MUSC_60s.csv')
 
-hup_ei = pd.read_csv('../data/self_run/EI_new_onset_detector/EI_HUP_120_120s.csv')
-musc_ei = pd.read_csv('../data/self_run/EI_new_onset_detector/EI_MUSC_120_120s.csv')
-
+hup_ei = pd.read_csv('../data/self_run/EI_new_onset_detector/EI_HUP_v1-5.csv')
+musc_ei = pd.read_csv('../data/self_run/EI_new_onset_detector/EI_MUSC_v1-5.csv')
 
 # EI NEW (60s)
 # hup_ei = pd.read_csv('../data/self_run/EI_HUP_60s.csv')
