@@ -78,7 +78,7 @@ pearson_df['pt_id'] = pearson_df['pt_id'].astype(int)
 # musc_pearson_df = pd.read_csv('dataset/ML_data/musc_ML_2.csv')
 
 # spearman_df = pd.read_csv('dataset/ML_data/spearman_ML_v2.csv', index_col=0)
-EI_df = pd.read_csv('dataset/ML_data/EI_pooled_corr.csv', index_col=0)[['correlation','pt_id']] #using HFER
+EI_df = pd.read_csv('dataset/ML_data/EI_corr_full_v3.csv', index_col=0)[['correlation','pt_id']] #using EI
 EI_df['pt_id'] = EI_df['pt_id'].str.replace('3T_MP0', '').str.replace('HUP', '')
 EI_df['pt_id'] = EI_df['pt_id'].astype(int)
 
@@ -146,6 +146,8 @@ for train_ix, test_ix in LOO.split(unique_ids):
     # feature_importances_TEST.append(rfc.feature_importances_)
     #for logistic regression, feature_importances_ is the coefficients
     feature_importances_TEST.append(rfc.coef_[0])
+    # feature_importances_TEST.append(rfc.feature_importances_)
+
 
 avg_feature_importances = np.mean(feature_importances_TEST, axis = 0)
 
@@ -271,6 +273,8 @@ for train_ix, test_ix in LOO.split(unique_ids):
     # feature_importances_TEST.append(rfc.feature_importances_)
     #for logistic regression, feature_importances_ is the coefficients
     feature_importances_interictal.append(rfc.coef_[0])
+    # feature_importances_TEST.append(rfc.feature_importances_)
+
 
 avg_feature_importances_ii = np.mean(feature_importances_interictal, axis = 0)
 
@@ -397,7 +401,7 @@ for train_ix, test_ix in LOO.split(unique_ids):
     # for random forest, feature_importances_ is the feature importance
     # feature_importances_TEST.append(rfc.feature_importances_)
     #for logistic regression, feature_importances_ is the coefficients
-    # feature_importances_TEST.append(rfc.coef_[0])
+    feature_importances_TEST.append(rfc.coef_[0])
 
 ################ evaluate predictions
 from sklearn.metrics import accuracy_score
@@ -795,6 +799,7 @@ for train_ix, test_ix in LOO.split(unique_ids):
     # feature_importances_TEST.append(rfc.feature_importances_)
     #for logistic regression, feature_importances_ is the coefficients
     feature_importances_TEST.append(rfc.coef_[0])
+    # feature_importances_TEST.append(rfc.feature_importances_)
 
 ################ evaluate predictions
 from sklearn.metrics import accuracy_score
@@ -876,6 +881,8 @@ for train_ix, test_ix in LOO.split(unique_ids):
     # feature_importances_TEST.append(rfc.feature_importances_)
     #for logistic regression, feature_importances_ is the coefficients
     feature_importances_TEST.append(rfc.coef_[0])
+    # feature_importances_TEST.append(rfc.feature_importances_)
+
 
 ################ evaluate predictions
 from sklearn.metrics import accuracy_score
@@ -955,6 +962,8 @@ for train_ix, test_ix in LOO.split(unique_ids):
     # feature_importances_TEST.append(rfc.feature_importances_)
     #for logistic regression, feature_importances_ is the coefficients
     feature_importances_TEST.append(rfc.coef_[0])
+    # feature_importances_TEST.append(rfc.feature_importances_)
+
 
 ################ evaluate predictions
 from sklearn.metrics import accuracy_score
