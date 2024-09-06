@@ -26,16 +26,17 @@ code_path = os.path.dirname('/mnt/leif/littlab/users/aguilac/Interictal_Spike_An
 sys.path.append(code_path)
 from ied_fx_v3 import *
 
-# HFER (200s)
+
+#60 seconds end target
+hup_ei = pd.read_csv('../data/self_run/EI_new_onset_detector/EI_HUP_40_60s.csv')
+musc_ei = pd.read_csv('../data/self_run/EI_new_onset_detector/EI_MUSC_40_60s.csv')
+
 # hup_ei = pd.read_csv('../data/self_run/HUP_all_hfer.csv')
 # musc_ei = pd.read_csv('../data/self_run/MUSC_all_hfer.csv')
 
-#hfer NEW (60s)
-# hup_ei = pd.read_csv('../data/self_run/EI_base/EI_HUP_60s.csv')
-# musc_ei = pd.read_csv('../data/self_run/EI_base/EI_MUSC_60s.csv')
+# hup_ei = pd.read_csv('../data/self_run/EI_new_onset_detector/EI_HUP_.csv')
+# musc_ei = pd.read_csv('../data/self_run/EI_new_onset_detector/EI_MUSC_v1-5.csv')
 
-hup_ei = pd.read_csv('../data/self_run/EI_new_onset_detector/EI_HUP_v1-5.csv')
-musc_ei = pd.read_csv('../data/self_run/EI_new_onset_detector/EI_MUSC_v1-5.csv')
 
 # EI NEW (60s)
 # hup_ei = pd.read_csv('../data/self_run/EI_HUP_60s.csv')
@@ -81,7 +82,7 @@ musc_ei['EI'] = pd.to_numeric(musc_ei['EI'], errors='coerce')
 musc_ei = musc_ei.dropna(subset=['EI'])
 
 grouped = musc_ei.groupby(['MUSC_ID','name'])['EI'].median().reset_index()
-# grouped = musc_ei.groupby(['MUSC_ID','name'])['EI'].quantile(0.75).reset_index()
+# grouped = musc_ei.groupby(['MUSC_ID','name'])['EI'].quantile(0.8).reset_index()
 
 grouped['name'] = grouped['name'].str.replace("'", "", regex=False)
 
@@ -184,7 +185,7 @@ hup_ei['EI'] = pd.to_numeric(hup_ei['EI'], errors='coerce')
 hup_ei = hup_ei.dropna(subset=['EI'])
 
 
-# grouped = hup_ei.groupby(['hupID','name'])['EI'].quantile(0.75).reset_index()
+# grouped = hup_ei.groupby(['hupID','name'])['EI'].quantile(0.8).reset_index()
 grouped = hup_ei.groupby(['hupID','name'])['EI'].median().reset_index()
 
 grouped['name'] = grouped['name'].str.replace("'", "", regex=False)
@@ -416,75 +417,75 @@ corr_df['SOZ'] = corr_df.apply(soz_assigner, axis = 1)
 pearson_df['SOZ'] = pearson_df.apply(soz_assigner, axis = 1)
 slope_df['SOZ'] = slope_df.apply(soz_assigner, axis = 1)
 
-#%%
+# #%%
 
-#SPEARMAN CORRELATION PLOTS
-#create a boxplot comparing the distribution of correlation across SOZ types
-plt.figure(figsize=(8,6))
-#where 1, is MTL, 2 is NEO, and 3 is Other
-#change font to arial
-plt.rcParams['font.family'] = 'Arial'
+# #SPEARMAN CORRELATION PLOTS
+# #create a boxplot comparing the distribution of correlation across SOZ types
+# plt.figure(figsize=(8,6))
+# #where 1, is MTL, 2 is NEO, and 3 is Other
+# #change font to arial
+# plt.rcParams['font.family'] = 'Arial'
 
-my_palette = {1:'#E64B35FF', 'other cortex':'#7E6148FF', 'temporal neocortical':'#00A087FF'} #'temporal':'#3C5488FF'
-pairs=[(1, 'temporal neocortical'), ('temporal neocortical','other cortex'), (1,'other cortex')]
-order = [1,'temporal neocortical','other cortex']
+# my_palette = {1:'#E64B35FF', 'other cortex':'#7E6148FF', 'temporal neocortical':'#00A087FF'} #'temporal':'#3C5488FF'
+# pairs=[(1, 'temporal neocortical'), ('temporal neocortical','other cortex'), (1,'other cortex')]
+# order = [1,'temporal neocortical','other cortex']
 
-my_palette = {1:'#E64B35FF', 2:'#3C5488FF'}
-pairs=[(1, 2)]
-order = [1,2]
+# my_palette = {1:'#E64B35FF', 2:'#3C5488FF'}
+# pairs=[(1, 2)]
+# order = [1,2]
 
-ax = sns.boxplot(x='SOZ', y='correlation', data=corr_df, palette=my_palette, order = order, showfliers = False)
-sns.stripplot(x="SOZ", y="correlation", data=corr_df, color="black", alpha=0.5)
-annotator = Annotator(ax, pairs, data=corr_df, x="SOZ", y="correlation", order=order)
-annotator.configure(test='Mann-Whitney', text_format='star', loc='inside', comparisons_correction='Benjamini-Hochberg', verbose = True)
-annotator.apply_and_annotate()
+# ax = sns.boxplot(x='SOZ', y='correlation', data=corr_df, palette=my_palette, order = order, showfliers = False)
+# sns.stripplot(x="SOZ", y="correlation", data=corr_df, color="black", alpha=0.5)
+# annotator = Annotator(ax, pairs, data=corr_df, x="SOZ", y="correlation", order=order)
+# annotator.configure(test='Mann-Whitney', text_format='star', loc='inside', comparisons_correction='BH', verbose = True)
+# annotator.apply_and_annotate()
 
 
-plt.xlabel('SOZ Type', fontsize=12)
-plt.ylabel('Spearman Correlation', fontsize=12)
-#change the x-tick labels to be more readable
-# plt.xticks(np.arange(3), ['Mesial Temporal', 'Neocortical', 'Other Cortex'], fontsize = 12)
-plt.xticks(np.arange(2), ['Mesial Temporal', 'Other'], fontsize = 12)
-plt.yticks(fontsize = 12)
+# plt.xlabel('SOZ Type', fontsize=12)
+# plt.ylabel('Spearman Correlation', fontsize=12)
+# #change the x-tick labels to be more readable
+# # plt.xticks(np.arange(3), ['Mesial Temporal', 'Neocortical', 'Other Cortex'], fontsize = 12)
+# plt.xticks(np.arange(2), ['Mesial Temporal', 'Other'], fontsize = 12)
+# plt.yticks(fontsize = 12)
 
-#part to change
-plt.title(f'Feature = EI, Directionality', fontsize=16)
-sns.despine()
-# plt.savefig(f'figures/sameside_perSOZ/bilateral/statistical_test/spearman/{Feat_of_interest}-ranksum_CLEAN.pdf')
-plt.show()
+# #part to change
+# plt.title(f'Feature = EI, Directionality', fontsize=16)
+# sns.despine()
+# # plt.savefig('../figures/spearman/EI-spearman.pdf')
+# plt.show()
 
-#%%
+##%%
 
-#Pearson Correlation PLOTS
-#create a boxplot comparing the distribution of correlation across SOZ types
-plt.figure(figsize=(8,6))
-#change font to arial
-plt.rcParams['font.family'] = 'Arial'
-my_palette = {1:'#E64B35FF', 'other cortex':'#7E6148FF', 'temporal neocortical':'#00A087FF'} #'temporal':'#3C5488FF'
-pairs=[(1, 'temporal neocortical'), ('temporal neocortical','other cortex'), (1,'other cortex')]
-order = [1,'temporal neocortical','other cortex']
+# #Pearson Correlation PLOTS
+# #create a boxplot comparing the distribution of correlation across SOZ types
+# plt.figure(figsize=(8,6))
+# #change font to arial
+# plt.rcParams['font.family'] = 'Arial'
+# my_palette = {1:'#E64B35FF', 'other cortex':'#7E6148FF', 'temporal neocortical':'#00A087FF'} #'temporal':'#3C5488FF'
+# pairs=[(1, 'temporal neocortical'), ('temporal neocortical','other cortex'), (1,'other cortex')]
+# order = [1,'temporal neocortical','other cortex']
 
-my_palette = {1:'#E64B35FF', 2:'#3C5488FF'}
-pairs=[(1, 2)]
-order = [1,2]
-ax = sns.boxplot(x='SOZ', y='correlation', data=pearson_df, palette=my_palette, order=order, showfliers = False)
-sns.stripplot(x="SOZ", y="correlation", data=pearson_df, color="black", alpha=0.5)
-annotator = Annotator(ax, pairs, data=pearson_df, x="SOZ", y="correlation", order=order)
-annotator.configure(test='Mann-Whitney', text_format='star', loc='inside', comparisons_correction='Benjamini-Hochberg', verbose = True)
-annotator.apply_and_annotate()
+# my_palette = {1:'#E64B35FF', 2:'#3C5488FF'}
+# pairs=[(1, 2)]
+# order = [1,2]
+# ax = sns.boxplot(x='SOZ', y='correlation', data=pearson_df, palette=my_palette, order=order, showfliers = False)
+# sns.stripplot(x="SOZ", y="correlation", data=pearson_df, color="black", alpha=0.5)
+# annotator = Annotator(ax, pairs, data=pearson_df, x="SOZ", y="correlation", order=order)
+# annotator.configure(test='Mann-Whitney', text_format='star', loc='inside', comparisons_correction='Benjamini-Hochberg', verbose = True)
+# annotator.apply_and_annotate()
 
-plt.xlabel('SOZ Type', fontsize=12)
-plt.ylabel('Pearson Correlation', fontsize=12)
-#change the x-tick labels to be more readable
-# plt.xticks(np.arange(3), ['Mesial Temporal', 'Neocortical', 'Other Cortex'], fontsize = 12)
-plt.xticks(np.arange(2), ['Mesial Temporal', 'Other'], fontsize = 12)
-plt.yticks(fontsize = 12)
+# plt.xlabel('SOZ Type', fontsize=12)
+# plt.ylabel('Pearson Correlation', fontsize=12)
+# #change the x-tick labels to be more readable
+# # plt.xticks(np.arange(3), ['Mesial Temporal', 'Neocortical', 'Other Cortex'], fontsize = 12)
+# plt.xticks(np.arange(2), ['Mesial Temporal', 'Other'], fontsize = 12)
+# plt.yticks(fontsize = 12)
 
-#part to change
-plt.title(f'Feature = EI, Directionality', fontsize=16)
-sns.despine()
-# plt.savefig(f'figures/sameside_perSOZ/bilateral/statistical_test/pearson/{Feat_of_interest}-ranksum_CLEAN.pdf')
-plt.show()
+# #part to change
+# plt.title(f'Feature = EI, Directionality', fontsize=16)
+# sns.despine()
+# # plt.savefig(f'figures/sameside_perSOZ/bilateral/statistical_test/pearson/{Feat_of_interest}-ranksum_CLEAN.pdf')
+# plt.show()
 
 # %% RUN the same but now make sure that they are seperated. 
 
@@ -584,6 +585,7 @@ corr_df['SOZ'] = corr_df.apply(soz_assigner, axis = 1)
 pearson_df['SOZ'] = pearson_df.apply(soz_assigner, axis = 1)
 slope_df['SOZ'] = slope_df.apply(soz_assigner, axis = 1)
 
+#%%
 #SPEARMAN CORRELATION PLOTS
 #create a boxplot comparing the distribution of correlation across SOZ types
 plt.figure(figsize=(8,6))
@@ -599,7 +601,7 @@ order = [1,2,3]
 ax = sns.boxplot(x='SOZ', y='correlation', data=corr_df, palette=my_palette, order = order, showfliers = False)
 sns.stripplot(x="SOZ", y="correlation", data=corr_df, color="black", alpha=0.5)
 annotator = Annotator(ax, pairs, data=corr_df, x="SOZ", y="correlation", order=order)
-annotator.configure(test='Mann-Whitney', text_format='star', loc='inside', comparisons_correction='Benjamini-Hochberg', verbose = True)
+annotator.configure(test='Mann-Whitney', text_format='star', loc='inside', comparisons_correction='BH', verbose = True)
 annotator.apply_and_annotate()
 
 
@@ -613,7 +615,7 @@ plt.yticks(fontsize = 12)
 #part to change
 plt.title(f'Feature = EI, Directionality', fontsize=16)
 sns.despine()
-# plt.savefig(f'figures/sameside_perSOZ/bilateral/statistical_test/spearman/{Feat_of_interest}-ranksum_CLEAN.pdf')
+plt.savefig('../figures/EI-spearman.pdf')
 plt.show()
 
 all_effect_szs = []
@@ -643,7 +645,7 @@ order = [1,2,3]
 ax = sns.boxplot(x='SOZ', y='correlation', data=pearson_df, palette=my_palette, order=order, showfliers = False)
 sns.stripplot(x="SOZ", y="correlation", data=pearson_df, color="black", alpha=0.5)
 annotator = Annotator(ax, pairs, data=pearson_df, x="SOZ", y="correlation", order=order)
-annotator.configure(test='Mann-Whitney', text_format='star', loc='inside', comparisons_correction='Benjamini-Hochberg', verbose = True)
+annotator.configure(test='Mann-Whitney', text_format='star', loc='inside', comparisons_correction='Benjamini-Hochberg', verbose = True,hide_non_significant=True)
 annotator.apply_and_annotate()
 
 plt.xlabel('SOZ Type', fontsize=12)
@@ -655,7 +657,7 @@ plt.yticks(fontsize = 12)
 #part to change
 plt.title(f'Feature = EI, Directionality', fontsize=16)
 sns.despine()
-# plt.savefig(f'figures/sameside_perSOZ/bilateral/statistical_test/pearson/{Feat_of_interest}-ranksum_CLEAN.pdf')
+plt.savefig('../figures/EI-pearson.pdf')
 plt.show()
 
 all_effect_szs = []
