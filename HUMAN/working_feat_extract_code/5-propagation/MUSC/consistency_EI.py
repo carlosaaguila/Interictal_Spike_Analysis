@@ -28,8 +28,8 @@ sys.path.append(code_path)
 from ied_fx_v3 import *
 
 
-hup_ei = pd.read_csv('/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/6-seizure_analysis/data/self_run/HUP_all_hfer.csv')
-musc_ei = pd.read_csv('/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/6-seizure_analysis/data/self_run/MUSC_all_hfer.csv')
+hup_ei = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/6-seizure_analysis/data/self_run/hfer_HUP_11s.csv')
+musc_ei = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/6-seizure_analysis/data/self_run/hfer_MUSC_11s.csv')
 
 musc_ei['EI'] = musc_ei['EI'].apply(lambda x: list(map(float, x.strip('[]').split())))
 # Function to convert string representation of list to actual list
@@ -250,31 +250,31 @@ all_spikes = all_spikes.rename(columns = {'channel_label_x':'channel_label'})
 # %%
 #lets calculate Overall DP for each patient in each cohort
 
-# def process_patients(pt_id):
-#     print(pt_id)
-#     yo = all_spikes[all_spikes['pt_id'] == pt_id]
-#     patient_df = yo[['channel_label', 'EI']].groupby('channel_label').agg(['mean', 'count']).reset_index()
-#     patient_df.columns = ['channel_label', 'EI', 'count']
-#     patient_df['pt_id'] = pt_id
+def process_patients(pt_id):
+    print(pt_id)
+    yo = all_spikes[all_spikes['pt_id'] == pt_id]
+    patient_df = yo[['channel_label', 'EI']].groupby('channel_label').agg(['mean', 'count']).reset_index()
+    patient_df.columns = ['channel_label', 'EI', 'count']
+    patient_df['pt_id'] = pt_id
 
-#     # Calculate cumulative sum and percentage
-#     patient_df = patient_df.sort_values(by='count', ascending=False)
-#     patient_df['cumulative_count'] = patient_df['count'].cumsum()
-#     total_count = patient_df['count'].sum()
-#     patient_df['cumulative_percentage'] = patient_df['cumulative_count'] / total_count
+    # Calculate cumulative sum and percentage
+    patient_df = patient_df.sort_values(by='count', ascending=False)
+    patient_df['cumulative_count'] = patient_df['count'].cumsum()
+    total_count = patient_df['count'].sum()
+    patient_df['cumulative_percentage'] = patient_df['cumulative_count'] / total_count
 
-#     # Filter to keep channel_labels that make up 90% of the spikes
-#     # patient_df = patient_df[patient_df['cumulative_percentage'] <= 0.90]
+    # Filter to keep channel_labels that make up 90% of the spikes
+    # patient_df = patient_df[patient_df['cumulative_percentage'] <= 0.90]
 
-#     return patient_df
+    return patient_df
 
-# # Parallel processing for HUP data
-# with ProcessPoolExecutor() as executor:
-#     overall_HFER = pd.concat(executor.map(process_patients, all_spikes['pt_id'].unique()), ignore_index=True)
+# Parallel processing for HUP data
+with ProcessPoolExecutor() as executor:
+    overall_HFER = pd.concat(executor.map(process_patients, all_spikes['pt_id'].unique()), ignore_index=True)
 
-# overall_HFER.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/consistency/overall_hfer.csv')
+overall_HFER.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/consistency/overall_hfer_11s.csv')
 
-overall_HFER = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/consistency/overall_hfer.csv', index_col = 0)
+overall_HFER = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/consistency/overall_hfer_11s.csv', index_col = 0)
 #%%
 #Get time bins - every 30 minutes.
 
@@ -405,7 +405,8 @@ print('mean corr:', np.mean((group_correlation)))
 print('std corr:', np.std((group_correlation)))
 
 print('median corr:', np.median((group_correlation)))
-print('IQR:', np.percentile(group_correlation, 75) - np.percentile(group_correlation, 25))
+print('75% - ', np.percentile(group_correlation, 75))
+print('25% - ', np.percentile(group_correlation, 25))
 
 #%%
 
@@ -465,8 +466,6 @@ soz_w_corrs = cor_coefs_w_id.merge(pearson_df[['pt_id','SOZ']], on='pt_id', how=
 soz_w_corrs['mean_corr'] = soz_w_corrs.groupby('pt_id')['corr'].transform('mean')
 
 soz_w_corrs = soz_w_corrs.drop_duplicates(subset='pt_id')
-
-
 
 # %%
 

@@ -236,7 +236,8 @@ print('std corr:', np.std((group_correlation)))
 
 
 print('median corr:', np.median((group_correlation)))
-print('IQR:', np.percentile(group_correlation, 75) - np.percentile(group_correlation, 25))
+print('75% - ', np.percentile(group_correlation, 75))
+print('25% - ', np.percentile(group_correlation, 25))
 
 
 #%%
