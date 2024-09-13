@@ -78,7 +78,8 @@ pearson_df['pt_id'] = pearson_df['pt_id'].astype(int)
 # musc_pearson_df = pd.read_csv('dataset/ML_data/musc_ML_2.csv')
 
 # spearman_df = pd.read_csv('dataset/ML_data/spearman_ML_v2.csv', index_col=0)
-EI_df = pd.read_csv('dataset/ML_data/EI_corr_full_v3.csv', index_col=0)[['correlation','pt_id']] #using EI
+# EI_df = pd.read_csv('dataset/ML_data/EI_corr_full_v3.csv', index_col=0)[['correlation','pt_id']] #using EI
+EI_df = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/ML_data/EI_pearson_final1.csv', index_col = 0)[['correlation','pt_id']]
 EI_df['pt_id'] = EI_df['pt_id'].str.replace('3T_MP0', '').str.replace('HUP', '')
 EI_df['pt_id'] = EI_df['pt_id'].astype(int)
 
@@ -514,7 +515,6 @@ def rearrange_order(combined_ids, target_ids, target_true, target_y):
     rearranged_y = [id_to_y[id_] for id_ in combined_ids]
     
     return rearranged_ids, rearranged_true, rearranged_y
-
 
 # Rearrange ictal lists
 ictal_ids_rearranged, ictal_true_rearranged, ictal_y_rearranged = rearrange_order(combined_ids, ictal_ids, ictal_true, ictal_y)
