@@ -265,7 +265,7 @@ def compute_ei_index(target, base, fs):
     
     # seizure_location = np.min(channel_onset)
     # onset_channel = np.argmin(channel_onset)
-    hfer = np.sum(target[:, (int(39)*fs):(int(60)*fs)], axis=1) / (fs * int(21))
+    hfer = np.sum(target[:, (int(39)*fs):(int(60-5)*fs)], axis=1) / (fs * int(21-5))
     # print(f'seizure location: {seizure_location}')
     # print(f'onset channel: {onset_channel}')
     print(f"HFER: {hfer}")
@@ -602,15 +602,22 @@ def process_all_patients(df, pw_path, ieeg_filename_df):
 
 pw_path = '/mnt/leif/littlab/users/aguilac/tools/agu_ieeglogin.bin'
 
+
 df = pd.read_csv('/mnt/leif/littlab/users/slavelle/iEEG_Atlas/Tables/sz_table.csv')
-channel_names_df = pd.read_csv('../data/HUP_files.csv')
+
+channel_names_df = pd.read_csv('../data/HUP_files.csv') 
+channel_names_df = pd.read_csv('../data/processed_HUP_files.csv', index_col = 0).reset_index(drop = True)
+channel_names_df['channel_label'] = channel_names_df['processed_channels']
+channel_names_df = channel_names_df.drop(columns = ['processed_channels'])
+
 ieeg_filename_df = pd.read_csv('/mnt/leif/littlab/users/slavelle/iEEG_Atlas/Tables/Master_Table_EIs/Manual_validation_seizures.csv')
 merged_df = pd.merge(df, channel_names_df, left_on='hupid', right_on='pt_id', how='right')
 merged_df.drop(columns=["ictal_exists", "ictal_path", "interictal_exists", "interictal_path", "both_exists"])
 
 all_results = process_all_patients(merged_df, pw_path, ieeg_filename_df)
 results_df = pd.DataFrame([result for result in all_results if result is not None])
-results_df.to_csv('../data/self_run/hfer_HUP_21s.csv', index=False)
+
+results_df.to_csv('../data/self_run/hfer_HUP_16s.csv', index=False)
 print("All results saved.")
 
 
@@ -739,11 +746,12 @@ pw_path = '/mnt/leif/littlab/users/aguilac/tools/agu_ieeglogin.bin'
 df = pd.read_csv('../data/MUSC_seizure_times.csv')
 channel_names_df = pd.read_csv('../data/MUSC_files.csv')
 ieeg_filename_df = pd.read_csv('../data/MUSC_seizure_times.csv')
+df = df.merge(channel_names_df, left_on = 'File', right_on='filename',how = 'left')
 
 df = df.dropna()
 ieeg_filename_df = ieeg_filename_df.dropna()
 
 all_results = process_all_patients(df, pw_path, ieeg_filename_df)
 results_df = pd.DataFrame([result for result in all_results if result is not None])
-results_df.to_csv('../data/self_run/hfer_MUSC_21s.csv', index=False)
+results_df.to_csv('../data/self_run/hfer_MUSC_16s.csv', index=False)
 print("All results saved.")

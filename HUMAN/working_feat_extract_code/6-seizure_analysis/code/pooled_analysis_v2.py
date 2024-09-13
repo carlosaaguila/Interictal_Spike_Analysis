@@ -28,8 +28,13 @@ from ied_fx_v3 import *
 
 
 #60 seconds end target
-hup_ei = pd.read_csv('../data/self_run/EI_new_onset_detector/EI_HUP_40_60s.csv')
-musc_ei = pd.read_csv('../data/self_run/EI_new_onset_detector/EI_MUSC_40_60s.csv')
+# hup_ei = pd.read_csv('../data/self_run/EI_new_onset_detector/EI_HUP_40_60s.csv')
+# musc_ei = pd.read_csv('../data/self_run/EI_new_onset_detector/EI_MUSC_40_60s.csv')
+
+#HFER per time
+type = '11s-hfer-'
+hup_ei = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/6-seizure_analysis/data/self_run/hfer_HUP_11s.csv')
+musc_ei = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/6-seizure_analysis/data/self_run/hfer_MUSC_11s.csv')
 
 # hup_ei = pd.read_csv('../data/self_run/HUP_all_hfer.csv')
 # musc_ei = pd.read_csv('../data/self_run/MUSC_all_hfer.csv')
@@ -615,7 +620,7 @@ plt.yticks(fontsize = 12)
 #part to change
 plt.title(f'Feature = EI, Directionality', fontsize=16)
 sns.despine()
-plt.savefig('../figures/EI-spearman.pdf')
+plt.savefig(f'../figures/{type}_EI-spearman.pdf')
 plt.show()
 
 all_effect_szs = []
@@ -645,7 +650,7 @@ order = [1,2,3]
 ax = sns.boxplot(x='SOZ', y='correlation', data=pearson_df, palette=my_palette, order=order, showfliers = False)
 sns.stripplot(x="SOZ", y="correlation", data=pearson_df, color="black", alpha=0.5)
 annotator = Annotator(ax, pairs, data=pearson_df, x="SOZ", y="correlation", order=order)
-annotator.configure(test='Mann-Whitney', text_format='star', loc='inside', comparisons_correction='Benjamini-Hochberg', verbose = True,hide_non_significant=True)
+annotator.configure(test='Mann-Whitney', text_format='star', loc='inside', comparisons_correction='BH', verbose = True,hide_non_significant=False)
 annotator.apply_and_annotate()
 
 plt.xlabel('SOZ Type', fontsize=12)
@@ -657,7 +662,7 @@ plt.yticks(fontsize = 12)
 #part to change
 plt.title(f'Feature = EI, Directionality', fontsize=16)
 sns.despine()
-plt.savefig('../figures/EI-pearson.pdf')
+plt.savefig(f'../figures/{type}_EI-pearson.pdf')
 plt.show()
 
 all_effect_szs = []

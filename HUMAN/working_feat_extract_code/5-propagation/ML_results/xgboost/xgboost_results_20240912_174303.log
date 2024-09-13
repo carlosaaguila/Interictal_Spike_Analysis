@@ -1,0 +1,30 @@
+Log file created at: /mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/ML_results/xgboost/xgboost_results_20240912_174303.log
+
+Feature Importance for Combined:
+                           Feature  Importance
+0                  spike_rate_corr    0.327746
+1                    rise_amp_corr    0.174074
+9                      correlation    0.151471
+2                   decay_amp_corr    0.111626
+4                     linelen_corr    0.062632
+3                   sharpness_corr    0.048974
+5  recruitment_latency_thresh_corr    0.040807
+6                 spike_width_corr    0.028814
+7                  slow_width_corr    0.028269
+8                    slow_amp_corr    0.025585
+
+Feature Importance for Interictal:
+                           Feature  Importance
+0                  spike_rate_corr    0.310477
+3                   sharpness_corr    0.147020
+6                 spike_width_corr    0.096102
+5  recruitment_latency_thresh_corr    0.089479
+2                   decay_amp_corr    0.082679
+1                    rise_amp_corr    0.082242
+4                     linelen_corr    0.066500
+8                    slow_amp_corr    0.063179
+7                  slow_width_corr    0.062321
+
+Feature Importance for Ictal:
+       Feature  Importance
+0  correlation         1.0

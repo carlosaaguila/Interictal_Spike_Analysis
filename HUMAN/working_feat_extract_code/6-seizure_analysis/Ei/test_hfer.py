@@ -1,9 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[4]:
-
-
 ##########################
 import numpy as np
 import matplotlib.pyplot as plt
@@ -12,7 +6,6 @@ from ieeg.auth import Session
 from scipy.signal import convolve2d
 from scipy import stats
 from scipy import signal
-from scipy.signal import argrelmin as argmins
 import mne
 import json
 import pandas as pd
@@ -24,9 +17,6 @@ from utils import get_iEEG_data, notch_filter
 
 
 # iEEG Functions
-
-# In[5]:
-
 
 #  Detect Artifacts : from Akash
 def detect_artifacts(data: np.ndarray, fs: float, discon=1/12, noise=15000, win_size=1) -> np.ndarray:
@@ -216,6 +206,7 @@ def find_matching_row(numeric_part, ictal_start, df, time_tolerance=1):
         return matching_rows['IEEGname'].iloc[0]
     else:
         return None
+    
 
 
 # EI Functions: https://github.com/allucas/IEEG_EI
@@ -243,68 +234,53 @@ def compute_hfer(target_data, base_data, fs):
     norm_base_energy = base_energy / base_de_matrix.astype(np.float32)
     return norm_target_energy, norm_base_energy
 
-def cum_sum_avg(ER,n):
-    return np.mean(ER[:n])
-
-# MA = list(map(lambda x: cum_sum_avg(ER,x),np.arange(len(ER))))
-# plt.plot(np.cumsum(ER[1:]-MA[1:])) #gives UN
-# # UN = list(map(lambda x: np.sum(np.array(ER[:x])-np.array(MA[:x])), np.arange(len(ER)))) #this is the long version
-# un = np.cumsum(ER[1:]-MA[1:])
-# argmins(un)[0][np.where(np.diff(un[argmins(un)[0]])>500)[0][0]] #gives the exact time point 
-
-#% Extra functions 
+#% Extra functions
 def determine_threshold_onset(target, base):
     base_data = base.copy()
     target_data = target.copy()
     sigma = np.std(base_data, axis=1, ddof=1)
     channel_max_base = np.max(base_data, axis=1)
-    thresh_value = channel_max_base + 5 * sigma
+    thresh_value = channel_max_base + 10 * sigma
     print(f"Threshold value: {thresh_value}")
     onset_location = np.zeros(shape=(target_data.shape[0],))
     for channel_idx in range(target_data.shape[0]):
-        ER = target_data[channel_idx,:]
-        MA = list(map(lambda x: cum_sum_avg(ER,x),np.arange(len(ER))))
-        un = np.cumsum(ER[1:]-MA[1:]-np.repeat(1, np.shape(ER[1:])))
-        thresh = 1000
-        diff = un - np.minimum.accumulate(un)
-        try:
-            onset_location[channel_idx] = np.where(diff > thresh)[0][0]
-        # try:
-        #     onset_location[channel_idx] = argmins(un)[0][np.where(np.diff(un[argmins(un)[0]])>thresh)[0][0]] #gives the exact time point 
-        except:
-            onset_location[channel_idx] = len(target_data[channel_idx,:])
+        logic_vec = target_data[channel_idx, :] > thresh_value[channel_idx]
+        if np.sum(logic_vec) == 0:
+            onset_location[channel_idx] = len(logic_vec)
+        else:
+            onset_location[channel_idx] = np.where(logic_vec != 0)[0][0]
     return onset_location
 
 def compute_ei_index(target, base, fs):
     target, base = compute_hfer(target, base, fs)
     ei = np.zeros([1, target.shape[0]])
     hfer = np.zeros([1, target.shape[0]])
-    onset_rank = np.zeros([1, target.shape[0]])
-    channel_onset = determine_threshold_onset(target, base)
-    print(f'channel onset: {channel_onset}')
-    #added this
-    if channel_onset.size == 0:
-        print("No seizure onset detected.")
-        return np.array([])
+    # onset_rank = np.zeros([1, target.shape[0]])
+    # # channel_onset = determine_threshold_onset(target, base)
+    # print(f'channel onset: {channel_onset}')
+    # #added this
+    # if channel_onset.size == 0:
+    #     print("No seizure onset detected.")
+    #     return np.array([])
     
-    seizure_location = np.min(channel_onset)
-    onset_channel = np.argmin(channel_onset)
-    hfer = np.sum(target[:, int(seizure_location):int(seizure_location + 0.25 * fs)], axis=1) / (fs * 0.25)
-    print(f'seizure location: {seizure_location}')
-    print(f'onset channel: {onset_channel}')
+    # seizure_location = np.min(channel_onset)
+    # onset_channel = np.argmin(channel_onset)
+    hfer = np.sum(target[:, (int(39)*fs):(int(60-5)*fs)], axis=1) / (fs * int(21-5))
+    # print(f'seizure location: {seizure_location}')
+    # print(f'onset channel: {onset_channel}')
     print(f"HFER: {hfer}")
-    onset_asend = np.sort(channel_onset)
-    time_rank_tmp = np.argsort(channel_onset)
-    onset_rank = np.argsort(time_rank_tmp) + 1
-    onset_rank = np.ones((onset_rank.shape[0],)) / np.float32(onset_rank)
-    print(f'onset rank: {onset_rank}')
-    ei = np.sqrt(hfer * onset_rank)
-    for i in range(len(ei)):
-        if np.isnan(ei[i]) or np.isinf(ei[i]):
-            ei[i] = 0
-    if np.max(ei) > 0:
-        ei = ei / np.max(ei)
-    return ei, seizure_location, onset_channel
+    # onset_asend = np.sort(channel_onset)
+    # time_rank_tmp = np.argsort(channel_onset)
+    # onset_rank = np.argsort(time_rank_tmp) + 1
+    # onset_rank = np.ones((onset_rank.shape[0],)) / np.float32(onset_rank)
+    # print(f'onset rank: {onset_rank}')
+    # ei = np.sqrt(hfer * onset_rank)
+    # for i in range(len(ei)):
+    #     if np.isnan(ei[i]) or np.isinf(ei[i]):
+    #         ei[i] = 0
+    # if np.max(ei) > 0:
+    #     ei = ei / np.max(ei)
+    return hfer #ei
 
 def get_threshold(norm_base_data, sd_val=10):
     '''
@@ -369,10 +345,10 @@ def get_ei_from_data(data, fs,  bl_range, target_range):
     data_filt = signal.filtfilt(b, a, data)
     try:
         # ei = get_ei_all(data_filt[:,20000:60000],data_filt[:,:20000],fs=fs)
-        ei, seizure_location, onset_ch = compute_ei_index(data_filt[:, target_range[0]:target_range[1]], data_filt[:, bl_range[0]:bl_range[1]], fs=fs)
+        ei = compute_ei_index(data_filt[:, target_range[0]:target_range[1]], data_filt[:, bl_range[0]:bl_range[1]], fs=fs)
     except Exception as e:
             print(f"An error occurred in EI calc: {e}, {bl_range}, {target_range}")
-    return ei, seizure_location, onset_ch
+    return ei
 
 def save_ei(directory, fname, ei, ch_names):
     ei_table = []
@@ -586,7 +562,7 @@ def process_single_patient(row, session, pw_path, ieeg_filename_df):
             print(f'bl start samples = {bl_start_samples}, bl end samples = {bl_end_samples}, target end samples = {target_end_samples}')
             print((bl_end_samples - bl_start_samples), (bl_end_samples - bl_start_samples), (target_end_samples- bl_start_samples))
 
-            ei, seizure_location, onset_ch = get_ei_from_data(clean_data, fs, [0, bl_end_samples - bl_start_samples], [bl_end_samples - bl_start_samples, target_end_samples- bl_start_samples])
+            ei = get_ei_from_data(clean_data, fs, [0, bl_end_samples - bl_start_samples], [bl_end_samples - bl_start_samples, target_end_samples- bl_start_samples])
             print(f"EI calulated for {row['hupid']}")
             return {
                 'hupID': row['hupid'],
@@ -594,9 +570,7 @@ def process_single_patient(row, session, pw_path, ieeg_filename_df):
                 'ictal_start_time': start_time,
                 'EI': ei,
                 'name': updated_channel_names,
-                'removed_channels': removed_channels,
-                'onset_algorithm': seizure_location,
-                'onset_ch' : onset_ch
+                'removed_channels': removed_channels
             }
         except Exception as e:
             print(f"An error occurred in EI calc: {e}")
@@ -625,7 +599,7 @@ def process_all_patients(df, pw_path, ieeg_filename_df):
 
     return results
 
-#%%
+
 pw_path = '/mnt/leif/littlab/users/aguilac/tools/agu_ieeglogin.bin'
 
 
@@ -640,181 +614,235 @@ ieeg_filename_df = pd.read_csv('/mnt/leif/littlab/users/slavelle/iEEG_Atlas/Tabl
 merged_df = pd.merge(df, channel_names_df, left_on='hupid', right_on='pt_id', how='right')
 merged_df.drop(columns=["ictal_exists", "ictal_path", "interictal_exists", "interictal_path", "both_exists"])
 
-all_results = process_all_patients(merged_df, pw_path, ieeg_filename_df)
-results_df = pd.DataFrame([result for result in all_results if result is not None])
-results_df.to_csv('../data/self_run/EI_new_onset_detector/EI_HUP_40_60s.csv', index=False)
-print("All results saved.")
+#%%
+#look for the sz we want
+start_time = 29755.28 #in seconds (remove 40 seconds so that we have the target window)
+hupID = 'HUP204'
 
-# MUSC Patients
+#pick out the seizure event
+row = merged_df[(merged_df['hupid'] == hupID) & (merged_df['ictal_start'] == start_time)].iloc[0]
 
-# In[ ]:
+#grab data
+start_time = row['ictal_start'] 
+hupid = row['hupid']
+selected_channels = row['channel_label']
+numeric_part = re.sub(r'\D', '', hupid)  # Remove non-digit characters
+numeric_part = int(numeric_part)  # Convert to integer to remove leading zeros and back to string
+dataset_name = find_matching_row(numeric_part, start_time, ieeg_filename_df)
+print(dataset_name)
+if dataset_name == '':
+    print(f"No matching dataset found for HUP ID {hupid}, {numeric_part}")
+# time points in seconds
+bl_start = (start_time - 100)
+bl_end = (start_time - 40)
+target_end = (start_time + 60)
 
+# time points in u seconds
+start_usec = bl_start*1e6
+stop_usec = target_end*1e6
 
-def process_single_patient(row, session, pw_path, ieeg_filename_df):
-    print(f"Row File: {row['File']}")
-    # if (row['Onset time'] == 146857.0016):
-    #     print(f"Skipping row MP0002_D02 146857.0016s due to stalling values")
-    #     return None
-    start_time = row['Onset time'] 
-    print(f"start time: {row['Onset time']}")
-    pt_id = row['File'] 
-    dataset_name = pt_id
-    selected_channels = row['channel_label']
-    print(dataset_name)
-    if dataset_name == '':
-        print(f"No matching dataset found for HUP ID {pt_id}, {start_time}")
-        return
+# get iEEG_data
+df, fs = get_iEEG_data(
+    username='aguilac',
+    password_bin_file=pw_path,
+    iEEG_filename=dataset_name,
+    start_time_usec=start_usec,
+    stop_time_usec=stop_usec
+)
+
+# Apply notch filters at 60 Hz and harmonics
+data = notch_filter(df.to_numpy(), fs) # Change to Bandstop or remove the Phase and Amplitude of 60z & Harms
+
+if fs > 500:
+    print(f'df before downsample = {df}')
+    # Downsample
+    # Target sampling frequency
+    target_fs = 500
+    fs = int(fs)
+    # Calculate the resampling factors
+    gcd = np.gcd(fs, target_fs)
+    up = target_fs // gcd
+    down = fs // gcd
+    # Resample each channel using polynomial interpolation
+    downsampled_data = signal.resample_poly(data, up, down, axis=0)
+    # Convert the downsampled numpy array back to a DataFrame
+    df_downsampled = pd.DataFrame(downsampled_data, columns=df.columns)
+    print(f'df after downsample = {df_downsampled}')
+    # New sampling frequency
+    fs = target_fs
+    data = df_downsampled
+
+channel_names = df.columns.tolist()  # Ensure it's a list if using .index
+data = df.to_numpy()  # Explicit conversion to numpy array for operations
+print(f'original data shape: {data.shape}')
+channel_types = check_channel_types(channel_names)
+exclude_types = {'eeg', 'ecg', 'misc'}
+valid_channels = [ch for ctype, channels in channel_types.items() if ctype not in exclude_types for ch in channels]
+
+# selected_channels_clean = [decompose_labels(name) for name in selected_channels]
+cleaned_channel_names = [decompose_labels(name) for name in channel_names]
+cleaned_valid_channel_names = [decompose_labels(name) for name in valid_channels]
+
+# Print the length of each list
+print("Length of cleaned_channel_names:", len(cleaned_channel_names))
+print("Length of valid_channel_names_clean:", len(cleaned_valid_channel_names))
+print("Length of selected_channels:", len(selected_channels))
+
+# Check the type of each element in each list
+print("\nTypes in cleaned_channel_names:")
+for item in cleaned_channel_names:
+    print(type(item), item)
+
+print("\nTypes in valid_channel_names_clean:")
+for item in cleaned_valid_channel_names:
+    print(type(item), item)
+
+# Ensure all elements are strings
+cleaned_channel_names = [str(item) for item in cleaned_channel_names]
+cleaned_valid_channel_names = [str(item) for item in cleaned_valid_channel_names]
+
+if all(len(item) == 1 for item in selected_channels):
+    # It seems like selected_channels was split into characters, let's join them back
+    joined_string = ''.join(selected_channels)
     
-    bl_start = (start_time - 100)
-    bl_end = (start_time - 40)
-    target_end = (start_time + 60)
+    selected_channels = re.findall(r'[A-Z]+[0-9]+', joined_string)
 
-    start_usec = bl_start*1e6
-    stop_usec = target_end*1e6
-    try:
-        df, fs = get_iEEG_data(
-            username='aguilac',
-            password_bin_file=pw_path,
-            iEEG_filename=dataset_name,
-            start_time_usec=start_usec,
-            stop_time_usec=stop_usec
-        )
+print("\nTypes in selected_channels:")
+for item in selected_channels:
+    print(type(item), item)
+    
+set_channel_names_clean = set(cleaned_channel_names)
+set_valid_channel_names_clean = set(cleaned_valid_channel_names)
+set_selected_channels_clean = set(selected_channels)
 
-        # Apply notch filters at 60 Hz and harmonics
-        data = notch_filter(df.to_numpy(), fs) # Change to Bandstop or remove the Phase and Amplitude of 60z & Harms
+# Find mutual names
+mutual_names = set_selected_channels_clean & set_channel_names_clean 
 
-        if fs > 500:
-            print(f'df before downsample = {df}')
-            # Downsample
-            # Target sampling frequency
-            target_fs = 500
-            fs = int(fs)
-            # Calculate the resampling factors
-            gcd = np.gcd(fs, target_fs)
-            up = target_fs // gcd
-            down = fs // gcd
-            # Resample each channel using polynomial interpolation
-            downsampled_data = signal.resample_poly(data, up, down, axis=0)
-            # Convert the downsampled numpy array back to a DataFrame
-            df_downsampled = pd.DataFrame(downsampled_data, columns=df.columns)
-            print(f'df after downsample = {df_downsampled}')
-            # New sampling frequency
-            fs = target_fs
-            data = df_downsampled
+print(f'Mutual names: {mutual_names}')
 
-        try:
-            channel_names = df.columns.tolist()
-            print(f'CHANNEL NAMES ORIGINAL: {channel_names}')
-            data = df.to_numpy()
-            print(f'Original data shape: {data.shape}')
-            channel_types = check_channel_types(channel_names)
-            exclude_types = {'eeg', 'ecg', 'misc'}
-            valid_channels = [ch for ctype, channels in channel_types.items() if ctype not in exclude_types for ch in channels]
+# Check if there are mismatches
+for ch in selected_channels:
+    if ch not in cleaned_channel_names:
+        print(f'{ch} from selected channels is not in cleaned channel names')
 
-            cleaned_channel_names = [decompose_labels(name) for name in channel_names]
-            cleaned_valid_channel_names = [decompose_labels(name) for name in valid_channels]
+# Find indices of selected channels that are valid and exist in the cleaned list
+selected_valid_indices = [
+    cleaned_channel_names.index(ch)
+    for ch in selected_channels
+    if ch in cleaned_valid_channel_names and ch in cleaned_channel_names
+]
 
-            print("Length of cleaned_channel_names:", len(cleaned_channel_names))
-            print("Length of valid_channel_names_clean:", len(cleaned_valid_channel_names))
+data = data[:, selected_valid_indices]
 
-            print("\nTypes in cleaned_channel_names:")
-            for item in cleaned_channel_names:
-                print(type(item), item)
+print(f" Data after removing types: {data.shape}")
+artifacts = detect_artifacts(data, fs)
+clean_data, updated_channel_names, removed_channels, interpolated_channels = remove_or_interpolate(data, artifacts, [channel_names[i] for i in selected_valid_indices])
 
-            print("\nTypes in valid_channel_names_clean:")
-            for item in cleaned_valid_channel_names:
-                print(type(item), item)
+#%%
+#Now that we have the data, lets get the HFER values that we want 
 
-            cleaned_channel_names = [str(item).strip().upper() for item in cleaned_channel_names]
-            cleaned_valid_channel_names = [str(item).strip().upper() for item in cleaned_valid_channel_names]
+bl_start_samples = int(bl_start*fs)
+bl_end_samples = int(bl_end*fs)
+target_end_samples = int(target_end*fs)
+print(f'bl start samples = {bl_start_samples}, bl end samples = {bl_end_samples}, target end samples = {target_end_samples}')
+print((bl_end_samples - bl_start_samples), (bl_end_samples - bl_start_samples), (target_end_samples- bl_start_samples))
 
-            if all(len(item) == 1 for item in selected_channels):
-                # It seems like selected_channels was split into characters, let's join them back
-                joined_string = ''.join(selected_channels)
-                
-                selected_channels = re.findall(r'[A-Z]+[0-9]+', joined_string)
+data = clean_data.T
+if int(fs/2)<140:
+    b, a = signal.butter(4, [70,int(fs/2)-1], 'bandpass', fs=fs)
+else:
+    b, a = signal.butter(4, [70, 140], 'bandpass', fs=fs)
+data_filt = signal.filtfilt(b, a, data)
 
-            print("\nTypes in selected_channels:")
-            for item in selected_channels:
-                print(type(item), item)
-                
-            set_channel_names_clean = set(cleaned_channel_names)
-            set_valid_channel_names_clean = set(cleaned_valid_channel_names)
-            set_selected_channels_clean = set(selected_channels)
+target_range = [bl_end_samples - bl_start_samples, target_end_samples- bl_start_samples]
+bl_range = [0, bl_end_samples - bl_start_samples]
 
-            # Find mutual names
-            mutual_names = set_selected_channels_clean & set_channel_names_clean 
+target_data = data_filt[:, target_range[0]:target_range[1]]
+base_data = data_filt[:, bl_range[0]:bl_range[1]]
 
-            print(f'Mutual names: {mutual_names}')
+target, base = compute_hfer(target_data, base_data, fs=500)
 
-            # Check if there are mismatches
-            for ch in selected_channels:
-                if ch not in cleaned_channel_names:
-                    print(f'{ch} from selected channels is not in cleaned channel names')
+hfer = np.zeros([1, target.shape[0]])
+hfer = np.sum(target[:, (int(39)*fs):(int(60-10)*fs)], axis=1) / (fs * int(11))
 
-            # Find indices of selected channels that are valid and exist in the cleaned list
-            selected_valid_indices = [
-                cleaned_channel_names.index(ch)
-                for ch in selected_channels
-                if ch in cleaned_valid_channel_names and ch in cleaned_channel_names
-            ]
+yo =  {
+    'hupID': row['hupid'],
+    'HFER': hfer,
+    'name': updated_channel_names,
+    }
 
-            data = data[:, selected_valid_indices]
+results_df = pd.DataFrame(yo).sort_values(by = 'name')
 
-            print(f" Data after removing types: {data.shape}")
-            artifacts = detect_artifacts(data, fs)
-            clean_data, updated_channel_names, removed_channels, interpolated_channels = remove_or_interpolate(data, artifacts, [channel_names[i] for i in selected_valid_indices])
+#grab the index of LA1, LA6, LA12
+id_la1 = results_df.index[results_df['name'] == 'LA01'].tolist()
+id_la6 = results_df.index[results_df['name'] == 'LA06'].tolist()
+id_la12 = results_df.index[results_df['name'] == 'LA12'].tolist()
 
-            # clean_channel_indices = [i for i, ch in enumerate(cleaned_channel_names) if ch in cleaned_valid_channel_names]
+#%%
+#make plots to look at whats going on
+plt.figure()
+plt.plot(target[id_la1[0], (int(39)*fs):(int(60-10)*fs)], color = 'b')
+plt.plot(target[id_la6[0], (int(39)*fs):(int(60-10)*fs)], color='k')
+# plt.plot(target[id_la12[0], (int(39)*fs):(int(60-10)*fs)], color='r')
+plt.title('norm target energy')
 
-            # print(f"Cleaned channel indices = {clean_channel_indices}")
-            # data = data[:, clean_channel_indices]
+plt.figure()
+plt.plot(base[id_la1[0], (int(39)*fs):(int(60-10)*fs)], color = 'b')
+plt.plot(base[id_la6[0], (int(39)*fs):(int(60-10)*fs)], color='k')
+# plt.plot(base_data[id_la12[0], (int(39)*fs):(int(60-10)*fs)], color='r')
+plt.title('norm base energy')
 
-            # print(f"Data after removing types: {data.shape}")
-            # artifacts = detect_artifacts(data, fs)
-            # clean_data, updated_channel_names, removed_channels, interpolated_channels = remove_or_interpolate(data, artifacts, [channel_names[i] for i in clean_channel_indices])
-        except Exception as e:
-            print(f"An error occurred in artifact removal: {e}")
-            
-        print(f"Data and sampling rate for {row['File']} acquired, clean_data shape is {clean_data.shape}")
-        print(f'clean data: {clean_data}')
-        try:
-            bl_start_samples = int(bl_start*fs)
-            bl_end_samples = int(bl_end*fs)
-            target_end_samples = int(target_end*fs)
-            print(f'bl start samples = {bl_start_samples}, bl end samples = {bl_end_samples}, target end samples = {target_end_samples}')
-            print((bl_end_samples - bl_start_samples), (bl_end_samples - bl_start_samples), (target_end_samples- bl_start_samples))
+plt.figure()
+plt.plot(data[id_la1[0], (int(39)*fs):(int(60-10)*fs)], color = 'b')
+plt.plot(data[id_la6[0], (int(39)*fs):(int(60-10)*fs)], color='k')
+# plt.plot(data[id_la12[0], (int(39)*fs):(int(60-10)*fs)], color='r')
+plt.title('raw data')
 
-            ei, seizure_location, onset_ch = get_ei_from_data(clean_data, fs, [0, bl_end_samples - bl_start_samples], [bl_end_samples - bl_start_samples, target_end_samples- bl_start_samples])
-            print(f"EI calculated for {row['File']}")
-            return {
-                'MUSC_ID': row['File'],
-                'ictal_start_time': start_time,
-                'EI': ei,
-                'name': updated_channel_names,
-                'removed_channels': removed_channels,
-                'onset_algorithm': seizure_location,
-                'onset_ch' : onset_ch
-            }
-        except Exception as e:
-            print(f"An error occurred in EI calculation: {e}")
-    except Exception as e:
-        print(f"Error processing patient {row['File']}: {e}")
+plt.figure()
+plt.plot(target_data[id_la1[0], (int(39)*fs):(int(60-10)*fs)], color = 'b')
+plt.plot(target_data[id_la6[0], (int(39)*fs):(int(60-10)*fs)], color='k')
+# plt.plot(target_data[id_la12[0], (int(39)*fs):(int(60-10)*fs)], color='r')
+plt.title('target data')
 
 
-# In[10]:
 
-pw_path = '/mnt/leif/littlab/users/aguilac/tools/agu_ieeglogin.bin'
+print('HFER for LA1:', hfer[id_la1[0]])
+print('HFER for LA6:', hfer[id_la6[0]])
+print('HFER for LA12:', hfer[id_la12[0]])
 
-df = pd.read_csv('../data/MUSC_seizure_times.csv')
-channel_names_df = pd.read_csv('../data/MUSC_files.csv')
-ieeg_filename_df = pd.read_csv('../data/MUSC_seizure_times.csv')
-df = df.merge(channel_names_df, left_on = 'File', right_on='filename',how = 'left')
 
-df = df.dropna()
-ieeg_filename_df = ieeg_filename_df.dropna()
+# %%
+from scipy import signal
 
-all_results = process_all_patients(df, pw_path, ieeg_filename_df)
-results_df = pd.DataFrame([result for result in all_results if result is not None])
-results_df.to_csv('../data/self_run/EI_new_onset_detector/EI_MUSC_40_60s.csv', index=False)
-print("All results saved.")
+plt.figure()
+win = 4*fs
+freqs, psd = signal.welch(target_data[id_la1[0], :], fs, nperseg=win)
+
+# Plot the power spectrum
+sns.set(font_scale=1.2, style='white')
+plt.figure(figsize=(8, 4))
+plt.plot(freqs, psd, color='k', lw=2)
+plt.xlabel('Frequency (Hz)')
+plt.ylabel('Power spectral density (V^2 / Hz)')
+plt.ylim([0, psd.max() * 1.1])
+plt.title("Welch's periodogram for LA1")
+plt.xlim([0, freqs.max()])
+sns.despine()
+
+
+plt.figure()
+freqs, psd = signal.welch(target_data[id_la6[0], :], fs, nperseg=win)
+
+# Plot the power spectrum
+sns.set(font_scale=1.2, style='white')
+plt.figure(figsize=(8, 4))
+plt.plot(freqs, psd, color='k', lw=2)
+plt.xlabel('Frequency (Hz)')
+plt.ylabel('Power spectral density (V^2 / Hz)')
+plt.ylim([0, psd.max() * 1.1])
+plt.title("Welch's periodogram for LA6")
+plt.xlim([0, freqs.max()])
+sns.despine()
+
+
+# %%
