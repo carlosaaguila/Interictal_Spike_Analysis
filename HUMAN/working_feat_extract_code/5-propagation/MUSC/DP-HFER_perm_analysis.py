@@ -3,9 +3,11 @@ import pandas as pd
 from scipy import stats
 import matplotlib.pyplot as plt
 
-permuted_data = np.load('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/consistency/permutation_test/1000_permuted_DP.npy')
-observed_statistic = 0.51
-    
+# permuted_data = np.load('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/consistency/permutation_test/1000_permuted_DP.npy')
+# observed_statistic = 0.51 #DP median
+
+permuted_data = np.load('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/consistency/permutation_test/1000_permuted_hfer_11s.npy')
+observed_statistic = 0.61     
 # Calculate and store the permuted statistic
 permuted_stats= np.mean(permuted_data, axis =0)
 num_permutations = permuted_data.shape[0]
