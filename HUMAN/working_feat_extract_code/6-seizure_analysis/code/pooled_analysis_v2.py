@@ -649,22 +649,24 @@ order = [1,2,3]
 
 ax = sns.boxplot(x='SOZ', y='correlation', data=pearson_df, palette=my_palette, order=order, showfliers = False)
 sns.stripplot(x="SOZ", y="correlation", data=pearson_df, color="black", alpha=0.5)
+plt.axhline(y=0, color='k', linestyle='--')
 annotator = Annotator(ax, pairs, data=pearson_df, x="SOZ", y="correlation", order=order)
-annotator.configure(test='Mann-Whitney', text_format='star', loc='inside', comparisons_correction='BH', verbose = True,hide_non_significant=False)
+annotator.configure(test='Mann-Whitney', text_format='star', loc='inside', comparisons_correction='BH', verbose = True,hide_non_significant=True)
 annotator.apply_and_annotate()
 
 plt.xlabel('SOZ Type', fontsize=12)
 plt.ylabel('Pearson Correlation', fontsize=12)
 #change the x-tick labels to be more readable
 plt.xticks(np.arange(3), ['Mesial Temporal', 'Neocortical', 'Other Cortex'], fontsize = 12)
-plt.yticks(fontsize = 12)
+plt.yticks(np.arange(-1, 1.1, 0.5), fontsize=12)  # This sets ticks at -1, -0.5, 0, 0.5, 1
 
 #part to change
 plt.title(f'Feature = EI, Directionality', fontsize=16)
 sns.despine()
+plt.ylim([-1,1])
+
 plt.savefig(f'../figures/{type}_EI-pearson.pdf')
 plt.show()
-
 all_effect_szs = []
 for comparison in pairs:
     # print(comparison)
