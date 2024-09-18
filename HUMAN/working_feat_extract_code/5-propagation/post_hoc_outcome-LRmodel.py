@@ -6,9 +6,9 @@ sys.path.append(code_path)
 from delongs_test import *
 
 def main():
-    combined_preds = pd.read_csv('ML_results/LR_elastic/Combined_predictions-24m-outcomes.csv').rename(columns = {"Predicted_Probability":"combined_predprob"})
-    interictal_preds = pd.read_csv('ML_results/LR_elastic/Interictal_predictions-24m-outcomes.csv').rename(columns = {"Predicted_Probability":"interictal_predprob"})
-    ictal_preds = pd.read_csv('ML_results/LR_elastic/Ictal_predictions-24m-outcomes.csv').rename(columns = {"Predicted_Probability":"ictal_predprob"})
+    combined_preds = pd.read_csv('ML_results/LR_elastic/outcome/Combined_predictions-24m-outcomes.csv').rename(columns = {"Predicted_Probability":"combined_predprob"})
+    interictal_preds = pd.read_csv('ML_results/LR_elastic/outcome/Interictal_predictions-24m-outcomes.csv').rename(columns = {"Predicted_Probability":"interictal_predprob"})
+    ictal_preds = pd.read_csv('ML_results/LR_elastic/outcome/Ictal_predictions-24m-outcomes.csv').rename(columns = {"Predicted_Probability":"ictal_predprob"})
 
     merged_preds_v1 = combined_preds.merge(interictal_preds[['Patient_ID','interictal_predprob']], on='Patient_ID', how = "left")
     merged_preds = merged_preds_v1.merge(ictal_preds[['Patient_ID','ictal_predprob']], on = 'Patient_ID', how = "inner")

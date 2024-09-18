@@ -43,9 +43,32 @@ pec_outcomes['engel_outcomes_24m'] = pec_outcomes.apply(calculate_outcome_2yr, a
 
 #%%
 #merge the outcomes w/ the predprob
-combined_outcomes = combined_preds.merge(pec_outcomes, left_on = 'Patient_ID',right_on = 'hup_id', how = 'right').dropna(subset = 'combined_predprob')
-interictal_outcomes = interictal_preds.merge(pec_outcomes, left_on = 'Patient_ID',right_on = 'hup_id', how = 'right').dropna(subset = 'interictal_predprob')
-interictal_outcomes = ictal_preds.merge(pec_outcomes, left_on = 'Patient_ID',right_on = 'hup_id', how = 'right').dropna(subset = 'ictal_predprob')
+combined_outcomes = combined_preds.merge(pec_outcomes, left_on = 'Patient_ID',right_on = 'hup_id', how = 'left').dropna(subset = 'combined_predprob')
+interictal_outcomes = interictal_preds.merge(pec_outcomes, left_on = 'Patient_ID',right_on = 'hup_id', how = 'left').dropna(subset = 'interictal_predprob')
+ictal_outcomes = ictal_preds.merge(pec_outcomes, left_on = 'Patient_ID',right_on = 'hup_id', how = 'left').dropna(subset = 'ictal_predprob')
+
+def fill_nans_df_12m(row):
+    if np.isnan(row['engel_outcomes_12m']):
+        return 3
+    else:
+        return row['engel_outcomes_12m']
+    
+
+combined_outcomes['engel_outcomes_12m'] = combined_outcomes.apply(fill_nans_df_12m, axis=1)
+interictal_outcomes['engel_outcomes_12m'] = interictal_outcomes.apply(fill_nans_df_12m, axis=1)
+ictal_outcomes['engel_outcomes_12m'] = ictal_outcomes.apply(fill_nans_df_12m, axis=1)
+
+def fill_nans_df_24m(row):
+    if np.isnan(row['engel_outcomes_24m']):
+        return 3
+    else:
+        return row['engel_outcomes_24m']
+    
+
+combined_outcomes['engel_outcomes_24m'] = combined_outcomes.apply(fill_nans_df_24m, axis=1)
+interictal_outcomes['engel_outcomes_24m'] = interictal_outcomes.apply(fill_nans_df_24m, axis=1)
+ictal_outcomes['engel_outcomes_24m'] = ictal_outcomes.apply(fill_nans_df_24m, axis=1)
+
 
 # %%
 #graph for combined_outcomes
@@ -63,27 +86,27 @@ plt.figure(figsize=(8,6))
 #change font to arial
 plt.rcParams['font.family'] = 'Arial'
 
-my_palette = {0:'#E64B35FF', 2:'#7E6148FF', 1:'#3C5488FF'}
+my_palette = {0:'#E64B35FF', 3:'#7E6148FF', 1:'#3C5488FF'}
 # my_palette = {1:'#E64B35FF', 2:'#3C5488FF'}
-pairs=[(0, 1)]
-order = [0,1]
+pairs=[(0, 1),(0,3),(1,3)]
+order = [3,0,1]
 
 ax = sns.boxplot(x='engel_outcomes_12m', y='combined_predprob', data=combined_outcomes, palette=my_palette, order=order, showfliers = False)
-sns.stripplot(x="engel_outcomes_12m", y="combined_predprob", data=combined_outcomes, color="black", alpha=0.5)
+sns.stripplot(x="engel_outcomes_12m", y="combined_predprob", data=combined_outcomes, order = order, color="black", alpha=0.5)
 annotator = Annotator(ax, pairs, data=combined_outcomes, x="engel_outcomes_12m", y="combined_predprob", order=order)
-annotator.configure(test='Mann-Whitney', text_format='star', loc='inside', comparisons_correction='BH', verbose = True,hide_non_significant=False)
+annotator.configure(test='Mann-Whitney', text_format='star', loc='inside', comparisons_correction='BH', verbose = True,hide_non_significant=True)
 annotator.apply_and_annotate()
 
-plt.xlabel('Engel Outcome', fontsize=12)
+plt.xlabel('Labels', fontsize=12)
 plt.ylabel('mTLE Model Probability', fontsize=12)
 #change the x-tick labels to be more readable
-plt.xticks(np.arange(2), ['Bad', 'Good'], fontsize = 12)
+plt.xticks(np.arange(3), ['Non mTLE','Bad', 'Good'], fontsize = 12)
 plt.yticks(fontsize = 12)
 
 #part to change
 plt.title(f'Outcome Analysis - 12m', fontsize=16)
 sns.despine()
-plt.savefig('ML_results/LR_elastic/outcomes_12m.pdf')
+plt.savefig('ML_results/LR_elastic/outcome/outcomes_12m.pdf')
 plt.show()
 
 all_effect_szs = []
@@ -113,7 +136,7 @@ order = [0,1]
 ax = sns.boxplot(x='engel_outcomes_24m', y='combined_predprob', data=combined_outcomes, palette=my_palette, order=order, showfliers = False)
 sns.stripplot(x="engel_outcomes_24m", y="combined_predprob", data=combined_outcomes, color="black", alpha=0.5)
 annotator = Annotator(ax, pairs, data=combined_outcomes, x="engel_outcomes_24m", y="combined_predprob", order=order)
-annotator.configure(test='Mann-Whitney', text_format='star', loc='inside', comparisons_correction='BH', verbose = True,hide_non_significant=False)
+annotator.configure(test='Mann-Whitney', text_format='star', loc='inside', comparisons_correction='BH', verbose = True,hide_non_significant=True)
 annotator.apply_and_annotate()
 
 plt.xlabel('Engel Outcome', fontsize=12)
@@ -125,7 +148,7 @@ plt.yticks(fontsize = 12)
 #part to change
 plt.title(f'Outcome Analysis - 24m', fontsize=16)
 sns.despine()
-plt.savefig('ML_results/LR_elastic/outcomes_24m,.pdf')
+# plt.savefig('ML_results/LR_elastic/outcome/outcomes_24m,.pdf')
 plt.show()
 
 all_effect_szs = []
@@ -226,7 +249,7 @@ plt.yticks(fontsize = 12)
 #part to change
 plt.title(f'Outcome Analysis - 12m vs. Spike Rate', fontsize=16)
 sns.despine()
-plt.savefig('ML_results/LR_elastic/outcomes_12m_vs_spikerate.pdf')
+plt.savefig('ML_results/LR_elastic/outcome/outcomes_12m_vs_spikerate.pdf')
 plt.show()
 
 all_effect_szs = []
@@ -266,7 +289,7 @@ plt.yticks(fontsize = 12)
 #part to change
 plt.title(f'Outcome Analysis - 12m vs. HFER', fontsize=16)
 sns.despine()
-plt.savefig('ML_results/LR_elastic/outcomes_12m_vs_hfer.pdf')
+plt.savefig('ML_results/LR_elastic/outcome/outcomes_12m_vs_hfer.pdf')
 plt.show()
 
 all_effect_szs = []
@@ -306,7 +329,7 @@ plt.yticks(fontsize = 12)
 #part to change
 plt.title(f'Outcome Analysis - 12m vs. Rise Amp', fontsize=16)
 sns.despine()
-plt.savefig('ML_results/LR_elastic/outcomes_12m_vs_riseamp.pdf')
+plt.savefig('ML_results/LR_elastic/outcome/outcomes_12m_vs_riseamp.pdf')
 plt.show()
 
 all_effect_szs = []
@@ -346,7 +369,7 @@ plt.yticks(fontsize = 12)
 #part to change
 plt.title(f'Outcome Analysis - 24m vs. Spike Rate', fontsize=16)
 sns.despine()
-plt.savefig('ML_results/LR_elastic/outcomes_24m_vs_spikerate.pdf')
+plt.savefig('ML_results/LR_elastic/outcome/outcomes_24m_vs_spikerate.pdf')
 plt.show()
 
 all_effect_szs = []
@@ -386,7 +409,7 @@ plt.yticks(fontsize = 12)
 #part to change
 plt.title(f'Outcome Analysis - 24m vs. HFER', fontsize=16)
 sns.despine()
-plt.savefig('ML_results/LR_elastic/outcomes_24m_vs_hfer.pdf')
+plt.savefig('ML_results/LR_elastic/outcome/outcomes_24m_vs_hfer.pdf')
 plt.show()
 
 all_effect_szs = []
@@ -426,7 +449,7 @@ plt.yticks(fontsize = 12)
 #part to change
 plt.title(f'Outcome Analysis - 24m vs. Rise Amp', fontsize=16)
 sns.despine()
-plt.savefig('ML_results/LR_elastic/outcomes_24m_vs_riseamp.pdf')
+plt.savefig('ML_results/LR_elastic/outcome/outcomes_24m_vs_riseamp.pdf')
 plt.show()
 
 all_effect_szs = []
