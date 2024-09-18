@@ -18,7 +18,7 @@ pec_outcomes = pd.read_excel('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbo
 
 # %%
 
-Engel_good = ['IA','IB']
+Engel_good = ['IA','IB','IC','ID']
 
 def calculate_outcome(row):
     if pd.isna(row['engel_f1']):

@@ -26,7 +26,7 @@ output_dir = os.environ.get("ML_OUTPUT_DIR", default_output_dir)
 os.makedirs(output_dir, exist_ok=True)
 
 # Create and open log file
-log_file = os.path.join(output_dir, f"logistic_regression_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
+log_file = os.path.join(output_dir, f"12m-outcomes-LR-{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
 try:
     sys.stdout = open(log_file, 'w')
 except IOError as e:
@@ -38,6 +38,29 @@ print(f"Log file created at: {log_file}")
 # Load and preprocess data
 def load_data():
     outcomes = pd.read_csv('dataset/ML_data/features_and_outcomes.csv', index_col=0)
+
+    Engel_good = ['IA','IB','IC','ID']
+
+    def calculate_outcome(row):
+        if pd.isna(row['engel_f1']):
+            return row[' ILAE-v1']
+        elif str(row['engel_f1']) in Engel_good:
+            return 1
+        else:
+            return 0
+
+    # Apply the function to each row to create the outcome3 column
+    outcomes['engel_outcomes_12m'] = outcomes.apply(calculate_outcome, axis=1)
+
+    def calculate_outcome_2yr(row):
+        if pd.isna(row['engel_f2']):
+            return row[' ILAE-v1']
+        elif str(row['engel_f2']) in Engel_good:
+            return 1
+        else:
+            return 0
+
+    outcomes['engel_outcomes_24m'] = outcomes.apply(calculate_outcome_2yr, axis=1)
 
     combined_df = outcomes.drop(columns = ['Patient_ID','Predicted_Label','combined_predprob','rid','hup_id','engel_f1', 'engel_f2', 'ilae_f1', 'ilae_f2',
        ' ILAE-v1', 'ILAE-v2','engel_outcomes_24m','SOZ','True_Label'])
@@ -147,6 +170,8 @@ def leave_one_out_cv(X, y):
 
 # Main execution
 def main():
+    plt.rcParams['font.family'] = 'Arial'
+    
     combined_data, ictal_data, interictal_data = load_data()
     
     # Prepare datasets
@@ -255,7 +280,7 @@ output_dir = os.environ.get("ML_OUTPUT_DIR", default_output_dir)
 os.makedirs(output_dir, exist_ok=True)
 
 # Create and open log file
-log_file = os.path.join(output_dir, f"logistic_regression_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
+log_file = os.path.join(output_dir, f"24m-outcomes-LR-{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
 try:
     sys.stdout = open(log_file, 'w')
 except IOError as e:
@@ -267,6 +292,30 @@ print(f"Log file created at: {log_file}")
 # Load and preprocess data
 def load_data():
     outcomes = pd.read_csv('dataset/ML_data/features_and_outcomes.csv', index_col=0)
+
+    Engel_good = ['IA','IB','IC','ID']
+
+    def calculate_outcome(row):
+        if pd.isna(row['engel_f1']):
+            return row[' ILAE-v1']
+        elif str(row['engel_f1']) in Engel_good:
+            return 1
+        else:
+            return 0
+
+    # Apply the function to each row to create the outcome3 column
+    outcomes['engel_outcomes_12m'] = outcomes.apply(calculate_outcome, axis=1)
+
+    def calculate_outcome_2yr(row):
+        if pd.isna(row['engel_f2']):
+            return row[' ILAE-v1']
+        elif str(row['engel_f2']) in Engel_good:
+            return 1
+        else:
+            return 0
+
+    outcomes['engel_outcomes_24m'] = outcomes.apply(calculate_outcome_2yr, axis=1)
+
 
     combined_df = outcomes.drop(columns = ['Patient_ID','Predicted_Label','combined_predprob','rid','hup_id','engel_f1', 'engel_f2', 'ilae_f1', 'ilae_f2',
        ' ILAE-v1', 'ILAE-v2','engel_outcomes_12m','SOZ','True_Label'])
@@ -376,6 +425,8 @@ def leave_one_out_cv(X, y):
 
 # Main execution
 def main():
+    plt.rcParams['font.family'] = 'Arial'
+
     combined_data, ictal_data, interictal_data = load_data()
     
     # Prepare datasets

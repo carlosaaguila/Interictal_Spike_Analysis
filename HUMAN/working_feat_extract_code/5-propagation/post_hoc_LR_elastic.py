@@ -121,3 +121,36 @@ for i in range(3):
     print(f"Specificity: {specificity:.3f} (95% CI: {confidence_intervals[0][1]:.3f} - {confidence_intervals[1][1]:.3f})")
     print(f"Balanced Accuracy: {balanced_accuracy:.3f} (95% CI: {confidence_intervals[0][2]:.3f} - {confidence_intervals[1][2]:.3f})")
 # %%
+#plot the importance of each feature for the combined model
+
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Load the data
+data = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/ML_results/LR_elastic/Combined_feature_importance.csv')
+
+# Sort the data by importance in descending order
+data_sorted = data.sort_values('Importance', ascending=True)
+
+# Create the plot
+plt.figure(figsize=(12, 8))
+plt.rcParams['font.family'] = 'Arial'
+
+sns.barplot(x='Importance', y='Feature', data=data_sorted, color='#E64B35FF')
+
+# Customize the plot
+plt.title('Feature Importance', fontsize=16)
+plt.xlabel('Importance', fontsize=12)
+plt.ylabel('Feature', fontsize=12)
+
+# Add value labels to the end of each bar
+for i, v in enumerate(data_sorted['Importance']):
+    plt.text(v, i, f' {v:.3f}', va='center')
+
+# Adjust layout and display the plot
+plt.tight_layout()
+sns.despine()
+plt.savefig('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/ML_results/LR_elastic/feature_importance_LR-elastic.pdf')
+plt.show()
+

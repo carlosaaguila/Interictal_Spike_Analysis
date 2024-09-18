@@ -148,6 +148,8 @@ def leave_one_out_cv(X, y):
 
 # Main execution
 def main():
+    plt.rcParams['font.family'] = 'Arial'
+
     combined_data, ictal_data, interictal_data = load_data()
     
     # Prepare datasets
