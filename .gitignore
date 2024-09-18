@@ -123,3 +123,6 @@ HUMAN/working_feat_extract_code/5-propagation/ML_results/LR_elastic/LR_12month.l
 HUMAN/working_feat_extract_code/5-propagation/ML_results/LR_elastic/LR_elastic_predict_12m-outcomes.pdf
 HUMAN/working_feat_extract_code/5-propagation/ML_results/LR_elastic/LR_elastic_predict_24m-outcomes.pdf
 HUMAN/working_feat_extract_code/5-propagation/ML_results/LR_elastic/LR-24month.log
+HUMAN/working_feat_extract_code/5-propagation/ML_results/LR_elastic/12m-outcomes-LR-20240918_092953.log
+HUMAN/working_feat_extract_code/5-propagation/ML_results/LR_elastic/24m-outcomes-LR-20240918_093119.log
+HUMAN/working_feat_extract_code/5-propagation/ML_results/LR_elastic/feature_importance_LR-elastic.pdf
