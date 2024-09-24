@@ -134,19 +134,18 @@ data = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HU
 data_sorted = data.sort_values('Importance', ascending=True)
 
 # Create the plot
-plt.figure(figsize=(12, 8))
+plt.figure(figsize=(8, 6))
 plt.rcParams['font.family'] = 'Arial'
 
 sns.barplot(x='Importance', y='Feature', data=data_sorted, color='#E64B35FF')
 
 # Customize the plot
-plt.title('Feature Importance', fontsize=16)
-plt.xlabel('Importance', fontsize=12)
-plt.ylabel('Feature', fontsize=12)
+plt.title('Combined Model: Feature Importance', fontsize=28)
+plt.xlabel('Importance', fontsize=26)
 
 # Add value labels to the end of each bar
 for i, v in enumerate(data_sorted['Importance']):
-    plt.text(v, i, f' {v:.3f}', va='center')
+    plt.text(v, i, f' {v:.2f}', va='center', fontsize = 20)
 
 # Adjust layout and display the plot
 plt.tight_layout()
@@ -154,3 +153,5 @@ sns.despine()
 plt.savefig('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/ML_results/LR_elastic/feature_importance_LR-elastic.pdf')
 plt.show()
 
+
+# %%

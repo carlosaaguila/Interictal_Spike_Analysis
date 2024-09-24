@@ -1,4 +1,4 @@
-# import pandas as pd
+import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -221,7 +221,7 @@ def main():
 
     sns.despine()
     plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, 'logistic_regression_ROC_curves.pdf'))
+    plt.savefig(os.path.join(output_dir, 'logistic_regression_ROC_curves_v2.pdf'))
     plt.close()
 
 if __name__ == "__main__":

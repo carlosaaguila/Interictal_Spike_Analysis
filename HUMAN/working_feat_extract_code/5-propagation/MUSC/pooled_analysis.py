@@ -1144,3 +1144,252 @@ print("SPIKE TIMING:")
 print(kruskal(latency[latency['SOZ'] == 1]['recruitment_latency_thresh_corr'], latency[latency['SOZ'] == 2]['recruitment_latency_thresh_corr'],latency[latency['SOZ'] == 3]['recruitment_latency_thresh_corr']))
 
 # %%
+morphology_df = pearson_df.drop(columns = {"spike_rate_corr","recruitment_latency_thresh_corr","SOZ","pt_id"})
+morphology_df = morphology_df.rename(columns = {
+    'slow_width_corr': 'Slow Wave Width',
+    'spike_width_corr': 'Spike Width',
+    'slow_amp_corr': 'Slow Wave Amplitude',
+    'sharpness_corr': 'Spike Sharpness',
+    'rise_amp_corr': 'Rising Amplitude',
+    'decay_amp_corr': 'Decay Amplitude',
+    'linelen_corr': 'Line Length'
+})
+sns.heatmap(morphology_df.corr(),cmap = 'viridis')
+
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.cluster import hierarchy
+from scipy.spatial.distance import squareform
+
+# Assuming 'corr_matrix' is your correlation matrix
+# Convert correlation to distance
+corr_matrix = morphology_df.corr()
+dist = 1 - np.abs(corr_matrix)
+
+# Perform hierarchical clustering
+linkage = hierarchy.linkage(squareform(dist), method='average')
+
+# Plot dendrogram
+plt.figure(figsize=(10, 7))
+dn = hierarchy.dendrogram(linkage, labels=corr_matrix.index, leaf_rotation=90)
+plt.title('Hierarchical Clustering of Spike Morphology Features')
+plt.tight_layout()
+plt.show()
+
+#%%
+import seaborn as sns
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Assuming morphology_df is your DataFrame with the feature data
+
+# Compute the correlation matrix
+corr_matrix = morphology_df.corr()
+
+# Set up the matplotlib figure
+plt.figure(figsize=(16, 14))
+
+# Create the clustermap
+g = sns.clustermap(corr_matrix,
+                   cmap='viridis',
+                   center=0,
+                   vmin=-1,
+                   vmax=1,
+                   dendrogram_ratio=(0.2, 0.1),
+                   cbar_pos=(0.02, 0.8, 0.05, 0.18),
+                   cbar_kws={'label': 'Pearson Correlation'},
+                   tree_kws={'color': 'black'},
+                   figsize=(16, 14))
+
+# Adjust the layout
+g.ax_row_dendrogram.set_visible(True)
+g.ax_col_dendrogram.set_visible(True)
+
+# Rotate x-axis labels
+g.ax_heatmap.set_xticklabels(g.ax_heatmap.get_xticklabels(), rotation=90, ha='center')
+g.ax_heatmap.set_yticklabels(g.ax_heatmap.get_yticklabels(), rotation=0)
+
+# Add title
+plt.suptitle('Clustering of Pre-processing Pipelines', fontsize=16, fontweight='bold', x=0.1, y=0.98, ha='left')
+
+# Adjust layout
+plt.tight_layout()
+plt.show()
+#%%
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.manifold import TSNE
+from sklearn.preprocessing import StandardScaler
+
+# Assuming 'data' is your feature matrix (samples x features)
+# and 'feature_names' is a list of your feature names
+
+# Standardize the features
+data = np.array(morphology_df)
+
+scaler = StandardScaler()
+data_scaled = scaler.fit_transform(data)
+
+# Calculate appropriate perplexity
+n_samples = data_scaled.shape[0]
+
+# Perform t-SNE
+tsne = TSNE(n_components=2, random_state=42)
+tsne_result = tsne.fit_transform(data_scaled)
+
+# Create a scatter plot of the t-SNE result
+fig, ax = plt.subplots(figsize=(10, 8))
+
+scatter = ax.scatter(tsne_result[:, 0], tsne_result[:, 1], c=data[:, 0], cmap='viridis')
+plt.colorbar(scatter, label='Rising Amplitude')
+
+# Add labels and title
+ax.set_xlabel('t-SNE 1')
+ax.set_ylabel('t-SNE 2')
+
+feature_names = morphology_df.columns.to_list()
+# Annotate a few points with their feature values
+n_annotate = min(10, n_samples)  # Annotate up to 10 points
+for i in range(0, n_samples, max(1, n_samples // n_annotate)):
+    annotation = "\n".join([f"{name}: {data[i, j]:.2f}" for j, name in enumerate(feature_names)])
+    ax.annotate(annotation, (tsne_result[i, 0], tsne_result[i, 1]), 
+                xytext=(5, 5), textcoords='offset points', 
+                bbox=dict(boxstyle="round", fc="w", ec="0.5", alpha=0.9),
+                fontsize=8)
+
+plt.tight_layout()
+plt.show()
+
+print(f"Number of samples: {n_samples}")
+
+#%%
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.manifold import TSNE
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
+
+# Assuming 'data' is your feature matrix (samples x features)
+# and 'feature_names' is a list of your feature names
+
+# Standardize the features
+data = np.array(corr_matrix)
+feature_names = corr_matrix.columns.to_list()
+
+scaler = StandardScaler()
+data_scaled = scaler.fit_transform(data)
+
+# Perform t-SNE
+n_samples = data_scaled.shape[0]
+perplexity = min(30, n_samples - 1)
+tsne = TSNE(n_components=2, perplexity=perplexity, random_state=42)
+tsne_result = tsne.fit_transform(data_scaled)
+
+# Perform k-means clustering
+n_clusters = 3  # You can adjust this
+kmeans = KMeans(n_clusters=n_clusters, random_state=42)
+cluster_labels = kmeans.fit_predict(data_scaled)
+
+# Create a scatter plot of the t-SNE result with k-means clusters
+fig, ax = plt.subplots(figsize=(8, 8))
+
+scatter = ax.scatter(tsne_result[:, 0], tsne_result[:, 1], c=cluster_labels, cmap='viridis')
+
+ax.set_xlabel('t-SNE 1', fontsize = 26)
+ax.set_ylabel('t-SNE 2', fontsize = 26)
+ax.set_title(f't-SNE Visualization with K-means Clustering (k={n_clusters})', fontsize = 28)
+
+sns.despine()
+plt.show()
+
+# Analyze feature importance for clustering
+cluster_centers = kmeans.cluster_centers_
+feature_importance = np.abs(cluster_centers.max(axis=0) - cluster_centers.min(axis=0))
+sorted_indices = np.argsort(feature_importance)[::-1]
+
+print("Feature importance for clustering:")
+for idx in sorted_indices:
+    print(f"{feature_names[idx]}: {feature_importance[idx]:.4f}")
+
+# Calculate silhouette score
+silhouette_avg = silhouette_score(data_scaled, cluster_labels)
+print(f"\nSilhouette Score: {silhouette_avg:.4f}")
+
+
+#%%
+
+
+# Assuming 'data' is your feature matrix and 'feature_names' is the list of feature names
+# If you haven't run K-means yet, uncomment the following lines:
+# scaler = StandardScaler()
+# data_scaled = scaler.fit_transform(data)
+# kmeans = KMeans(n_clusters=3, random_state=42)
+# cluster_labels = kmeans.fit_predict(data_scaled)
+
+# Create a DataFrame with features and cluster labels
+df = pd.DataFrame(data, columns=feature_names)
+df['Cluster'] = cluster_labels
+
+# Cluster Centroids Analysis
+centroids = df.groupby('Cluster').median()
+print("Cluster Centroids:")
+print(centroids)
+
+# Heatmap of cluster centroids
+plt.figure(figsize=(8, 8))
+sns.heatmap(centroids, annot=True, cmap='viridis', center=0)
+plt.title('Heatmap of Cluster Centroids')
+plt.show()
+
+# Feature Distribution by Cluster
+fig, axes = plt.subplots(3, 3, figsize=(20, 20))
+axes = axes.flatten()
+
+for i, feature in enumerate(feature_names):
+    sns.boxplot(x='Cluster', y=feature, data=df, ax=axes[i])
+    axes[i].set_title(f'Distribution of {feature} by Cluster')
+
+plt.tight_layout()
+plt.show()
+
+# Feature Importance based on centroid differences
+feature_importance = np.abs(centroids.max() - centroids.min())
+feature_importance_sorted = feature_importance.sort_values(ascending=False)
+
+plt.figure(figsize=(10, 6))
+feature_importance_sorted.plot(kind='bar')
+plt.title('Feature Importance Based on Centroid Differences')
+plt.xlabel('Features')
+plt.ylabel('Max Absolute Difference Across Clusters')
+plt.tight_layout()
+plt.show()
+
+# %%
+import numpy as np
+import pandas as pd
+
+def select_uncorrelated_features(correlation_matrix, n_features=3):
+    # Convert to pandas DataFrame for easier indexing
+    corr_df = pd.DataFrame(correlation_matrix)
+    
+    # Start with the feature that has the highest average correlation
+    selected = [corr_df.abs().mean().idxmax()]
+    
+    while len(selected) < n_features:
+        # Compute the maximum correlation between each unselected feature and any selected feature
+        max_corr = corr_df.drop(selected, axis=0).drop(selected, axis=1).abs().max()
+        
+        # Select the feature with the lowest maximum correlation
+        next_feature = max_corr.idxmin()
+        selected.append(next_feature)
+    
+    return selected
+
+# Assuming 'correlation_matrix' is your correlation matrix
+selected_features = select_uncorrelated_features(corr_matrix)
+print("Selected features:", selected_features)
+
+# Print the correlation submatrix of selected features
+print("\nCorrelation submatrix of selected features:")
+print(pd.DataFrame(corr_matrix).loc[selected_features, selected_features])

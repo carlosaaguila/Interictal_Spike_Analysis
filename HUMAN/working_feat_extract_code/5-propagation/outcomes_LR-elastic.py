@@ -94,7 +94,7 @@ order = [3,0,1]
 ax = sns.boxplot(x='engel_outcomes_12m', y='combined_predprob', data=combined_outcomes, palette=my_palette, order=order, showfliers = False)
 sns.stripplot(x="engel_outcomes_12m", y="combined_predprob", data=combined_outcomes, order = order, color="black", alpha=0.5)
 annotator = Annotator(ax, pairs, data=combined_outcomes, x="engel_outcomes_12m", y="combined_predprob", order=order)
-annotator.configure(test='Mann-Whitney', text_format='star', loc='inside', comparisons_correction='BH', verbose = True,hide_non_significant=True)
+annotator.configure(test='Mann-Whitney', text_format='star', loc='inside', comparisons_correction='BH', verbose = True,hide_non_significant=False)
 annotator.apply_and_annotate()
 
 plt.xlabel('Labels', fontsize=12)
@@ -118,8 +118,13 @@ for comparison in pairs:
     group2 = combined_outcomes[combined_outcomes['engel_outcomes_12m'] == soz2]['combined_predprob']
 
     all_effect_szs.append(['Outcome 12m cohens d:', soz1, soz2, cohend(group1, group2)])
-
 print(all_effect_szs)
+
+print("KRUSKAL WALLIS:")
+from scipy.stats import f_oneway, levene, shapiro, kruskal
+rate=combined_outcomes
+print(kruskal(rate[rate['engel_outcomes_12m'] == 0]['combined_predprob'], rate[rate['engel_outcomes_12m'] == 1]['combined_predprob'],rate[rate['engel_outcomes_12m'] == 3]['combined_predprob']))
+
 
 #%%
 #Do the same analysis for 24m
