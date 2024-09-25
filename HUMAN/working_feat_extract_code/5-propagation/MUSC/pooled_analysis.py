@@ -43,7 +43,7 @@ take_spike_leads = False
 soz_to_remove = ['temporal']
 
 # list_of_feats = ['spike_rate','recruitment_latency_thresh','decay_amp','sharpness','linelen','slow_amp', 'rise_amp','spike_width','']
-list_of_feats = ['spike_rate', 'rise_amp','decay_amp','sharpness','linelen','recruitment_latency_thresh','spike_width','slow_width','slow_amp']
+list_of_feats = ['spike_rate', 'rise_amp','decay_amp','sharpness','linelen','recruitment_latency_thresh','spike_width','slow_width','slow_amp', 'rise_slope','decay_slope','average_amp','rise_duration','decay_duration']
 # list_of_feats = ['spike_rate', 'rise_amp']
 
 
@@ -921,6 +921,89 @@ print(all_effect_szs)
 # # plt.savefig(f'../figures/MUSC+HUP/official/ALL_first_values_CLEAN.pdf')
 # plt.show()
 
+#%%
+#PEARSON PLOTS OTHER MORPHOLOGY
+plt.rcParams['font.family'] = 'Arial'
+pearson_df['SOZ'] = pearson_df['SOZ'].astype('category')
+
+new_metrics = ['linelen_corr', 'decay_amp_corr', 'slow_width_corr', 'slow_amp_corr', 
+               'rise_slope_corr', 'decay_slope_corr', 'average_amp_corr', 
+               'rise_duration_corr', 'decay_duration_corr']
+
+# Melt the dataframe to long format
+melted_pearson_df = pearson_df.melt(id_vars='SOZ', 
+                              value_vars=new_metrics,
+                              var_name='Metric', value_name='Value')
+
+# Set up the matplotlib figure
+fig, ax = plt.subplots(1,1, figsize=(10,6))
+
+my_palette = {1:'#E64B35FF', 3:'#7E6148FF', 2:'#3C5488FF'}
+fig_args = {'x':'Metric',
+            'y':'Value',
+            'hue':'SOZ',
+            'data':melted_pearson_df,
+            'order': ['rise_amp_corr','sharpness_corr','spike_width_corr'],
+            'hue_order':[1,2,3]}
+
+# Generate significance comparisons for all pairs of SOZ values for each metric
+significanceComparisons = []
+for metric in new_metrics:
+    significanceComparisons.extend([
+        ((metric, 1), (metric, 3)),
+        ((metric, 1), (metric, 2)),
+        ((metric, 2), (metric, 3))
+    ])
+
+sns.boxplot(ax=ax, showfliers = False, palette=my_palette, **fig_args)
+sns.stripplot(ax =ax, color = 'k', alpha = 0.5, dodge=True, jitter=True, size=5, **fig_args)
+
+annotator = Annotator(ax=ax, pairs=significanceComparisons,
+                    **fig_args, plot='boxplot')
+
+# Assign Mann-Whitney U test p-values to the annotator
+test = 'Mann-Whitney'
+# comp = 'BH' #benjamani hochberg correction
+configuration = {'test':test,
+                    'comparisons_correction':None,
+                    'text_format':'star',
+                    'loc':'inside',
+                    'verbose':True,
+                    'hide_non_significant':True}
+annotator.configure(**configuration)
+annotator.apply_and_annotate()
+
+# Set plot title and labels
+plt.title('Distribution of Pearson Correlation by SOZ Type', fontsize = 28)
+
+new_labels = ['Linelength', 'Decay Amplitude', 'Slow Wave Width', 'Slow Wave Amplitude', 
+               'Rising Slope', 'Decay Slope', 'Average Amplitude', 
+               'Rising Spike Width', 'Decay Spike Width']
+ax.set_xticklabels(new_labels, fontsize=16)
+plt.ylabel('Correlation Coef.', fontsize = 16)
+ax.set(xlabel=None)
+
+# Update the legend to prevent duplication
+handles, labels = ax.get_legend_handles_labels()
+ax.legend(handles[:3], ['mTLE', 'Neo', 'Other'], loc='upper right', fontsize=12, bbox_to_anchor=(1.05, 1))
+
+# Show the plot
+sns.despine()
+plt.axhline(y=0, color='k', linestyle='--')
+plt.savefig(f'../figures/MUSC+HUP/official/MORPHOLOGY-OTHER-FEATS.pdf')
+plt.show()
+
+# all_effect_szs = []
+# for comparison in significanceComparisons:
+#     print(comparison)
+#     metric, soz1 = comparison[0]
+#     _, soz2 = comparison[1]
+#     group1 = melted_pearson_df[(melted_pearson_df['Metric'] == metric) & (melted_pearson_df['SOZ'] == soz1)]['Value']
+#     group2 = melted_pearson_df[(melted_pearson_df['Metric'] == metric) & (melted_pearson_df['SOZ'] == soz2)]['Value']
+#     all_effect_szs.append([metric, soz1, soz2, cohend(group1, group2)])
+
+# print(all_effect_szs)
+
 
 # %%
 ####################################
@@ -1273,6 +1356,6 @@ plt.suptitle('Correlation between Morphology Features', fontsize=30, fontweight=
 
 # Adjust layout
 plt.tight_layout(rect=[0, 0, 0.95, 0.95])
-plt.savefig('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/figures/MUSC+HUP/official/choosing_feats.pdf')
+# plt.savefig('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/figures/MUSC+HUP/official/choosing_feats.pdf')
 
 plt.show()
