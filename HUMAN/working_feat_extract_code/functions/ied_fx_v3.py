@@ -74,11 +74,119 @@ def ZX(x, demean_flag = False):
 def MEAN(x):
     return np.mean(x)
 
-def bandpower(x, fs, fmin, fmax):
-    f, Pxx = sig.periodogram(x, fs=fs)
-    ind_min = np.argmax(f > fmin) - 1
-    ind_max = np.argmax(f > fmax) - 1
-    return np.trapz(Pxx[ind_min: ind_max], f[ind_min: ind_max])
+# def bandpower(x, fs, fmin, fmax):
+#     f, Pxx = sig.periodogram(x, fs=fs)
+#     ind_min = np.argmax(f > fmin) - 1
+#     ind_max = np.argmax(f > fmax) - 1
+#     return np.trapz(Pxx[ind_min: ind_max], f[ind_min: ind_max])
+
+def bandpower(data, sf, band, window_sec=None, relative=False):
+    """Compute the average power of the signal x in a specific frequency band.
+
+    Parameters
+    ----------
+    data : 1d-array
+        Input signal in the time-domain.
+    sf : float
+        Sampling frequency of the data.
+    band : list
+        Lower and upper frequencies of the band of interest.
+    window_sec : float
+        Length of each window in seconds.
+        If None, window_sec = (1 / min(band)) * 2
+    relative : boolean
+        If True, return the relative power (= divided by the total power of the signal).
+        If False (default), return the absolute power.
+
+    Return
+    ------
+    bp : float
+        Absolute or relative band power.
+    """
+    from scipy.signal import welch
+    from scipy.integrate import simps
+    band = np.asarray(band)
+    low, high = band
+
+    # Define window length
+    if window_sec is not None:
+        nperseg = window_sec * sf
+    else:
+        nperseg = (2 / low) * sf
+
+    # Compute the modified periodogram (Welch)
+    freqs, psd = welch(data, sf, nperseg=nperseg)
+
+    # Frequency resolution
+    freq_res = freqs[1] - freqs[0]
+
+    # Find closest indices of band in frequency vector
+    idx_band = np.logical_and(freqs >= low, freqs <= high)
+
+    # Integral approximation of the spectrum using Simpson's rule.
+    bp = simps(psd[idx_band], dx=freq_res)
+
+    if relative:
+        bp /= simps(psd, dx=freq_res)
+    return bp
+
+import numpy as np
+from scipy.signal import welch
+from scipy.integrate import simps
+
+def bandpower_matrix(data, sf, band, window_sec=None):
+    """Compute the relative bandpower of the signal x in a specific frequency band for multiple channels.
+
+    Parameters
+    ----------
+    data : 2d-array
+        Input signal in the time-domain. Shape should be (n_samples, n_channels).
+    sf : float
+        Sampling frequency of the data.
+    band : list
+        Lower and upper frequencies of the band of interest.
+    window_sec : float
+        Length of each window in seconds.
+        If None, window_sec = (1 / min(band)) * 2
+
+    Return
+    ------
+    rel_bp : 1d-array
+        Relative band power for each channel.
+    """
+    band = np.asarray(band)
+    low, high = band
+
+    # Define window length
+    if window_sec is not None:
+        nperseg = int(window_sec * sf)
+    else:
+        nperseg = int((2 / low) * sf)
+
+    # Get the number of channels
+    n_samples, n_channels = data.shape
+
+    # Initialize array to store relative bandpower for each channel
+    rel_bp = np.zeros(n_channels)
+
+    for ch in range(n_channels):
+        # Compute the modified periodogram (Welch)
+        freqs, psd = welch(data[:, ch], sf, nperseg=nperseg)
+
+        # Frequency resolution
+        freq_res = freqs[1] - freqs[0]
+
+        # Find closest indices of band in frequency vector
+        idx_band = np.logical_and(freqs >= low, freqs <= high)
+
+        # Integral approximation of the spectrum using Simpson's rule
+        bp = simps(psd[idx_band], dx=freq_res)
+        total_power = simps(psd, dx=freq_res)
+
+        # Calculate relative bandpower
+        rel_bp[ch] = bp / total_power
+
+    return rel_bp
 
 def create_feat_list(values):
     feats = []

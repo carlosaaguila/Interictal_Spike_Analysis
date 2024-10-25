@@ -16,7 +16,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # Set default output directory to current working directory
-default_output_dir = os.path.join(os.getcwd(), "ML_results", "LR_elastic")
+default_output_dir = os.path.join(os.getcwd(), "ML_results", "LR_elastic_random")
 
 # Allow custom output directory via environment variable
 output_dir = os.environ.get("ML_OUTPUT_DIR", default_output_dir)
@@ -127,7 +127,6 @@ def leave_one_out_cv(X, y):
         # Initialize Logistic Regression with Elastic Net
         model = LogisticRegressionCV(
             cv=5,  # 5-fold cross-validation
-            random_state=42,
             penalty='elasticnet',
             solver='saga',
             l1_ratios=np.linspace(0, 1, 10),  # This creates an array of 10 values from 0 to 1

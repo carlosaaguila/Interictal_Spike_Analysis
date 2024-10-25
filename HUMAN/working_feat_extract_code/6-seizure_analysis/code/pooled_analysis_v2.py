@@ -33,8 +33,8 @@ from ied_fx_v3 import *
 
 #HFER per time
 type = '11s-hfer-'
-hup_ei = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/6-seizure_analysis/data/self_run/hfer_HUP_11s.csv')
-musc_ei = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/6-seizure_analysis/data/self_run/hfer_MUSC_11s.csv')
+hup_ei = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/6-seizure_analysis/data/self_run/hfer_HUP_6s.csv')
+musc_ei = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/6-seizure_analysis/data/self_run/hfer_MUSC_6s.csv')
 
 # hup_ei = pd.read_csv('../data/self_run/HUP_all_hfer.csv')
 # musc_ei = pd.read_csv('../data/self_run/MUSC_all_hfer.csv')
@@ -620,7 +620,7 @@ plt.yticks(fontsize = 12)
 #part to change
 plt.title(f'Feature = EI, Directionality', fontsize=16)
 sns.despine()
-plt.savefig(f'../figures/{type}_EI-spearman.pdf')
+# plt.savefig(f'../figures/{type}_EI-spearman.pdf')
 plt.show()
 
 all_effect_szs = []
@@ -665,7 +665,7 @@ plt.title(f'Feature = EI, Directionality', fontsize=16)
 sns.despine()
 plt.ylim([-1,1])
 
-plt.savefig(f'../figures/{type}_EI-pearson.pdf')
+# plt.savefig(f'../figures/{type}_EI-pearson.pdf')
 plt.show()
 all_effect_szs = []
 for comparison in pairs:

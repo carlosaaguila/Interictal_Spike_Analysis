@@ -248,3 +248,6 @@ HUMAN/working_feat_extract_code/5-propagation/figures/MUSC+HUP/official/some tra
 HUMAN/working_feat_extract_code/5-propagation/figures/MUSC+HUP/official/some trains 2/HUP192_2_example_train.pdf
 HUMAN/working_feat_extract_code/5-propagation/figures/MUSC+HUP/official/some trains 2/HUP192_3_example_train.pdf
 HUMAN/working_feat_extract_code/5-propagation/figures/MUSC+HUP/official/some trains 2/HUP192_4_example_train.pdf
+HUMAN/working_feat_extract_code/5-propagation/ML_results/*
+HUMAN/working_feat_extract_code/6-seizure_analysis/figures/*
+HUMAN/working_feat_extract_code/5-propagation/figures/*

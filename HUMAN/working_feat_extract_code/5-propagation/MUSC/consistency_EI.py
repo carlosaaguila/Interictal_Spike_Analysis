@@ -274,7 +274,7 @@ with ProcessPoolExecutor() as executor:
 
 overall_HFER.to_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/consistency/overall_hfer_11s.csv')
 
-overall_HFER = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/consistency/overall_hfer_11s.csv', index_col = 0)
+# overall_HFER = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/consistency/overall_hfer_11s.csv', index_col = 0)
 #%%
 #Get time bins - every 30 minutes.
 

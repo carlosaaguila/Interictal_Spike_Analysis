@@ -106,7 +106,7 @@ plt.yticks(fontsize = 12)
 #part to change
 plt.title(f'Outcome Analysis - 12m', fontsize=16)
 sns.despine()
-plt.savefig('ML_results/LR_elastic/outcome/outcomes_12m.pdf')
+# plt.savefig('ML_results/LR_elastic/outcome/outcomes_12m.pdf')
 plt.show()
 
 all_effect_szs = []

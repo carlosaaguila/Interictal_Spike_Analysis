@@ -6,9 +6,9 @@ sys.path.append(code_path)
 from delongs_test import *
 
 def main():
-    combined_preds = pd.read_csv('ML_results/LR_elastic/Combined_predictions.csv').rename(columns = {"Predicted_Probability":"combined_predprob"})
-    interictal_preds = pd.read_csv('ML_results/LR_elastic/Interictal_predictions.csv').rename(columns = {"Predicted_Probability":"interictal_predprob"})
-    ictal_preds = pd.read_csv('ML_results/LR_elastic/Ictal_predictions.csv').rename(columns = {"Predicted_Probability":"ictal_predprob"})
+    combined_preds = pd.read_csv('ML_results/LR_elastic_3fold/Combined_predictions.csv').rename(columns = {"Predicted_Probability":"combined_predprob"})
+    interictal_preds = pd.read_csv('ML_results/LR_elastic_3fold/Interictal_predictions.csv').rename(columns = {"Predicted_Probability":"interictal_predprob"})
+    ictal_preds = pd.read_csv('ML_results/LR_elastic_3fold/Ictal_predictions.csv').rename(columns = {"Predicted_Probability":"ictal_predprob"})
 
     merged_preds_v1 = combined_preds.merge(interictal_preds[['Patient_ID','interictal_predprob']], on='Patient_ID', how = "left")
     merged_preds = merged_preds_v1.merge(ictal_preds[['Patient_ID','ictal_predprob']], on = 'Patient_ID', how = "inner")
@@ -21,13 +21,13 @@ def main():
     print("COV:",cov1)
     print("p-value:",np.exp(np.log(10)*p1)) #needed extra math to calculate the ture p-val, this was implemented from the github
 
-    print('Difference between INTER-ONLY vs. ICTAL-ONLY:')
+    print('\nDifference between INTER-ONLY vs. ICTAL-ONLY:')
     auc2, cov2, p2 = (delong_roc_test(np.array(merged_preds['True_Label']), np.array(merged_preds['interictal_predprob']), np.array(merged_preds['ictal_predprob'])))
     print("AUC:",auc2)
     print("COV:",cov2)
     print("p-value:",np.exp(np.log(10)*p2))
 
-    print('Difference between INTER-ONLY vs. COMBINED:')
+    print('\nDifference between INTER-ONLY vs. COMBINED:')
     auc3, cov3, p3 = (delong_roc_test(np.array(merged_preds['True_Label']), np.array(merged_preds['interictal_predprob']), np.array(merged_preds['combined_predprob'])))
     print("AUC:",auc3)
     print("COV:",cov3)
@@ -58,9 +58,9 @@ def main():
 
     significant_p_values, threshold_p_value = benjamini_hochberg(p_values, desired_fdr)
 
-    print("P-values:", p_values)
-    print("Significant p-values:", significant_p_values)
-    print("Threshold p-value:", threshold_p_value)
+    print("\nP-values:", p_values)
+    print("\nSignificant p-values:", significant_p_values)
+    print("\nThreshold p-value:", threshold_p_value)
 
 if __name__=="__main__":
     main()

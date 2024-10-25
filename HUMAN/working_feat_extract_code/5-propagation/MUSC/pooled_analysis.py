@@ -42,8 +42,8 @@ take_spike_leads = False
 #WHAT DO YOU WANT TO REMOVE FROM THE CORE PLOT (CHOICES: 'frontal','mesial temporal','other cortex', 'temporal neocortical','temporal')
 soz_to_remove = ['temporal']
 
-# list_of_feats = ['spike_rate','recruitment_latency_thresh','decay_amp','sharpness','linelen','slow_amp', 'rise_amp','spike_width','']
-list_of_feats = ['spike_rate', 'rise_amp','decay_amp','sharpness','linelen','recruitment_latency_thresh','spike_width','slow_width','slow_amp', 'rise_slope','decay_slope','average_amp','rise_duration','decay_duration']
+list_of_feats = ['spike_rate','recruitment_latency_thresh','decay_amp','sharpness','linelen','slow_amp', 'rise_amp','spike_width','slow_width']
+# list_of_feats = ['spike_rate', 'rise_amp','decay_amp','sharpness','linelen','recruitment_latency_thresh','spike_width','slow_width','slow_amp', 'rise_slope','decay_slope','average_amp','rise_duration','decay_duration']
 # list_of_feats = ['spike_rate', 'rise_amp']
 
 
@@ -183,10 +183,6 @@ all_spikes_list = [MUSC_full, MUSC_thresh]
 # KEEP THE SAME SIDE, PLUS FOR BILATERAL TAKE BOTH SIDES
 
 # vs_other = True #CHANGE if you want to compare 2 groups, or 3. [False: you compare mtle, tle, other] [True: you compare mtle vs. other]
-# list_of_feats = ['spike_rate', 'rise_amp','decay_amp','sharpness','linelen','recruiment_latency','spike_width','slow_width','slow_amp']
-# list_of_feats = ['spike_rate','recruitment_latency_thresh','decay_amp','sharpness','linelen','slow_amp']
-list_of_feats = ['spike_rate', 'rise_amp','decay_amp','sharpness','linelen','recruitment_latency_thresh','spike_width','slow_width','slow_amp']
-
 df_to_use = []
 for Feat_of_interest in list_of_feats:
     if Feat_of_interest == 'recruitment_latency_thresh':
@@ -923,75 +919,75 @@ print(all_effect_szs)
 
 #%%
 #PEARSON PLOTS OTHER MORPHOLOGY
-plt.rcParams['font.family'] = 'Arial'
-pearson_df['SOZ'] = pearson_df['SOZ'].astype('category')
+# plt.rcParams['font.family'] = 'Arial'
+# pearson_df['SOZ'] = pearson_df['SOZ'].astype('category')
 
-new_metrics = ['linelen_corr', 'decay_amp_corr', 'slow_width_corr', 'slow_amp_corr', 
-               'rise_slope_corr', 'decay_slope_corr', 'average_amp_corr', 
-               'rise_duration_corr', 'decay_duration_corr']
+# new_metrics = ['linelen_corr', 'decay_amp_corr', 'slow_width_corr', 'slow_amp_corr', 
+#                'rise_slope_corr', 'decay_slope_corr', 'average_amp_corr', 
+#                'rise_duration_corr', 'decay_duration_corr']
 
-# Melt the dataframe to long format
-melted_pearson_df = pearson_df.melt(id_vars='SOZ', 
-                              value_vars=new_metrics,
-                              var_name='Metric', value_name='Value')
+# # Melt the dataframe to long format
+# melted_pearson_df = pearson_df.melt(id_vars='SOZ', 
+#                               value_vars=new_metrics,
+#                               var_name='Metric', value_name='Value')
 
-# Set up the matplotlib figure
-fig, ax = plt.subplots(1,1, figsize=(10,6))
+# # Set up the matplotlib figure
+# fig, ax = plt.subplots(1,1, figsize=(15,6))
 
-my_palette = {1:'#E64B35FF', 3:'#7E6148FF', 2:'#3C5488FF'}
-fig_args = {'x':'Metric',
-            'y':'Value',
-            'hue':'SOZ',
-            'data':melted_pearson_df,
-            'order': ['rise_amp_corr','sharpness_corr','spike_width_corr'],
-            'hue_order':[1,2,3]}
+# my_palette = {1:'#E64B35FF', 3:'#7E6148FF', 2:'#3C5488FF'}
+# fig_args = {'x':'Metric',
+#             'y':'Value',
+#             'hue':'SOZ',
+#             'data':melted_pearson_df,
+#             'order': new_metrics,
+#             'hue_order':[1,2,3]}
 
-# Generate significance comparisons for all pairs of SOZ values for each metric
-significanceComparisons = []
-for metric in new_metrics:
-    significanceComparisons.extend([
-        ((metric, 1), (metric, 3)),
-        ((metric, 1), (metric, 2)),
-        ((metric, 2), (metric, 3))
-    ])
+# # Generate significance comparisons for all pairs of SOZ values for each metric
+# significanceComparisons = []
+# for metric in new_metrics:
+#     significanceComparisons.extend([
+#         ((metric, 1), (metric, 3)),
+#         ((metric, 1), (metric, 2)),
+#         ((metric, 2), (metric, 3))
+#     ])
 
-sns.boxplot(ax=ax, showfliers = False, palette=my_palette, **fig_args)
-sns.stripplot(ax =ax, color = 'k', alpha = 0.5, dodge=True, jitter=True, size=5, **fig_args)
+# sns.boxplot(ax=ax, showfliers = False, palette=my_palette, **fig_args)
+# sns.stripplot(ax =ax, color = 'k', alpha = 0.5, dodge=True, jitter=True, size=5, **fig_args)
 
-annotator = Annotator(ax=ax, pairs=significanceComparisons,
-                    **fig_args, plot='boxplot')
+# annotator = Annotator(ax=ax, pairs=significanceComparisons,
+#                     **fig_args, plot='boxplot')
 
-# Assign Mann-Whitney U test p-values to the annotator
-test = 'Mann-Whitney'
-# comp = 'BH' #benjamani hochberg correction
-configuration = {'test':test,
-                    'comparisons_correction':None,
-                    'text_format':'star',
-                    'loc':'inside',
-                    'verbose':True,
-                    'hide_non_significant':True}
-annotator.configure(**configuration)
-annotator.apply_and_annotate()
+# # Assign Mann-Whitney U test p-values to the annotator
+# test = 'Mann-Whitney'
+# # comp = 'BH' #benjamani hochberg correction
+# configuration = {'test':test,
+#                     'comparisons_correction':None,
+#                     'text_format':'star',
+#                     'loc':'inside',
+#                     'verbose':True,
+#                     'hide_non_significant':True}
+# annotator.configure(**configuration)
+# annotator.apply_and_annotate()
 
-# Set plot title and labels
-plt.title('Distribution of Pearson Correlation by SOZ Type', fontsize = 28)
+# # Set plot title and labels
+# plt.title('Distribution of Pearson Correlation by SOZ Type', fontsize = 28)
 
-new_labels = ['Linelength', 'Decay Amplitude', 'Slow Wave Width', 'Slow Wave Amplitude', 
-               'Rising Slope', 'Decay Slope', 'Average Amplitude', 
-               'Rising Spike Width', 'Decay Spike Width']
-ax.set_xticklabels(new_labels, fontsize=16)
-plt.ylabel('Correlation Coef.', fontsize = 16)
-ax.set(xlabel=None)
+# new_labels = ['Linelength', 'Decay Amplitude', 'Slow Wave Width', 'Slow Wave Amplitude', 
+#                'Rising Slope', 'Decay Slope', 'Average Amplitude', 
+#                'Rising Spike Width', 'Decay Spike Width']
+# ax.set_xticklabels(new_labels, fontsize=20, rotation = 45, ha = 'right')
+# plt.ylabel('Correlation Coef.', fontsize = 20)
+# ax.set(xlabel=None)
 
-# Update the legend to prevent duplication
-handles, labels = ax.get_legend_handles_labels()
-ax.legend(handles[:3], ['mTLE', 'Neo', 'Other'], loc='upper right', fontsize=12, bbox_to_anchor=(1.05, 1))
+# # Update the legend to prevent duplication
+# handles, labels = ax.get_legend_handles_labels()
+# ax.legend(handles[:3], ['mTLE', 'Neo', 'Other'], loc='upper right', fontsize=20, bbox_to_anchor=(1.05, 1))
 
-# Show the plot
-sns.despine()
-plt.axhline(y=0, color='k', linestyle='--')
-plt.savefig(f'../figures/MUSC+HUP/official/MORPHOLOGY-OTHER-FEATS.pdf')
-plt.show()
+# # Show the plot
+# sns.despine()
+# plt.axhline(y=0, color='k', linestyle='--')
+# # plt.savefig(f'../figures/MUSC+HUP/official/MORPHOLOGY-OTHER-FEATS.pdf')
+# plt.show()
 
 # all_effect_szs = []
 # for comparison in significanceComparisons:
@@ -1031,7 +1027,7 @@ if vs_other == True:
     #change the x-tick labels to be more readable
     # plt.xticks(np.arange(3), ['Mesial Temporal', 'Neocortical', 'Other Cortex'], fontsize = 12)
     plt.xticks(np.arange(2), ['Mesial Temporal', 'Other'], fontsize = 12)
-    plt.yticks(fontsize = 12)
+    plt.ticks(fontsize = 12)
 
 if vs_other== False:
     my_palette = {1:'#E64B35FF', 3:'#7E6148FF', 2:'#3C5488FF'}
@@ -1359,3 +1355,62 @@ plt.tight_layout(rect=[0, 0, 0.95, 0.95])
 # plt.savefig('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/figures/MUSC+HUP/official/choosing_feats.pdf')
 
 plt.show()
+# %%
+import seaborn as sns
+import matplotlib.pyplot as plt
+import numpy as np
+
+plt.rcParams['font.family'] = 'Arial'
+
+# Assuming morphology_df is your DataFrame with the feature data
+corr_matrix = morphology_df.drop(columns = ['Spike Width','Slow Wave Amplitude']).corr()
+
+# Set up the matplotlib figure
+fig = plt.figure(figsize=(14, 10))
+
+# Create the clustermap
+g = sns.clustermap(corr_matrix,
+                   cmap='viridis',
+                   center=0,
+                   vmin=-1,
+                   vmax=1,
+                   dendrogram_ratio=(0.2, 0),
+                   cbar_pos=(0.02, 0.7, 0.05, 0.18),
+                   tree_kws={'color': 'black'},
+                   figsize=(14, 10))
+
+# Adjust the layout
+g.ax_row_dendrogram.set_visible(True)
+g.ax_col_dendrogram.set_visible(False)
+
+# Move the main axes (heatmap) to the right
+g.ax_heatmap.set_position([0.3, 0.1, 0.6, 0.8])
+
+# Move the row dendrogram to the left
+g.ax_row_dendrogram.set_position([0.05, 0.1, 0.15, 0.8])
+
+# Remove default y-axis labels
+g.ax_heatmap.set_yticks([])
+
+# Add centered y-axis labels
+for i, label in enumerate(corr_matrix.index):
+    g.ax_heatmap.text(-0.05, i + 0.5, label, 
+                      va='center', ha='right',
+                      transform=g.ax_heatmap.get_yaxis_transform())
+
+# Rotate x-axis labels
+g.ax_heatmap.set_xticklabels(g.ax_heatmap.get_xticklabels(), rotation=90, ha='center')
+
+# Adjust colorbar position
+g.cax.set_position([0.92, 0.1, 0.02, 0.8])
+
+# Add title
+plt.suptitle('Correlation between Morphology Features', fontsize=30, fontweight='bold', y=1.02)
+
+# Adjust layout
+plt.tight_layout(rect=[0, 0, 0.95, 0.95])
+plt.savefig('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/figures/MUSC+HUP/official/choosing_feats_noslow.pdf')
+
+plt.show()
+
+# %%
