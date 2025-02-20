@@ -114,6 +114,7 @@ except IOError as e:
 df_prog = pd.read_csv('/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/complete_dfs/musc_spikes_with_gamma.csv', index_col=0)
 
 for i, filename in tqdm(enumerate(filenames)):
+    print(filename)
     try:
         sub_df = MUSC_SPIKES[MUSC_SPIKES.filename == filename].sample(n=1000, random_state=42)
     except: 
