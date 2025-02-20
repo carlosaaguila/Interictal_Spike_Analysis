@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 import warnings
 warnings.filterwarnings('ignore')
+from sklearn.linear_model import LinearRegression
 
 # Import custom functions
 import sys, os
@@ -144,7 +145,7 @@ for i, df in enumerate(ALL_HUP_FEATS[1:], start=2):
 #######################
 
 ## load the spike data
-MUSC_spikes = pd.read_csv('../dataset/complete_dfs/MUSC_full.csv', index_col=0)
+MUSC_spikes = pd.read_csv('../dataset/complete_dfs/MUSC_thresholded.csv', index_col=0)
 
 #load SOZ corrections
 MUSC_sozs = pd.read_excel('/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2/pt_data/MUSC-soz-corrections.xlsx')
@@ -330,7 +331,9 @@ from sklearn.preprocessing import MinMaxScaler
 corr_df = pd.DataFrame()
 pearson_df = pd.DataFrame()
 slope_df = pd.DataFrame()
+LR_df = pd.DataFrame()
 
+#%%
 for Feat_of_interest in list_of_feats:
     all_spikes_avg = merged_df.pivot_table(index=['pt_id','SOZ'], columns='channel_label', values=Feat_of_interest)
     if '' in all_spikes_avg.columns:
@@ -426,6 +429,32 @@ for Feat_of_interest in list_of_feats:
     #########################
     # Generate Correlations #
     #########################
+
+    #Look to grab LR fitted coefficient
+    channel_labels = ['1','2','3','4','5','6','7','8','9','10','11','12']
+    channel_labels = [int(x) for x in channel_labels]
+    coefs = []
+    r_squared = []
+    label = []
+    for row in range(len(all_spikes_avg)):
+        y = all_spikes_avg.iloc[row].to_list()
+        X = np.array([x for i,x in enumerate(channel_labels) if not np.isnan(y[i])]).reshape(-1,1)
+        y = [val for val in y if not np.isnan(val)]
+
+        label.append(all_spikes_avg.index[row]) 
+        model = LinearRegression()
+        model.fit(X, y)
+        # Get the slope (coefficient) and intercept
+        coefs.append(model.coef_[0])
+        # Calculate R-squared
+        r_squared.append(model.score(X, y))
+
+
+    df = pd.DataFrame(np.array([coefs, r_squared]).transpose(), columns=[f'{Feat_of_interest}_LR_coef', f'{Feat_of_interest}_r_squared'])
+    LR_df[f'{Feat_of_interest}_LR_coef'] = df[[f'{Feat_of_interest}_LR_coef']]
+    LR_df['SOZ'] = [x[1] for x in label]
+    LR_df['pt_id'] = [x[0] for x in label]
+
 
     #find the spearman correlation of each row in all_spikes_avg
     #initialize a list to store the spearman correlation
@@ -542,6 +571,7 @@ for Feat_of_interest in list_of_feats:
         corr_df['SOZ'] = corr_df.apply(soz_assigner, axis = 1)
         pearson_df['SOZ'] = pearson_df.apply(soz_assigner, axis = 1)
         slope_df['SOZ'] = slope_df.apply(soz_assigner, axis = 1)
+        LR_df['SOZ'] = LR_df.apply(soz_assigner,axis = 1)
 
 
 # # %%
@@ -647,7 +677,7 @@ for Feat_of_interest in list_of_feats:
 #PEARSON PLOTS MORPHOLOGY
 plt.rcParams['font.family'] = 'Arial'
 pearson_df['SOZ'] = pearson_df['SOZ'].astype('category')
-
+corr_df['SOZ'] = corr_df['SOZ'].astype('category')
 # Melt the dataframe to long format
 melted_pearson_df = pearson_df.melt(id_vars='SOZ', 
                               value_vars=['rise_amp_corr', 'sharpness_corr', 'spike_width_corr'],
@@ -723,8 +753,8 @@ if one_tailed == True:
     for comparison in significanceComparisons:
         metric, soz1 = comparison[0]
         _, soz2 = comparison[1]
-        group1 = melted_corr_df[(melted_corr_df['Metric'] == metric) & (melted_corr_df['SOZ'] == soz1)]['Value']
-        group2 = melted_corr_df[(melted_corr_df['Metric'] == metric) & (melted_corr_df['SOZ'] == soz2)]['Value']
+        group1 = melted_pearson_df[(melted_pearson_df['Metric'] == metric) & (melted_pearson_df['SOZ'] == soz1)]['Value']
+        group2 = melted_pearson_df[(melted_pearson_df['Metric'] == metric) & (melted_pearson_df['SOZ'] == soz2)]['Value']
         if soz1 == 1:
             u_stat, p_value = mannwhitneyu(group1, group2, alternative='less')
         else:

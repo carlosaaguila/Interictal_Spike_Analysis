@@ -195,11 +195,12 @@ for index, row in pt_files.iterrows():
         else:
             print(f"Detected {len(spike_output)} spikes")
 
+        break
         ##############################
         # Extract spike morphologies
         ##############################
 
-        #                                                                                           FIX HERE. TRY TO FIGURE OUT THAT THIS WILL WORK.
+        #FIX HERE. TRY TO FIGURE OUT THAT THIS WILL WORK.
         # Preallocate the result array
         spike_output_to_save = np.empty((spike_output.shape[0], 17), dtype=object)
         spike_output_to_save[:, :] = np.NaN  # Fill with NaNs

@@ -1,0 +1,91 @@
+Log file created at: /mnt/sauce/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/Revisions/ML_results/6_sets/logistic_regression_results_20250217_233148.log
+
+Results for Combined:
+AUC: 0.823 (95% CI: 0.705 - 0.924)
+
+Feature Importance for Combined:
+                           Feature  Importance
+0                  spike_rate_corr    1.226718
+9                      correlation    0.606682
+1                    rise_amp_corr    0.247159
+3                   sharpness_corr    0.114977
+2                   decay_amp_corr    0.086702
+5  recruitment_latency_thresh_corr    0.040131
+6                 spike_width_corr    0.029909
+7                  slow_width_corr    0.010185
+4                     linelen_corr    0.009056
+8                    slow_amp_corr    0.003077
+
+Precision-Recall Analysis for Combined:
+Average Precision: 0.838
+
+Results for Interictal:
+AUC: 0.753 (95% CI: 0.603 - 0.890)
+
+Feature Importance for Interictal:
+                           Feature  Importance
+0                  spike_rate_corr    1.270683
+6                 spike_width_corr    0.032874
+1                    rise_amp_corr    0.024118
+7                  slow_width_corr    0.014513
+3                   sharpness_corr    0.014216
+5  recruitment_latency_thresh_corr    0.005428
+4                     linelen_corr    0.000846
+2                   decay_amp_corr    0.000524
+8                    slow_amp_corr    0.000000
+
+Precision-Recall Analysis for Interictal:
+Average Precision: 0.751
+
+Results for Ictal:
+AUC: 0.695 (95% CI: 0.546 - 0.831)
+
+Feature Importance for Ictal:
+       Feature  Importance
+0  correlation    0.491122
+
+Precision-Recall Analysis for Ictal:
+Average Precision: 0.684
+
+Results for MTL Spike Rate:
+AUC: 0.709 (95% CI: 0.584 - 0.819)
+
+Feature Importance for MTL Spike Rate:
+               Feature  Importance
+0  spike_rate_two_mean    0.959372
+
+Precision-Recall Analysis for MTL Spike Rate:
+Average Precision: 0.842
+
+Results for MTL Interictal:
+AUC: 0.749 (95% CI: 0.611 - 0.871)
+
+Feature Importance for MTL Interictal:
+                                Feature  Importance
+10                 decay_slope_two_mean    0.246368
+0                   spike_rate_two_mean    0.229499
+2                    decay_amp_two_mean    0.161514
+4                      linelen_two_mean    0.152173
+11                 average_amp_two_mean    0.143896
+3                    sharpness_two_mean    0.136299
+9                   rise_slope_two_mean    0.111784
+7                   slow_width_two_mean    0.105226
+1                     rise_amp_two_mean    0.098421
+8                     slow_amp_two_mean    0.056700
+6                  spike_width_two_mean    0.031741
+12               rise_duration_two_mean    0.018913
+5   recruitment_latency_thresh_two_mean    0.009953
+13              decay_duration_two_mean    0.009813
+
+Precision-Recall Analysis for MTL Interictal:
+Average Precision: 0.774
+
+Results for Pearson - Spike Rate:
+AUC: 0.810 (95% CI: 0.690 - 0.921)
+
+Feature Importance for Pearson - Spike Rate:
+           Feature  Importance
+0  spike_rate_corr    1.965644
+
+Precision-Recall Analysis for Pearson - Spike Rate:
+Average Precision: 0.827

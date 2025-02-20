@@ -1,0 +1,15 @@
+Feature,Importance
+decay_slope_two_mean,0.2463676984489267
+spike_rate_two_mean,0.22949925701245738
+decay_amp_two_mean,0.16151404232232414
+linelen_two_mean,0.15217344789872403
+average_amp_two_mean,0.14389608553184396
+sharpness_two_mean,0.1362990473066751
+rise_slope_two_mean,0.11178416419729771
+slow_width_two_mean,0.10522595868119049
+rise_amp_two_mean,0.09842114908378112
+slow_amp_two_mean,0.05670001518024513
+spike_width_two_mean,0.031741044884655886
+rise_duration_two_mean,0.018912506097867852
+recruitment_latency_thresh_two_mean,0.009953394866984017
+decay_duration_two_mean,0.009812610146553248

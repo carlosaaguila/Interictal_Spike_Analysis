@@ -1,0 +1,11 @@
+Feature,Importance
+spike_rate_corr,1.2271168282163085
+correlation,0.6065853844902281
+rise_amp_corr,0.24678758078102556
+sharpness_corr,0.1149574424238179
+decay_amp_corr,0.08666450206202446
+recruitment_latency_thresh_corr,0.04011741505415348
+spike_width_corr,0.029903979899095143
+slow_width_corr,0.01018334569036158
+linelen_corr,0.00904268852575684
+slow_amp_corr,0.0030859724224659747

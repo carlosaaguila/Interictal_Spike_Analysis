@@ -1,7 +1,96 @@
 import numpy as np
 import concurrent.futures
 from scipy import signal as sig
+from iEEG_helper_functions import notch_filter, bandpass_filter
+import pywt
 
+def compute_gamma(segment, fs, left_point, right_point, slow_end):
+
+    """
+    Detect preceding gamma activity in a spike segment (Python implementation)
+    
+    Parameters:
+        segment (array): EEG segment with spike at center (bandpassed from 30-100Hz)
+        fs (float): Sampling frequency (Hz) (MUST BE 500, to line up p1 and n2)
+        p1 (int): Spike onset sample (0-based) (left_point)
+        n2 (int): Spike end sample (0-based) (right_point)
+    
+    Returns:
+        list: [max_gamma_power, gamma_freq, duration_ms] or [0,0,0]
+    """
+
+    p1 = left_point
+
+    if slow_end > right_point:
+        n2 = slow_end
+    else:
+        n2 = right_point
+
+    # Initialize output
+    win = fs
+    f_gamma = segment
+    
+    # Create wavelet parameters matching MATLAB's cwtfilterbank
+    freqs = np.arange(30, 100.1, 0.5)  # Equivalent to VoicesPerOctave=40
+    scales = pywt.frequency2scale('cmor1.5-1.0', freqs/fs)
+    
+    # Compute CWT using complex Morlet wavelet
+    coeffs, freqs = pywt.cwt(f_gamma, scales, 'cmor1.5-1.0', sampling_period=1/fs)
+    gamma_sig = np.abs(coeffs)
+    
+    # Create baseline mask
+    baseline_start = p1 - fs//2
+    todelete = np.concatenate([
+        np.arange(0, baseline_start),
+        np.arange(p1, n2 + 1),
+        np.arange(n2 + fs//2 + 1, gamma_sig.shape[1])
+    ])
+    
+    # Calculate power thresholds
+    gamma_baseline = np.delete(gamma_sig, todelete, axis=1)
+    gamma_mean = np.mean(gamma_baseline, axis=1, keepdims=True)
+    pow_thresh = 2 * np.std(gamma_baseline, axis=1, keepdims=True)
+    gamma_thresh = gamma_mean + pow_thresh
+    
+    # Threshold detection
+    gamma_2sd = gamma_sig > gamma_thresh
+    
+    # Zero out unwanted regions
+    gamma_2sd[:, :baseline_start + 1] = 0
+    gamma_2sd[:, p1:] = 0
+    
+    # Duration thresholds (3 cycles)
+    dur_thresh = 3 * (1 / freqs) * fs
+    valid_freqs = []
+    gamma_pows = []
+    gamma_durs = []
+    
+    # Analyze each frequency component
+    for i in range(len(freqs)):
+        signal = gamma_2sd[i, :]
+        starts = []
+        ends = []
+        
+        # Find contiguous segments
+        diff_sig = np.diff(np.concatenate(([0], signal, [0])))
+        starts = np.where(diff_sig == 1)[0]
+        ends = np.where(diff_sig == -1)[0]
+        
+        for start, end in zip(starts, ends):
+            if (p1 - end) <= 0.19 * fs:  # Within 190ms of spike
+                duration = end - start
+                if duration >= dur_thresh[i]:
+                    valid_freqs.append(freqs[i])
+                    gamma_pows.append(np.mean(gamma_sig[i, start:end]))
+                    gamma_durs.append(duration)
+    
+    # Select highest frequency component if found
+    if valid_freqs:
+        max_idx = np.argmax(valid_freqs)
+        duration_ms = (gamma_durs[max_idx]/fs) * 1000
+        return [gamma_pows[max_idx], valid_freqs[max_idx], duration_ms]
+    
+    return [0.0, 0.0, 0.0]
 
 def eeg_filter(signal, fc, filttype, fs):
     """
