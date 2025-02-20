@@ -111,12 +111,16 @@ except IOError as e:
     print(f"Error: Unable to create or write to log file. {e}")
     sys.exit(1)
 
+df_prog = pd.read_csv('/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/complete_dfs/musc_spikes_with_gamma.csv', index_col=0)
+
 for i, filename in tqdm(enumerate(filenames)):
     try:
         sub_df = MUSC_SPIKES[MUSC_SPIKES.filename == filename].sample(n=1000, random_state=42)
     except: 
         sub_df = MUSC_SPIKES[MUSC_SPIKES.filename == filename]
-    
+
+    if filename in df_prog.filename.unique():
+        continue
     #grab dataset name
     dataset_name = filename
     load_attempt = 1
