@@ -93,12 +93,20 @@ except IOError as e:
     print(f"Error: Unable to create or write to log file. {e}")
     sys.exit(1)
 
+df_prog = pd.read_csv('/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/complete_dfs/hup_spikes_with_gamma.csv', index_col=0)
+
 for i, filename in tqdm(enumerate(filenames)):
+    print(f"starting: {filename}")
     try:
         sub_df = HUP_SPIKES[HUP_SPIKES.filename == filename].sample(n=1000, random_state=42)
     except: 
         sub_df = HUP_SPIKES[HUP_SPIKES.filename == filename]
 
+    if filename in df_prog.filename.unique():
+        print(f"Skipping {filename} as it is already in the dataframe")
+        continue
+    
+    #grab dataset name
     dataset_name = filename
     load_attempt = 1
 
@@ -125,7 +133,6 @@ for i, filename in tqdm(enumerate(filenames)):
         ]
         
         peak_time_usec = row.peak_time_usec
-
         ieeg_data, fs = get_iEEG_data2(
             "aguilac",
             password_bin_filepath,
