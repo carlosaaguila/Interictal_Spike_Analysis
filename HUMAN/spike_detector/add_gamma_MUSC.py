@@ -144,51 +144,59 @@ for i, filename in tqdm(enumerate(filenames)):
                 continue    
 
     for index, row in sub_df.iterrows():
+        try:
+            #load data
+            all_channel_labels = np.array(dataset.get_channel_labels())
+            channel_labels_to_download = all_channel_labels[
+                electrode_selection(all_channel_labels)
+            ]
 
-        #load data
-        all_channel_labels = np.array(dataset.get_channel_labels())
-        channel_labels_to_download = all_channel_labels[
-            electrode_selection(all_channel_labels)
-        ]
+            peak_time_usec = row.peak_time_usec
 
-        peak_time_usec = row.peak_time_usec
-        ieeg_data, fs = get_iEEG_data2(
-            "aguilac",
-            password_bin_filepath,
-            dataset_name,
-            peak_time_usec - 2e6,
-            peak_time_usec + 2e6,
-            channel_labels_to_download,
-        )
+            ieeg_data, fs = get_iEEG_data2(
+                "aguilac",
+                password_bin_filepath,
+                dataset_name,
+                peak_time_usec - 2e6,
+                peak_time_usec + 2e6,
+                channel_labels_to_download,
+            )
 
-        hup_id = row.pt_id
-        fs=int(fs)
-        #redo the labels (clean)
-        channel_labels_to_download = [decompose_labels(x, hup_id) for x in channel_labels_to_download]
-        ieeg_data.columns = channel_labels_to_download
+            hup_id = row.pt_id
+            fs=int(fs)
+            #redo the labels (clean)
+            channel_labels_to_download = [decompose_labels(x, hup_id) for x in channel_labels_to_download]
+            ieeg_data.columns = channel_labels_to_download
 
-        ch_label = row.channel_label
-        signal = ieeg_data[ch_label]
+            ch_label = row.channel_label
+            signal = ieeg_data[ch_label]
 
-        if fs>500:
-            signal = resample(np.array(signal), fs, 500)
-        fs = 500
+            if fs>500:
+                signal = resample(np.array(signal), fs, 500)
+            fs = 500
 
-        signal = notch_filter(signal,60, fs)
-        signal = bandpass_filter(signal, 30, 100, fs, order = 3)
+            signal = notch_filter(signal,60, fs)
+            signal = bandpass_filter(signal, 30, 100, fs, order = 3)
 
-        # get points
-        left_point = row['left_point']
-        right_point = row['right_point']
-        slow_end = row['slow_end']
-        peak = row['peak']
-        middle_point = len(signal)/2 + peak 
+            # get points
+            left_point = row['left_point']
+            right_point = row['right_point']
+            slow_end = row['slow_end']
+            peak = row['peak']
+            middle_point = len(signal)/2 + peak 
 
-        max_gamma_power, gamma_freq, dur_gamma = compute_gamma(signal, fs, left_point, right_point, slow_end)
-        # Update main dataframe with gamma metrics
-        sub_df.at[row.name, 'max_gamma_power'] = max_gamma_power
-        sub_df.at[row.name, 'gamma_freq'] = gamma_freq
-        sub_df.at[row.name, 'dur_gamma'] = dur_gamma
+            max_gamma_power, gamma_freq, dur_gamma = compute_gamma(signal, fs, left_point, right_point, slow_end)
+                        
+            # Update main dataframe with gamma metrics
+            sub_df.at[row.name, 'max_gamma_power'] = max_gamma_power
+            sub_df.at[row.name, 'gamma_freq'] = gamma_freq
+            sub_df.at[row.name, 'dur_gamma'] = dur_gamma
+        except:
+            max_gamma_power,gamma_freq,dur_gamma = 9999.5555
+            # Update main dataframe with gamma metrics
+            sub_df.at[row.name, 'max_gamma_power'] = max_gamma_power
+            sub_df.at[row.name, 'gamma_freq'] = gamma_freq
+            sub_df.at[row.name, 'dur_gamma'] = dur_gamma
 
     if i == 0:
         sub_df.to_csv('/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/complete_dfs/musc_spikes_with_gamma.csv')
