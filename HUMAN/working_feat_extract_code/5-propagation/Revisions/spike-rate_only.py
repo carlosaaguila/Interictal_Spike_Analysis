@@ -43,8 +43,8 @@ take_spike_leads = False
 soz_to_remove = ['temporal']
 
 # list_of_feats = ['spike_rate','recruitment_latency_thresh']
-list_of_feats = ['spike_rate', 'rise_amp','decay_amp','sharpness','linelen','recruitment_latency_thresh','spike_width','slow_width','slow_amp', 'rise_slope','decay_slope','average_amp','rise_duration','decay_duration']
-# list_of_feats = ['spike_rate', 'rise_amp']
+# list_of_feats = ['spike_rate', 'rise_amp','decay_amp','sharpness','linelen','recruitment_latency_thresh','spike_width','slow_width','slow_amp', 'rise_slope','decay_slope','average_amp','rise_duration','decay_duration']
+list_of_feats = ['spike_rate', 'rise_amp']
 
 
 df_to_use = []
@@ -76,7 +76,8 @@ for i, Feat_of_interest in enumerate(list_of_feats):
     # all_spikes = all_spikes[~all_spikes['SOZ'].str.contains('other')].reset_index(drop=True)
 
     #channels to keep 
-    chs_tokeep = ['RA','LA','RDA','LDA','LH','RH','LDH','RDH','DA','DH','DHA','LB','LDB','LC','LDC','RB','RDB','RC','RDC']
+    # chs_tokeep = ['RA','LA','RDA','LDA','LH','RH','LDH','RDH','DA','DH','DHA','LB','LDB','LC','LDC','RB','RDB','RC','RDC']
+    chs_tokeep = ['RA','LA','RDA','LDA','LDH','RDH','LHD', 'RHD','DA','DH','DHA','LB','LDB','LC','LDC','RB','RDB','RC','RDC']
 
     #if channel_label contains any of the strings in chs_tokeep, keep it
     all_spikes = all_spikes[all_spikes['channel_label'].str.contains('|'.join(chs_tokeep))].reset_index(drop=True)
@@ -100,8 +101,10 @@ for i, Feat_of_interest in enumerate(list_of_feats):
     non_mesial_temp_spikes = all_spikes[~all_spikes['SOZ'].str.contains('mesial')].reset_index(drop=True)
 
     #remove any 'channel_label' that contains the letter T or F
-    mesial_temp_spikes = mesial_temp_spikes[~mesial_temp_spikes['channel_label'].str.contains('T|F|P|RCC|RCA|RAD|LAD|LHD|RHD|LDAH|RDAH|RCB|Z')].reset_index(drop=True)
-    non_mesial_temp_spikes = non_mesial_temp_spikes[~non_mesial_temp_spikes['channel_label'].str.contains('T|F|P|RCC|RCA|RAD|LAD|LHD|RHD|LDAH|RDAH|RCB|Z')].reset_index(drop=True)
+    # mesial_temp_spikes = mesial_temp_spikes[~mesial_temp_spikes['channel_label'].str.contains('T|F|P|RCC|RCA|RAD|LAD|LHD|RHD|LDAH|RDAH|RCB|Z')].reset_index(drop=True)
+    # non_mesial_temp_spikes = non_mesial_temp_spikes[~non_mesial_temp_spikes['channel_label'].str.contains('T|F|P|RCC|RCA|RAD|LAD|LHD|RHD|LDAH|RDAH|RCB|Z')].reset_index(drop=True)
+    mesial_temp_spikes = mesial_temp_spikes[~mesial_temp_spikes['channel_label'].str.contains('T|F|P|RCC|RCA|RCB|Z')].reset_index(drop=True)
+    non_mesial_temp_spikes = non_mesial_temp_spikes[~non_mesial_temp_spikes['channel_label'].str.contains('T|F|P|RCC|RCA|RCB|Z')].reset_index(drop=True)
 
     ########################################
     # 2. Filter Elecs, Group, and Analysis #
@@ -559,9 +562,6 @@ for Feat_of_interest in list_of_feats:
         corr_df['SOZ'] = corr_df.apply(soz_assigner, axis = 1)
         pearson_df['SOZ'] = pearson_df.apply(soz_assigner, axis = 1)
         slope_df['SOZ'] = slope_df.apply(soz_assigner, axis = 1)
-    
-        
-
 
 # %%
 #Spike Rate in MTL
@@ -609,11 +609,11 @@ if vs_other== False:
 #part to change
 plt.title('Average MTL Spike Rate per SOZ type', fontsize=16)
 sns.despine()
-if vs_other == True:
-    plt.savefig(f'../figures/MUSC+HUP/official/spike_rate_pearon_CLEAN.pdf')
-if vs_other == False:
-    plt.savefig(f'/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/Revisions/{column_to_plot}.pdf')
-plt.show()
+# if vs_other == True:
+#     plt.savefig(f'../figures/MUSC+HUP/official/spike_rate_pearon_CLEAN.pdf')
+# if vs_other == False:
+#     plt.savefig(f'/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/Revisions/{column_to_plot}.pdf')
+# plt.show()
 
 all_effect_szs = []
 for comparison in pairs:
