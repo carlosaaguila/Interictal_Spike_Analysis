@@ -104,19 +104,19 @@ with open(password_bin_filepath, "r") as f:
 #%%
 filenames = MUSC_SPIKES['filename'].unique()
 
-log_file = os.path.join("/users/aguilac/Interictal_Spike_Analysis/HUMAN/spike_detector/logs_gamma", f"musc_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
+log_file = os.path.join("/users/aguilac/Interictal_Spike_Analysis/HUMAN/spike_detector/logs_gamma", f"full_musc_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
 try:
     sys.stdout = open(log_file, 'w')
 except IOError as e:
     print(f"Error: Unable to create or write to log file. {e}")
     sys.exit(1)
 
-df_prog = pd.read_csv('/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/complete_dfs/musc_spikes_with_gamma.csv', index_col=0)
+df_prog = pd.read_csv('/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/complete_dfs/full_musc_spikes_with_gamma.csv', index_col=0)
 
 for i, filename in tqdm(enumerate(filenames)):
     print(f"starting: {filename}")
     try:
-        sub_df = MUSC_SPIKES[MUSC_SPIKES.filename == filename].sample(n=1000, random_state=42)
+        sub_df = MUSC_SPIKES[MUSC_SPIKES.filename == filename].sample(n=10000, random_state=42)
     except: 
         sub_df = MUSC_SPIKES[MUSC_SPIKES.filename == filename]
 
@@ -199,6 +199,6 @@ for i, filename in tqdm(enumerate(filenames)):
             sub_df.at[row.name, 'dur_gamma'] = dur_gamma
 
     if i == 0:
-        sub_df.to_csv('/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/complete_dfs/musc_spikes_with_gamma.csv')
+        sub_df.to_csv('/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/complete_dfs/full_musc_spikes_with_gamma.csv')
     else: 
-        sub_df.to_csv('/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/complete_dfs/musc_spikes_with_gamma.csv', mode = 'a', header = False)
+        sub_df.to_csv('/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/complete_dfs/full_musc_spikes_with_gamma.csv', mode = 'a', header = False)

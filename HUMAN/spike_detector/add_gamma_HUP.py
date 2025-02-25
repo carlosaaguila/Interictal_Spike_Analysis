@@ -43,7 +43,9 @@ all_spikes = spikes_thresh
 soz_to_remove = ['temporal']
 
 #channels to keep 
-chs_tokeep = ['RA','LA','RDA','LDA','LH','RH','LDH','RDH','DA','DH','DHA','LB','LDB','LC','LDC','RB','RDB','RC','RDC']
+# chs_tokeep = ['RA','LA','RDA','LDA','LH','RH','LDH','RDH','DA','DH','DHA','LB','LDB','LC','LDC','RB','RDB','RC','RDC']
+chs_tokeep = ['RA','LA','RDA','LDA','LDH','RDH','LHD', 'RHD','DA','DH','DHA','LB','LDB','LC','LDC','RB','RDB','RC','RDC']
+
 
 #if channel_label contains any of the strings in chs_tokeep, keep it
 all_spikes = all_spikes[all_spikes['channel_label'].str.contains('|'.join(chs_tokeep))].reset_index(drop=True)
@@ -67,8 +69,11 @@ mesial_temp_spikes = all_spikes[all_spikes['SOZ'].str.contains('mesial')].reset_
 non_mesial_temp_spikes = all_spikes[~all_spikes['SOZ'].str.contains('mesial')].reset_index(drop=True)
 
 #remove any 'channel_label' that contains the letter T or F
-mesial_temp_spikes = mesial_temp_spikes[~mesial_temp_spikes['channel_label'].str.contains('T|F|P|RCC|RCA|RAD|LAD|LHD|RHD|LDAH|RDAH|RCB|Z')].reset_index(drop=True)
-non_mesial_temp_spikes = non_mesial_temp_spikes[~non_mesial_temp_spikes['channel_label'].str.contains('T|F|P|RCC|RCA|RAD|LAD|LHD|RHD|LDAH|RDAH|RCB|Z')].reset_index(drop=True)
+# mesial_temp_spikes = mesial_temp_spikes[~mesial_temp_spikes['channel_label'].str.contains('T|F|P|RCC|RCA|RAD|LAD|LHD|RHD|LDAH|RDAH|RCB|Z')].reset_index(drop=True)
+# non_mesial_temp_spikes = non_mesial_temp_spikes[~non_mesial_temp_spikes['channel_label'].str.contains('T|F|P|RCC|RCA|RAD|LAD|LHD|RHD|LDAH|RDAH|RCB|Z')].reset_index(drop=True)
+
+mesial_temp_spikes = mesial_temp_spikes[~mesial_temp_spikes['channel_label'].str.contains('T|F|P|RCC|RCA|RCB|Z')].reset_index(drop=True)
+non_mesial_temp_spikes = non_mesial_temp_spikes[~non_mesial_temp_spikes['channel_label'].str.contains('T|F|P|RCC|RCA|RCB|Z')].reset_index(drop=True)
 
 all_spikes = pd.concat([mesial_temp_spikes, non_mesial_temp_spikes], axis=0).reset_index(drop=True)
 
@@ -86,19 +91,19 @@ with open(password_bin_filepath, "r") as f:
 #%%
 filenames = HUP_SPIKES['filename'].unique()
 
-log_file = os.path.join("/users/aguilac/Interictal_Spike_Analysis/HUMAN/spike_detector/logs_gamma", f"hup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
+log_file = os.path.join("/users/aguilac/Interictal_Spike_Analysis/HUMAN/spike_detector/logs_gamma", f"FULL_hup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
 try:
     sys.stdout = open(log_file, 'w')
 except IOError as e:
     print(f"Error: Unable to create or write to log file. {e}")
     sys.exit(1)
 
-df_prog = pd.read_csv('/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/complete_dfs/hup_spikes_with_gamma.csv', index_col=0)
+df_prog = pd.read_csv('/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/complete_dfs/full_hup_spikes_with_gamma.csv', index_col=0)
 
 for i, filename in tqdm(enumerate(filenames)):
     print(f"starting: {filename}")
     try:
-        sub_df = HUP_SPIKES[HUP_SPIKES.filename == filename].sample(n=1000, random_state=42)
+        sub_df = HUP_SPIKES[HUP_SPIKES.filename == filename].sample(n=10000, random_state=42)
     except: 
         sub_df = HUP_SPIKES[HUP_SPIKES.filename == filename]
 
@@ -126,52 +131,59 @@ for i, filename in tqdm(enumerate(filenames)):
                 continue    
 
     for index, row in sub_df.iterrows():
-        #load data
-        all_channel_labels = np.array(dataset.get_channel_labels())
-        channel_labels_to_download = all_channel_labels[
-            electrode_selection(all_channel_labels)
-        ]
-        
-        peak_time_usec = row.peak_time_usec
-        ieeg_data, fs = get_iEEG_data2(
-            "aguilac",
-            password_bin_filepath,
-            dataset_name,
-            peak_time_usec - 2e6,
-            peak_time_usec + 2e6,
-            channel_labels_to_download,
-        )
+        try:
+            #load data
+            all_channel_labels = np.array(dataset.get_channel_labels())
+            channel_labels_to_download = all_channel_labels[
+                electrode_selection(all_channel_labels)
+            ]
+            
+            peak_time_usec = row.peak_time_usec
+            ieeg_data, fs = get_iEEG_data2(
+                "aguilac",
+                password_bin_filepath,
+                dataset_name,
+                peak_time_usec - 2e6,
+                peak_time_usec + 2e6,
+                channel_labels_to_download,
+            )
 
-        hup_id = row.pt_id
-        fs=int(fs)
-        #redo the labels (clean)
-        channel_labels_to_download = [decompose_labels(x, hup_id) for x in channel_labels_to_download]
-        ieeg_data.columns = channel_labels_to_download
+            hup_id = row.pt_id
+            fs=int(fs)
+            #redo the labels (clean)
+            channel_labels_to_download = [decompose_labels(x, hup_id) for x in channel_labels_to_download]
+            ieeg_data.columns = channel_labels_to_download
 
-        ch_label = row.channel_label
-        signal = ieeg_data[ch_label]
+            ch_label = row.channel_label
+            signal = ieeg_data[ch_label]
 
-        if fs>500:
-            signal = resample(np.array(signal), fs, 500)
-        fs = 500
+            if fs>500:
+                signal = resample(np.array(signal), fs, 500)
+            fs = 500
 
-        signal = notch_filter(signal,60, fs)
-        signal = bandpass_filter(signal, 30, 100, fs, order = 3)
+            signal = notch_filter(signal,60, fs)
+            signal = bandpass_filter(signal, 30, 100, fs, order = 3)
 
-        # get points
-        left_point = row['left_point']
-        right_point = row['right_point']
-        slow_end = row['slow_end']
-        peak = row['peak']
-        middle_point = len(signal)/2 + peak 
+            # get points
+            left_point = row['left_point']
+            right_point = row['right_point']
+            slow_end = row['slow_end']
+            peak = row['peak']
+            middle_point = len(signal)/2 + peak 
 
-        max_gamma_power, gamma_freq, dur_gamma = compute_gamma(signal, fs, left_point, right_point, slow_end)
-        # Update main dataframe with gamma metrics
-        sub_df.at[row.name, 'max_gamma_power'] = max_gamma_power
-        sub_df.at[row.name, 'gamma_freq'] = gamma_freq
-        sub_df.at[row.name, 'dur_gamma'] = dur_gamma
+            max_gamma_power, gamma_freq, dur_gamma = compute_gamma(signal, fs, left_point, right_point, slow_end)
+            # Update main dataframe with gamma metrics
+            sub_df.at[row.name, 'max_gamma_power'] = max_gamma_power
+            sub_df.at[row.name, 'gamma_freq'] = gamma_freq
+            sub_df.at[row.name, 'dur_gamma'] = dur_gamma
+        except:
+            max_gamma_power,gamma_freq,dur_gamma = 9999.5555
+            # Update main dataframe with gamma metrics
+            sub_df.at[row.name, 'max_gamma_power'] = max_gamma_power
+            sub_df.at[row.name, 'gamma_freq'] = gamma_freq
+            sub_df.at[row.name, 'dur_gamma'] = dur_gamma
 
     if i == 0:
-        sub_df.to_csv('/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/complete_dfs/hup_spikes_with_gamma.csv')
+        sub_df.to_csv('/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/complete_dfs/full_hup_spikes_with_gamma.csv')
     else: 
-        sub_df.to_csv('/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/complete_dfs/hup_spikes_with_gamma.csv', mode = 'a', header = False)
+        sub_df.to_csv('/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/complete_dfs/full_hup_spikes_with_gamma.csv', mode = 'a', header = False)
