@@ -98,8 +98,11 @@ except IOError as e:
     print(f"Error: Unable to create or write to log file. {e}")
     sys.exit(1)
 
-df_prog = pd.read_csv('/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/complete_dfs/full_hup_spikes_with_gamma.csv', index_col=0)
-
+try:
+    df_prog = pd.read_csv('/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/complete_dfs/full_hup_spikes_with_gamma.csv', index_col=0)
+except: 
+    print('making new one or doesnt exist')
+    
 for i, filename in tqdm(enumerate(filenames)):
     print(f"starting: {filename}")
     try:
@@ -107,9 +110,12 @@ for i, filename in tqdm(enumerate(filenames)):
     except: 
         sub_df = HUP_SPIKES[HUP_SPIKES.filename == filename]
 
-    if filename in df_prog.filename.unique():
-        print(f"Skipping {filename} as it is already in the dataframe")
-        continue
+    try:
+        if filename in df_prog.filename.unique():
+            print(f"Skipping {filename} as it is already in the dataframe")
+            continue
+    except: 
+        print('df prog not saved yet doesnt exist')
     
     #grab dataset name
     dataset_name = filename
@@ -177,11 +183,11 @@ for i, filename in tqdm(enumerate(filenames)):
             sub_df.at[row.name, 'gamma_freq'] = gamma_freq
             sub_df.at[row.name, 'dur_gamma'] = dur_gamma
         except:
-            max_gamma_power,gamma_freq,dur_gamma = 9999.5555
+            # max_gamma_power,gamma_freq,dur_gamma = 9999.5555
             # Update main dataframe with gamma metrics
-            sub_df.at[row.name, 'max_gamma_power'] = max_gamma_power
-            sub_df.at[row.name, 'gamma_freq'] = gamma_freq
-            sub_df.at[row.name, 'dur_gamma'] = dur_gamma
+            sub_df.at[row.name, 'max_gamma_power'] = 9999.5555
+            sub_df.at[row.name, 'gamma_freq'] = 9999.5555
+            sub_df.at[row.name, 'dur_gamma'] = 9999.5555
 
     if i == 0:
         sub_df.to_csv('/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/complete_dfs/full_hup_spikes_with_gamma.csv')
