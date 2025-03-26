@@ -233,7 +233,7 @@ plt.ylabel('SOZ Group', fontsize=12)
 
 # Adjust layout
 plt.tight_layout()
-
+# plt.savefig('/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/Revisions/figures/elec_counts/dist-elec.pdf')
 
 # #%%
 # # Count unique channels per patient
@@ -295,4 +295,3 @@ plt.tight_layout()
 # plt.xlabel('SOZ Type')
 # plt.ylabel('Number of Unique Channels')
 
-# %%

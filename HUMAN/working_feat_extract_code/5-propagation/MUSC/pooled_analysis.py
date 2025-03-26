@@ -28,6 +28,7 @@ from spike_morphology_v2 import *
 code_path = os.path.dirname('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/functions/')
 sys.path.append(code_path)
 from ied_fx_v3 import *
+from plot_soz_corrs import *
 
 data_directory = ['/mnt/leif/littlab/users/aguilac/Projects/FC_toolbox/results/mat_output_v2', '/mnt/leif/littlab/data/Human_Data']
 drop_pts = ['HUP093','HUP108','HUP113','HUP114','HUP116','HUP123','HUP087','HUP099','HUP111','HUP121','HUP105','HUP106','HUP107','HUP159'] #These are the patients with less than 8 contacts.
@@ -76,8 +77,8 @@ for i, Feat_of_interest in enumerate(list_of_feats):
     # all_spikes = all_spikes[~all_spikes['SOZ'].str.contains('other')].reset_index(drop=True)
 
     #channels to keep 
-    # chs_tokeep = ['RA','LA','RDA','LDA','LH','RH','LDH','RDH','DA','DH','DHA','LB','LDB','LC','LDC','RB','RDB','RC','RDC']
-    chs_tokeep = ['RA','LA','RDA','LDA','LDH','RDH','LHD', 'RHD','DA','DH','DHA','LB','LDB','LC','LDC','RB','RDB','RC','RDC']
+    chs_tokeep = ['RA','LA','RDA','LDA','LH','RH','LDH','RDH','DA','DH','DHA','LB','LDB','LC','LDC','RB','RDB','RC','RDC']
+    # chs_tokeep = ['RA','LA','RDA','LDA','LDH','RDH','LHD', 'RHD','DA','DH','DHA','LB','LDB','LC','LDC','RB','RDB','RC','RDC']
 
 
     #if channel_label contains any of the strings in chs_tokeep, keep it
@@ -102,11 +103,11 @@ for i, Feat_of_interest in enumerate(list_of_feats):
     non_mesial_temp_spikes = all_spikes[~all_spikes['SOZ'].str.contains('mesial')].reset_index(drop=True)
 
     #remove any 'channel_label' that contains the letter T or F
-    # mesial_temp_spikes = mesial_temp_spikes[~mesial_temp_spikes['channel_label'].str.contains('T|F|P|RCC|RCA|RAD|LAD|LHD|RHD|LDAH|RDAH|RCB|Z')].reset_index(drop=True)
-    # non_mesial_temp_spikes = non_mesial_temp_spikes[~non_mesial_temp_spikes['channel_label'].str.contains('T|F|P|RCC|RCA|RAD|LAD|LHD|RHD|LDAH|RDAH|RCB|Z')].reset_index(drop=True)
+    mesial_temp_spikes = mesial_temp_spikes[~mesial_temp_spikes['channel_label'].str.contains('T|F|P|RCC|RCA|RAD|LAD|LHD|RHD|LDAH|RDAH|RCB|Z')].reset_index(drop=True)
+    non_mesial_temp_spikes = non_mesial_temp_spikes[~non_mesial_temp_spikes['channel_label'].str.contains('T|F|P|RCC|RCA|RAD|LAD|LHD|RHD|LDAH|RDAH|RCB|Z')].reset_index(drop=True)
 
-    mesial_temp_spikes = mesial_temp_spikes[~mesial_temp_spikes['channel_label'].str.contains('T|F|P|RCC|RCA|RCB|Z')].reset_index(drop=True)
-    non_mesial_temp_spikes = non_mesial_temp_spikes[~non_mesial_temp_spikes['channel_label'].str.contains('T|F|P|RCC|RCA|RCB|Z')].reset_index(drop=True)
+    # mesial_temp_spikes = mesial_temp_spikes[~mesial_temp_spikes['channel_label'].str.contains('T|F|P|RCC|RCA|RCB|Z')].reset_index(drop=True)
+    # non_mesial_temp_spikes = non_mesial_temp_spikes[~non_mesial_temp_spikes['channel_label'].str.contains('T|F|P|RCC|RCA|RCB|Z')].reset_index(drop=True)
 
     ########################################
     # 2. Filter Elecs, Group, and Analysis #
@@ -840,7 +841,7 @@ for comparison in significanceComparisons:
     _, soz2 = comparison[1]
     group1 = melted_pearson_df[(melted_pearson_df['Metric'] == metric) & (melted_pearson_df['SOZ'] == soz1)]['Value']
     group2 = melted_pearson_df[(melted_pearson_df['Metric'] == metric) & (melted_pearson_df['SOZ'] == soz2)]['Value']
-    all_effect_szs.append([metric, soz1, soz2, cohend(group1, group2)])
+    all_effect_szs.append([metric, soz1, soz2, cliffsd(group1, group2)])
 
 print(all_effect_szs)
 
@@ -1041,65 +1042,83 @@ print(all_effect_szs)
 ## NOW CREATE PLOTS FOR SPIKE RATE 
 ####################################
 
-plt.figure(figsize=(8,6))
-#change font to arial
-plt.rcParams['font.family'] = 'Arial'
-test = 'Mann-Whitney'
-plt.axhline(y=0, color='k', linestyle='--')
+cohen, cliff = plot_soz_correlations(
+    pearson_df,
+    ['spike_rate_corr'],
+    x_labels=[''],
+    title='Spike Rates Directionality',
+    figsize = (10,6),
+    comparisons_correction= None
+)
+print(cohen)
+print(cliff)
 
-if vs_other == True:
-    my_palette = {1:'#E64B35FF', 2:'#3C5488FF'}
-    pairs=[(1, 2)]
-    order = [1,2]
-    ax = sns.boxplot(x='SOZ', y='spike_rate_corr', data=pearson_df, palette=my_palette, order=order, showfliers = False)
-    sns.stripplot(x="SOZ", y="spike_rate_corr", data=pearson_df, color="black", alpha=0.5)
-    annotator = Annotator(ax, pairs, data=pearson_df, x="SOZ", y="spike_rate_corr", order=order)
-    annotator.configure(test='Mann-Whitney', text_format='star', loc='inside', verbose = True, comparisons_correction='Benjamini-Hochberg')
-    annotator.apply_and_annotate()
+# plt.figure(figsize=(8,6))
+# #change font to arial
+# plt.rcParams['font.family'] = 'Arial'
+# test = 'Mann-Whitney'
+# plt.axhline(y=0, color='k', linestyle='--')
 
-    plt.xlabel('SOZ Type', fontsize=12)
-    plt.ylabel('Pearson Correlation', fontsize=12)
-    #change the x-tick labels to be more readable
-    # plt.xticks(np.arange(3), ['Mesial Temporal', 'Neocortical', 'Other Cortex'], fontsize = 12)
-    plt.xticks(np.arange(2), ['Mesial Temporal', 'Other'], fontsize = 12)
-    plt.ticks(fontsize = 12)
-
-if vs_other== False:
-    my_palette = {1:'#E64B35FF', 3:'#7E6148FF', 2:'#3C5488FF'}
-    pairs=[(1, 2), (2,3), (1,3)]
-    order = [1,2,3]
-    ax = sns.boxplot(x='SOZ', y='spike_rate_corr', data=pearson_df, palette=my_palette, order=order, showfliers = False)
-    sns.stripplot(x="SOZ", y="spike_rate_corr", data=pearson_df, color="black", alpha=0.5)
-    annotator = Annotator(ax, pairs, data=pearson_df, x="SOZ", y="spike_rate_corr", order=order)
-    annotator.configure(test=test, text_format='star', loc='inside', verbose = True, comparisons_correction='Benjamini-Hochberg')
-    annotator.apply_and_annotate()
-
-    plt.xlabel('SOZ Type', fontsize=12)
-    plt.ylabel('Pearson Correlation', fontsize=12)
-    #change the x-tick labels to be more readable
-    # plt.xticks(np.arange(3), ['Mesial Temporal', 'Neocortical', 'Other Cortex'], fontsize = 12)
-    plt.xticks(np.arange(3), ['Mesial Temporal', 'Neo', 'Other'], fontsize = 12)
-    plt.yticks(fontsize = 12)
-
-#part to change
-plt.title('Spike Rate Directionality', fontsize=16)
-sns.despine()
 # if vs_other == True:
-    # plt.savefig(f'../figures/MUSC+HUP/official/spike_rate_pearon_CLEAN.pdf')
-# if vs_other == False:
-    # plt.savefig(f'../figures/MUSC+HUP/official/spike_rate_pearon_MULTI.pdf')
-plt.show()
+#     my_palette = {1:'#E64B35FF', 2:'#3C5488FF'}
+#     pairs=[(1, 2)]
+#     order = [1,2]
+#     # Convert SOZ to numeric type
+#     pearson_df['SOZ'] = pd.to_numeric(pearson_df['SOZ'])
+#     ax = sns.boxplot(x='SOZ', y='spike_rate_corr', data=pearson_df, palette=my_palette, order=order, showfliers = False)
+#     sns.stripplot(x="SOZ", y="spike_rate_corr", data=pearson_df, color="black", alpha=0.5)
+#     annotator = Annotator(ax, pairs, data=pearson_df, x="SOZ", y="spike_rate_corr", order=order)
+#     annotator.configure(test='Mann-Whitney', text_format='star', loc='inside', verbose = True, comparisons_correction='Benjamini-Hochberg')
+#     annotator.apply_and_annotate()
 
-all_effect_szs = []
-for comparison in pairs:
-    # print(comparison)
-    soz1 = comparison[0]
-    soz2 = comparison[1]
-    group1 = pearson_df[pearson_df['SOZ'] == soz1]['spike_rate_corr']
-    group2 = pearson_df[pearson_df['SOZ'] == soz2]['spike_rate_corr']
-    all_effect_szs.append([metric, soz1, soz2, cohend(group1, group2)])
+#     plt.xlabel('SOZ Type', fontsize=12)
+#     plt.ylabel('Pearson Correlation', fontsize=12)
+#     #change the x-tick labels to be more readable
+#     # plt.xticks(np.arange(3), ['Mesial Temporal', 'Neocortical', 'Other Cortex'], fontsize = 12)
+#     plt.xticks(np.arange(2), ['Mesial Temporal', 'Other'], fontsize = 12)
+#     plt.ticks(fontsize = 12)
 
-print(all_effect_szs)
+# if vs_other== False:
+#     # my_palette = {'1':'#E64B35FF', '2':'#3C5488FF', '3':'#7E6148FF'}
+#     # order = ['1', '2', '3']
+#     # pairs=[('1', '2'), ('2','3'), ('1','3')]
+#     my_palette = {1:'#E64B35FF',2:'#3C5488FF',3:'#7E6148FF'}
+#     pairs=[(1, 2), (2,3), (1,3)]
+#     order = [1,2,3]
+#     # Convert SOZ to numeric type
+#     pearson_df['SOZ'] = pearson_df['SOZ'].astype(int)
+#     ax = sns.boxplot(x='SOZ', y='spike_rate_corr', data=pearson_df, palette=my_palette, order=order, showfliers = False)
+#     sns.stripplot(x="SOZ", y="spike_rate_corr", data=pearson_df, color="black", alpha=0.5)
+#     annotator = Annotator(ax, pairs, data=pearson_df, x="SOZ", y="spike_rate_corr", order=order)
+#     annotator.configure(test=test, text_format='star', loc='inside', verbose = True, comparisons_correction='Benjamini-Hochberg')
+#     annotator.apply_and_annotate()
+
+#     plt.xlabel('SOZ Type', fontsize=12)
+#     plt.ylabel('Pearson Correlation', fontsize=12)
+#     #change the x-tick labels to be more readable
+#     # plt.xticks(np.arange(3), ['Mesial Temporal', 'Neocortical', 'Other Cortex'], fontsize = 12)
+#     plt.xticks(np.arange(3), ['Mesial Temporal', 'Neo', 'Other'], fontsize = 12)
+#     plt.yticks(fontsize = 12)
+
+# #part to change
+# plt.title('Spike Rate Directionality', fontsize=16)
+# sns.despine()
+# # if vs_other == True:
+#     # plt.savefig(f'../figures/MUSC+HUP/official/spike_rate_pearon_CLEAN.pdf')
+# # if vs_other == False:
+#     # plt.savefig(f'../figures/MUSC+HUP/official/spike_rate_pearon_MULTI.pdf')
+# plt.show()
+
+# all_effect_szs = []
+# for comparison in pairs:
+#     # print(comparison)
+#     soz1 = comparison[0]
+#     soz2 = comparison[1]
+#     group1 = pearson_df[pearson_df['SOZ'] == soz1]['spike_rate_corr']
+#     group2 = pearson_df[pearson_df['SOZ'] == soz2]['spike_rate_corr']
+#     all_effect_szs.append([metric, soz1, soz2, cohend(group1, group2)])
+
+# print(all_effect_szs)
 
 
 #%%
@@ -1397,21 +1416,24 @@ import numpy as np
 
 plt.rcParams['font.family'] = 'Arial'
 
-# Assuming morphology_df is your DataFrame with the feature data
-corr_matrix = morphology_df.drop(columns = ['Spike Width','Slow Wave Amplitude']).corr()
+# Keep only key morphological features
+features_to_keep = ['Spike Width', 'Spike Sharpness', 'Rising Amplitude', 'Decay Amplitude', 'Line Length']
+corr_matrix = morphology_df[features_to_keep].corr().abs()  # Take absolute value of correlations
 
 # Set up the matplotlib figure
 fig = plt.figure(figsize=(14, 10))
 
 # Create the clustermap
 g = sns.clustermap(corr_matrix,
-                   cmap='viridis',
-                   center=0,
-                   vmin=-1,
+                   cmap='viridis',  # Changed to viridis since values are now 0-1
+                   center=None,  # Remove center since we're using absolute values
+                   vmin=0,  # Min is now 0 since using absolute values
                    vmax=1,
                    dendrogram_ratio=(0.2, 0),
                    cbar_pos=(0.02, 0.7, 0.05, 0.18),
                    tree_kws={'color': 'black'},
+                   annot = True,
+                   annot_kws={'size': 16},
                    figsize=(14, 10))
 
 # Adjust the layout
@@ -1440,7 +1462,7 @@ g.ax_heatmap.set_xticklabels(g.ax_heatmap.get_xticklabels(), rotation=90, ha='ce
 g.cax.set_position([0.92, 0.1, 0.02, 0.8])
 
 # Add title
-plt.suptitle('Correlation between Morphology Features', fontsize=30, fontweight='bold', y=1.02)
+plt.suptitle('Absolute Correlation between Morphology Features', fontsize=30, fontweight='bold', y=1.02)
 
 # Adjust layout
 plt.tight_layout(rect=[0, 0, 0.95, 0.95])

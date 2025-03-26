@@ -21,10 +21,10 @@ code_path = os.path.dirname('/mnt/leif/littlab/users/aguilac/Interictal_Spike_An
 sys.path.append(code_path)
 from ied_fx_v3 import *
 
-musc_gammaspikes = pd.read_csv('/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/complete_dfs/musc_spikes_with_gamma.csv', index_col=0)
+musc_gammaspikes = pd.read_csv('/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/complete_dfs/full_musc_spikes_with_gamma.csv', index_col=0)
 musc_gammaspikes = musc_gammaspikes.rename(columns={'region': 'SOZ'})
 
-hup_gammaspikes = pd.read_csv('/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/complete_dfs/hup_spikes_with_gamma.csv', index_col=0)
+hup_gammaspikes = pd.read_csv('/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/dataset/complete_dfs/full_hup_spikes_with_gamma.csv', index_col=0)
 #lets put the SOZ's into number format
 def hup_soz(row):
     if row['SOZ'] == 'mesial temporal':
@@ -44,6 +44,7 @@ gammaspikes = pd.concat([musc_gammaspikes, hup_gammaspikes], axis=0).drop(column
 
 #Look for rows in gammaspikes where max_gamma_power is not 0
 gammaspikes = gammaspikes[gammaspikes['max_gamma_power'] != 0]
+gammaspikes = gammaspikes[gammaspikes['max_gamma_power'] != 9999.5555]
 
 #%%
 # #Side note: look for duration across pt_ids
@@ -312,44 +313,98 @@ from statannotations.Annotator import Annotator
 
 from plot_soz_correlations import *
 #%%
-# plt.rcParams['font.family'] = 'Arial'
-# effect_sizes = plot_soz_correlations(
-#     pearson_df,
-#     ['spike_rate_corr'],
-#     x_labels=[''],
-#     title='Spike Rate Directionality w/ Gamma Spikes',
-#     figsize = (10,6)
-# )
-# print("Effect Sizes for spike rate:\n", effect_sizes[1])
+plt.rcParams['font.family'] = 'Arial'
+effect_sizes = plot_soz_correlations(
+    pearson_df,
+    ['spike_rate_corr'],
+    x_labels=[''],
+    title='Spike Rate Directionality w/ Gamma Spikes',
+    figsize = (10,6),
+    path = '/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/Revisions/figures/gamma-spikes/spikerate_corr.pdf'
+)
+print("Effect Sizes for spike rate:\n", effect_sizes)
+print('Cliffs D', effect_sizes[1])
 
-# effect_sizes = plot_soz_correlations(
-#     pearson_df,
-#     ['recruitment_latency_thresh_corr'],
-#     x_labels=[''],
-#     title='Timing Directionality w/ Gamma Spikes',
-#     figsize = (10,6)
-# )
-# print("Effect Sizes for timing:\n", effect_sizes[1])
+#%%
+effect_sizes = plot_soz_correlations(
+    pearson_df,
+    ['recruitment_latency_thresh_corr'],
+    x_labels=[''],
+    title='Timing Directionality w/ Gamma Spikes',
+    figsize = (10,6),
+    path = '/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/Revisions/figures/gamma-spikes/timing-corr.pdf'
+    )
+print("Effect Sizes for timing:\n", effect_sizes)
+print('Cliffs D', effect_sizes[1])
 
-# effect_sizes = plot_soz_correlations(
-#     pearson_df,
-#     ['rise_amp_corr','sharpness_corr','spike_width_corr'],
-#     x_labels=['Rise Amp','Sharpness','Spike Width'],
-#     title='Morphology Directionality w/ Gamma Spikes',
-#     figsize = (10,6)
-# )
-# print("Effect Sizes:\n", effect_sizes[1])
+#%%
+effect_sizes = plot_soz_correlations(
+    pearson_df,
+    ['rise_amp_corr','sharpness_corr','spike_width_corr'],
+    x_labels=['Rise Amp','Sharpness','Spike Width'],
+    title='Morphology Directionality w/ Gamma Spikes',
+    figsize = (10,6),
+    path = '/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/Revisions/figures/gamma-spikes/base-morph.pdf'
+)
+print("Effect Sizes:\n", effect_sizes[0])
+print('Cliffs D', effect_sizes[1])
 
-# effect_sizes = plot_soz_correlations(
-#     pearson_df,
-#     ['decay_amp_corr','linelen_corr','slow_width_corr','slow_amp_corr','rise_slope_corr','decay_slope_corr','average_amp_corr','rise_duration_corr','decay_duration_corr'],
-#     x_labels=['Decay Amp','Line Length','Slow Width','Slow Amp','Rise Slope','Decay Slope','Average Amp','Rise Duration','Decay Duration'],
-#     title='Morphology Directionality w/ Gamma Spikes',
-#     figsize = (15,7),
-#     comparisons_correction=None,
-#     rotation = 45
-# )
-# print("Effect Sizes:\n", effect_sizes)
+
+print(pearson_df.groupby('SOZ')['rise_amp_corr'].describe())
+print(pearson_df.groupby('SOZ')['spike_width_corr'].describe())
+#%%
+# Perform Kruskal-Wallis test for each morphology feature
+from scipy import stats
+from statsmodels.stats.multitest import multipletests
+
+# Only test morphology features
+# features = ['rise_amp_corr', 'sharpness_corr', 'spike_width_corr']
+features = ['spike_rate_corr','recruitment_latency_thresh_corr']
+print("\nKruskal-Wallis Test Results:")
+print("-" * 50)
+
+# Store p-values
+p_values = []
+
+# First pass to collect p-values
+for feature in features:
+    # Create groups based on SOZ
+    mtle = pearson_df[pearson_df['SOZ'] == 1][feature]
+    neo = pearson_df[pearson_df['SOZ'] == 2][feature]
+    other = pearson_df[pearson_df['SOZ'] == 3][feature]
+    
+    # Perform Kruskal-Wallis H-test
+    h_stat, p_val = stats.kruskal(mtle, neo, other)
+    p_values.append(p_val)
+
+# Correct p-values using Benjamini-Hochberg
+rejected, p_corrected, _, _ = multipletests(p_values, method='fdr_bh')
+
+# Print results with corrected p-values
+for i, feature in enumerate(features):
+    mtle = pearson_df[pearson_df['SOZ'] == 1][feature]
+    neo = pearson_df[pearson_df['SOZ'] == 2][feature]
+    other = pearson_df[pearson_df['SOZ'] == 3][feature]
+    
+    h_stat, _ = stats.kruskal(mtle, neo, other)
+    
+    print(f"\n{feature}:")
+    print(f"H-statistic: {h_stat:.3f}")
+    print(f"Original p-value: {p_values[i]:.3e}")
+    print(f"Corrected p-value: {p_corrected[i]:.3e}")
+    print(f"Significant: {rejected[i]}")
+
+#%%
+effect_sizes = plot_soz_correlations(
+    pearson_df,
+    ['decay_amp_corr','linelen_corr','slow_width_corr','slow_amp_corr'],
+    # x_labels=['Decay Amp','Line Length','Slow Width','Slow Amp','Rise Slope','Decay Slope','Average Amp','Rise Duration','Decay Duration'],
+    title='Morphology Directionality w/ Gamma Spikes',
+    figsize = (15,7),
+    comparisons_correction=None,
+    rotation = 45
+)
+print("Effect Sizes:\n", effect_sizes)
 
 # %%
 #plot some spikes
@@ -380,90 +435,70 @@ gammaspikes = pd.concat([musc_gammaspikes, hup_gammaspikes], axis=0).drop(column
 gammaspikes = gammaspikes[gammaspikes['max_gamma_power'] != 0]
 
 #%%
-yo = gammaspikes[(gammaspikes.filename == 'HUP126_phaseII_D02') & (gammaspikes.rise_amp > 500)] #(gammaspikes.channel_label == 'LDA1') &
-# p = [45, 43, 42, 37, 33,34,30,27,23,24,19,11,2,3]
-# # for X in range(len(yo)):
-# for X in p:
-X=2
-print(X)
-train = pd.DataFrame(yo.iloc[X]).T#.sample(n=1)
-# train = yo.sample(n=1)
-filename = train['filename'].iloc[0]
-
-#Load in the spike.
-with open("/mnt/leif/littlab/users/aguilac/tools/agu_ieeglogin.bin", "r") as f:
-    session = Session("aguilac", f.read())
-
-dataset = session.open_dataset(filename)
-
-all_channel_labels = np.array(dataset.get_channel_labels())
-
-#change the sequence_index == X for a different peak_index
-ch_labels = all_channel_labels[electrode_selection(all_channel_labels)]
-
-fs = int(dataset.get_time_series_details(dataset.ch_labels[0]).sample_rate)  # get sample rate
-
-#find a minute of data around the spike train we want.
-lower_bound = (train['peak_time_usec'])
-upper_bound = (train['peak_time_usec'])
-
-ieeg_data, fs = get_iEEG_data(
-                            "aguilac",
-                            "/mnt/leif/littlab/users/aguilac/tools/agu_ieeglogin.bin",
-                            filename,
-                            (lower_bound) - (2 * 1e6),
-                            (upper_bound) + (2 * 1e6),
-                            ch_labels
-                        )
-
-fs = int(fs)
-
-#look for bad channels
-good_channels_res = detect_bad_channels_optimized(ieeg_data.to_numpy(), fs)
-good_channel_indicies = good_channels_res[0]
-good_channel_labels = ch_labels[good_channel_indicies]
-ieeg_data = ieeg_data[good_channel_labels]
-good_channel_labels = [decompose_labels(x, train['pt_id'].iloc[0]) for x in good_channel_labels]
-ieeg_data.columns = good_channel_labels
-signal = ieeg_data[train['channel_label']]
-
-#apply bandpass filter
-ieeg_data = notch_filter(signal, 60, fs)
-signal_filtered = bandpass_filter((ieeg_data), 1, 100, fs, order=4)
 
 
-try:
-    gamma_filt = bandpass_filter((ieeg_data), 80,500,fs,order = 4)
-except:
-    gamma_filt = bandpass_filter(ieeg_data, 80, (fs/2) -1, fs,order = 4)
 
-plt.rcParams['font.family'] = 'Arial'
-plt.figure(figsize = (7,5))
-plt.plot(np.linspace(-2,2,len(signal_filtered)),signal_filtered,'k')
-plt.plot(np.linspace(-2,2,len(signal_filtered)),gamma_filt+300, 'r', linewidth = 0.5)
-sns.despine()
-plt.xlim([-1,1])
-plt.xlabel('Seconds')
-plt.ylabel('uV')
-plt.title('Example detection')
-plt.savefig('/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/Revisions/figures/gamma-spikes/example.pdf')
-plt.show()
+train = gammaspikes.sample(n=1)
+yo = gammaspikes[gammaspikes.filename == 'HUP126_phaseII_D02']
+check = yo[yo.channel_label == 'LDA1']
+for X in range(len(check)):
+    print(X)
+    train = pd.DataFrame(check.iloc[X]).T
+    # train = pd.DataFrame(gammaspikes.iloc[129]).T
+    filename = train['filename'].iloc[0]
 
-# Create spectrogram of gamma activity
-plt.figure(figsize=(10,6))
-f, t, Sxx = scipy.signal.spectrogram(gamma_filt, fs=fs, nperseg=256, noverlap=128, 
-                                    window='hanning', scaling='spectrum')
-plt.pcolormesh(t-2, f, 10*np.log10(Sxx), shading='gouraud', cmap='viridis')
-plt.ylim([80, 500])  # Only show gamma frequency range
-plt.colorbar(label='Power/frequency (dB/Hz)')
-plt.xlabel('Time (s)')
-plt.ylabel('Frequency (Hz)')
-plt.title('Spectrogram of Gamma Activity')
-sns.despine()
-plt.tight_layout()
-plt.savefig('/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/Revisions/figures/gamma-spikes/spectrogram.pdf')
-plt.show()
+
+    #Load in the spike.
+    with open("/mnt/leif/littlab/users/aguilac/tools/agu_ieeglogin.bin", "r") as f:
+        session = Session("aguilac", f.read())
+
+    dataset = session.open_dataset(filename)
+
+    all_channel_labels = np.array(dataset.get_channel_labels())
+
+    #change the sequence_index == X for a different peak_index
+    ch_labels = all_channel_labels[electrode_selection(all_channel_labels)]
+
+    fs = int(dataset.get_time_series_details(dataset.ch_labels[0]).sample_rate)  # get sample rate
+
+    #find a minute of data around the spike train we want.
+    lower_bound = (train['peak_time_usec'])
+    upper_bound = (train['peak_time_usec'])
+
+    ieeg_data, fs = get_iEEG_data(
+                                "aguilac",
+                                "/mnt/leif/littlab/users/aguilac/tools/agu_ieeglogin.bin",
+                                filename,
+                                (lower_bound) - (2 * 1e6),
+                                (upper_bound) + (2 * 1e6),
+                                ch_labels
+                            )
+
+    fs = int(fs)
+
+    #look for bad channels
+    good_channels_res = detect_bad_channels_optimized(ieeg_data.to_numpy(), fs)
+    good_channel_indicies = good_channels_res[0]
+    good_channel_labels = ch_labels[good_channel_indicies]
+    ieeg_data = ieeg_data[good_channel_labels]
+    good_channel_labels = [decompose_labels(x, train['pt_id'].iloc[0]) for x in good_channel_labels]
+    ieeg_data.columns = good_channel_labels
+    signal = ieeg_data[train['channel_label']]
+
+    #apply bandpass filter
+    ieeg_data = notch_filter(signal, 60, fs)
+    signal_filtered = bandpass_filter((ieeg_data), 1, 100, fs, order=4)
+
+    try:
+        gamma_filt = bandpass_filter((ieeg_data), 100,500,fs,order = 4)
+    except:
+        gamma_filt = bandpass_filter(ieeg_data, 100, (fs/2) -1, fs,order = 4)
+    plt.figure(figsize = (10,5))
+    plt.plot(signal_filtered,'k')
+    plt.plot(gamma_filt+200, 'r')
+    plt.show()  
 
 #good locs: 
 # 949286
+# 22, 
 # %%

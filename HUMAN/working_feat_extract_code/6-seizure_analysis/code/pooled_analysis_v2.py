@@ -33,8 +33,8 @@ from ied_fx_v3 import *
 
 #HFER per time
 type = '11s-hfer-'
-hup_ei = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/6-seizure_analysis/data/self_run/hfer_HUP_6s.csv')
-musc_ei = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/6-seizure_analysis/data/self_run/hfer_MUSC_6s.csv')
+hup_ei = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/6-seizure_analysis/data/self_run/hfer_HUP_11s.csv')
+musc_ei = pd.read_csv('/mnt/leif/littlab/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/6-seizure_analysis/data/self_run/hfer_MUSC_11s.csv')
 
 # hup_ei = pd.read_csv('../data/self_run/HUP_all_hfer.csv')
 # musc_ei = pd.read_csv('../data/self_run/MUSC_all_hfer.csv')
@@ -630,7 +630,7 @@ for comparison in pairs:
     soz2 = comparison[1]
     group1 = corr_df[corr_df['SOZ'] == soz1]['correlation']
     group2 = corr_df[corr_df['SOZ'] == soz2]['correlation']
-    all_effect_szs.append(['Spearman Corr EI', soz1, soz2, cohend(group1, group2)])
+    all_effect_szs.append(['Spearman Corr EI', soz1, soz2, cliffsd(group1, group2)])
 
 print(all_effect_szs)
 
@@ -647,7 +647,7 @@ my_palette = {1:'#E64B35FF', 3:'#7E6148FF', 2:'#3C5488FF'}
 pairs=[(1, 2),(1,3), (2,3)]
 order = [1,2,3]
 
-ax = sns.boxplot(x='SOZ', y='correlation', data=pearson_df, palette=my_palette, order=order, showfliers = False)
+ax = sns.boxplot(x='SOZ', y='correlation', data=pearson_df, order=order, showfliers = False)
 sns.stripplot(x="SOZ", y="correlation", data=pearson_df, color="black", alpha=0.5)
 plt.axhline(y=0, color='k', linestyle='--')
 annotator = Annotator(ax, pairs, data=pearson_df, x="SOZ", y="correlation", order=order)
@@ -675,7 +675,7 @@ for comparison in pairs:
     group1 = pearson_df[pearson_df['SOZ'] == soz1]['correlation']
     group2 = pearson_df[pearson_df['SOZ'] == soz2]['correlation']
 
-    all_effect_szs.append(['Pearson Corr EI', soz1, soz2, cohend(group1, group2)])
+    all_effect_szs.append(['Pearson Corr EI', soz1, soz2, cliffsd(group1, group2)])
 
 print(all_effect_szs)
 # %%

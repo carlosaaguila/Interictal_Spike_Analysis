@@ -6,13 +6,22 @@ sys.path.append(code_path)
 from delongs_test import *
 
 def main():
-    combined_preds = pd.read_csv('ML_results/LR_elastic_3fold/Combined_predictions.csv').rename(columns = {"Predicted_Probability":"combined_predprob"})
-    interictal_preds = pd.read_csv('ML_results/LR_elastic_3fold/Interictal_predictions.csv').rename(columns = {"Predicted_Probability":"interictal_predprob"})
-    ictal_preds = pd.read_csv('ML_results/LR_elastic_3fold/Ictal_predictions.csv').rename(columns = {"Predicted_Probability":"ictal_predprob"})
+    combined_preds = pd.read_csv('/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/Revisions/ML_results/final/Combined_predictions.csv').rename(columns = {"Predicted_Probability":"combined_predprob"})
+    interictal_preds = pd.read_csv('/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/Revisions/ML_results/final/Interictal_predictions.csv').rename(columns = {"Predicted_Probability":"interictal_predprob"})
+    ictal_preds = pd.read_csv('/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/Revisions/ML_results/final/Ictal_predictions.csv').rename(columns = {"Predicted_Probability":"ictal_predprob"})
+
+    MTL_preds = pd.read_csv('/users/aguilac/Interictal_Spike_Analysis/HUMAN/working_feat_extract_code/5-propagation/Revisions/ML_results/final/MTL Spike Rate_predictions.csv').rename(columns = {"Predicted_Probability":"mtl_predprob"})
 
     merged_preds_v1 = combined_preds.merge(interictal_preds[['Patient_ID','interictal_predprob']], on='Patient_ID', how = "left")
     merged_preds = merged_preds_v1.merge(ictal_preds[['Patient_ID','ictal_predprob']], on = 'Patient_ID', how = "inner")
+    merged_preds = merged_preds.merge(MTL_preds[['Patient_ID','mtl_predprob']], on = 'Patient_ID', how = 'inner')
 
+
+    print('\nDifference between mTL Spike Rate vs. COMBINED:')
+    auc4, cov4, p4 = (delong_roc_test(np.array(merged_preds['True_Label']), np.array(merged_preds['mtl_predprob']), np.array(merged_preds['combined_predprob'])))
+    print("AUC:",auc4)
+    print("COV:",cov4)
+    print("p-value:",np.exp(np.log(10)*p4)) 
 
     #Run the delong test on the pairs
     print('Difference between COMBINED vs. ICTAL-ONLY:')

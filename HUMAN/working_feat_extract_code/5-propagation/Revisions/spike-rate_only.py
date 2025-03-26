@@ -43,9 +43,9 @@ take_spike_leads = False
 soz_to_remove = ['temporal']
 
 # list_of_feats = ['spike_rate','recruitment_latency_thresh']
-# list_of_feats = ['spike_rate', 'rise_amp','decay_amp','sharpness','linelen','recruitment_latency_thresh','spike_width','slow_width','slow_amp', 'rise_slope','decay_slope','average_amp','rise_duration','decay_duration']
-list_of_feats = ['spike_rate', 'rise_amp']
-
+list_of_feats = ['spike_rate', 'rise_amp','decay_amp','sharpness','linelen','recruitment_latency_thresh','spike_width','slow_width','slow_amp', 'rise_slope','decay_slope','average_amp','rise_duration','decay_duration']
+list_of_feats = ['spike_rate','rise_amp','decay_amp','sharpness','linelen','recruitment_latency_thresh', 'spike_width','slow_width','slow_amp']
+# list_of_feats = ['spike_rate', 'rise_amp']
 
 df_to_use = []
 for Feat_of_interest in list_of_feats:
